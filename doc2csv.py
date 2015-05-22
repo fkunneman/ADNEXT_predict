@@ -1,7 +1,6 @@
 #!/usr/bin/env 
 
 import argparse
-import config_reader
 import utils
 
 """
@@ -40,7 +39,7 @@ else: #txt file
 #set columns of lines in right order
 if args.c: 
     indexline = utils.read_columnfile(args.c)
-    csvrow = []
+    csvrows = []
     for line in lines:
         csvrow = []
         for i in indexline:

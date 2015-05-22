@@ -2,7 +2,10 @@
 
 import xlrd
 import json
+import csv
+
 import re
+
 
 def read_columnfile(columnfile):
     """
@@ -20,8 +23,8 @@ def read_columnfile(columnfile):
     defaultline : list of the index of each key in the file 
     """
 
-    column_sequence = "label, doc_id, user_id, username, date, time, text, " +
-        "frogged".split()
+    column_sequence = "label, doc_id, user_id, username, date, time, text, \
+        frogged".split()
     defaultline = ["-", "-", "-", "-", "-", "-", "-", "-"]
 
     #initialize columndict
@@ -35,8 +38,8 @@ def read_columnfile(columnfile):
         "Text" : 6
     }
 
-    with open(filename) as cf:
-        for line in sf.readlines():
+    with open(columnfile) as cf:
+        for line in cf.readlines():
             key, value = line.strip().split(": ")
             try:
                 defaultline[columndict[key]] = int(value)
@@ -75,15 +78,14 @@ def read_json(filename):
             decoded = json.loads(line)
             if "twinl_lang" in decoded and decoded["twinl_lang"] != "dutch":
                 continue
-            tweet_id = [decoded["id"]
+            tweet_id = decoded["id"]
             user_id = decoded["user"]["id"]
             dtsearch = date_time.search(decoded["created_at"]).groups()
             date = dtsearch[1] + "-" + month[dtsearch[0]] + "-" + dtsearch[3]
             time = dtsearch[2]
             username = decoded["user"]["screen_name"]
             text = decoded["text"]
-            rows.append(["-"] + [unicode(x) for x in [tweet_id, user_id, date, time, 
-                username, text]])
+            rows.append(["-"] + [tweet_id, user_id, date, time, username, text])
     return rows
 
 def read_excel(filename):
@@ -105,8 +107,7 @@ def read_excel(filename):
     wbsheet = workbook.sheets()[0]
     rows = []
     for rownum in range(wbsheet.nrows):
-        rowvals = wbsheet.row_values(rownum)
-        rows.append([unicode(x) for x in rowvals])
+        rows.append(wbsheet.row_values(rownum))
     return rows
 
 def write_csv(rows, outfile):
