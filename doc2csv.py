@@ -27,16 +27,23 @@ parser.add_argument('-c', action = 'store', required = False,
         ".xls(x) and .txt files, not for .json files")
 args = parser.parse_args() 
 
-#read in file
-if args.i[-3:] == "xls" or args.i[-4:] == "xlsx": 
-    lines = utils.read_excel(args.i)
+# read in file
+if args.i[-3:] == "xls" or args.i[-4:] == "xlsx":
+    # make sure date and time fields are correctly processed
+    indexline = utils.read_columnfile(args.c)
+    date, time = False, False
+    if indexline[3] != "-":
+        date = indexline[3]
+    if indexline[4] != "-":
+        time = indexline[4]  
+    lines = utils.read_excel(args.i,date,time)
 elif args.i[-4:] == "json":
     csvrows = utils.read_json(args.i)
-else: #txt file
+else: # txt file
     with open(args.i, encoding="utf-8") as fn:
         lines = [x.strip().split("\t") for x in fn.readlines()]
 
-#set columns of lines in right order
+# set columns of lines in right order
 if args.c: 
     indexline = utils.read_columnfile(args.c)
     csvrows = []
@@ -49,5 +56,5 @@ if args.c:
                 csvrow.append(line[i])
         csvrows.append(csvrow)
 
-#write to csv
+# write to csv
 utils.write_csv(csvrows, args.o)

@@ -3,9 +3,8 @@
 import xlrd
 import json
 import csv
-
 import re
-
+import datetime
 
 def read_columnfile(columnfile):
     """
@@ -88,7 +87,7 @@ def read_json(filename):
             rows.append(["-"] + [tweet_id, user_id, date, time, username, text])
     return rows
 
-def read_excel(filename):
+def read_excel(filename, date = False, time = False):
     """
     Excel reader
     =====
@@ -103,11 +102,30 @@ def read_excel(filename):
     rows : list of lists
         each list corresponds to the cell values of a row
     """
+    #some regexes to normalize time related cells
+    datesearch = re.compile(r"\d{2,4}-\d{2}-\d{2,4}")
+    timesearch = re.compile(r"\d{1,2}:\d{2}(:{2})?")
+
     workbook = xlrd.open_workbook(filename)
     wbsheet = workbook.sheets()[0]
     rows = []
     for rownum in range(wbsheet.nrows):
-        rows.append(wbsheet.row_values(rownum))
+        values = wbsheet.row_values(rownum))
+        if date:
+            values[date] = \
+                datetime.date(*xlrd.xldate_as_tuple\
+                    (\
+                    sheet.cell_value(rownum, date), \
+                    workbook.datemode)[:3]\
+                    )           
+        if time:
+            values[time] = \
+                datetime.time(*xlrd.xldate_as_tuple\
+                    (\
+                    sheet.cell_value(rownum, time), \
+                    workbook.datemode)[:3]\
+                    )
+        rows.append(values)
     return rows
 
 def write_csv(rows, outfile):
