@@ -23,8 +23,8 @@ def read_columnfile(columnfile):
     """
 
     column_sequence = "label, doc_id, user_id, username, date, time, text, \
-        frogged".split()
-    defaultline = ["-", "-", "-", "-", "-", "-", "-"]
+        frog".split()
+    defaultline = ["-", "-", "-", "-", "-", "-", "-", "-"]
 
     #initialize columndict
     columndict = {
@@ -84,7 +84,7 @@ def read_json(filename):
             time = dtsearch[2]
             username = decoded["user"]["screen_name"]
             text = decoded["text"]
-            rows.append(["-"] + [tweet_id, user_id, date, time, username, text])
+            rows.append(["-"] + [tweet_id, user_id, date, time, username, text] + ["-"])
     return rows
 
 def read_excel(filename, header = False, date = False, time = False):
@@ -150,3 +150,9 @@ def write_csv(rows, outfile):
         writer = csv.writer(csvfile)
         for row in rows:
             writer.writerow(row)
+
+def write_data_csv(data, outfile):
+    #format is now {'texts'=[], 'user_id'=[], ...}. Needs to be converted in an instance per line
+    fields = "label tweet_id user_id date time username text frog".split()
+    rows = zip(*[data[field] for field in fields])
+    write_csv(rows, outfile)
