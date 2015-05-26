@@ -22,7 +22,7 @@ os.system("python3 doc2csv.py -i " + xlsfile + " -o " + xlsout +
     " -c " + xlsconfig)
 print("Read in xls2")
 os.system("python3 doc2csv.py -i " + xlsfile2 + " -o " + xls2out + 
-    " -c " + xlsconfig2)
+    " -c " + xlsconfig2 + " --header")
 print("Read in txt")
 os.system("python3 doc2csv.py -i " + txtfile + " -o " + txtout + 
     " -c " + txtconfig)

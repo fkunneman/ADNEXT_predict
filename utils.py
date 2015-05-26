@@ -87,7 +87,7 @@ def read_json(filename):
             rows.append(["-"] + [tweet_id, user_id, date, time, username, text])
     return rows
 
-def read_excel(filename, date = False, time = False):
+def read_excel(filename, header = False, date = False, time = False):
     """
     Excel reader
     =====
@@ -109,7 +109,10 @@ def read_excel(filename, date = False, time = False):
     workbook = xlrd.open_workbook(filename)
     wbsheet = workbook.sheets()[0]
     rows = []
-    for rownum in range(wbsheet.nrows):
+    begin = 0
+    if header:
+        begin = 1
+    for rownum in range(begin, wbsheet.nrows):
         values = wbsheet.row_values(rownum)
         print(values)
         if date:

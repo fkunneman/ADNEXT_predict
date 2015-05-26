@@ -25,6 +25,8 @@ parser.add_argument('-o', action = 'store', required = True, help = "Outfile")
 parser.add_argument('-c', action = 'store', required = False, 
     help = "Columnfile in which the value of each column is specified (needed for " +
         ".xls(x) and .txt files, not for .json files")
+parser.add_argument('--header', action = 'store_true', 
+    help = "Specify if the file contains a header")
 args = parser.parse_args() 
 
 # read in file
@@ -36,12 +38,14 @@ if args.i[-3:] == "xls" or args.i[-4:] == "xlsx":
         date = indexline[3]
     if indexline[4] != "-":
         time = indexline[4]  
-    lines = utils.read_excel(args.i,date,time)
+    lines = utils.read_excel(args.i, args.header, date, time)
 elif args.i[-4:] == "json":
     csvrows = utils.read_json(args.i)
 else: # txt file
     with open(args.i, encoding="utf-8") as fn:
         lines = [x.strip().split("\t") for x in fn.readlines()]
+        if args.header:
+            lines = lines[1:]
 
 # set columns of lines in right order
 if args.c: 
