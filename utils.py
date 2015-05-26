@@ -110,19 +110,20 @@ def read_excel(filename, date = False, time = False):
     wbsheet = workbook.sheets()[0]
     rows = []
     for rownum in range(wbsheet.nrows):
-        values = wbsheet.row_values(rownum))
+        values = wbsheet.row_values(rownum)
+        print(values)
         if date:
             values[date] = \
                 datetime.date(*xlrd.xldate_as_tuple\
                     (\
-                    sheet.cell_value(rownum, date), \
+                    wbsheet.cell_value(rownum, date), \
                     workbook.datemode)[:3]\
                     )           
         if time:
             values[time] = \
                 datetime.time(*xlrd.xldate_as_tuple\
                     (\
-                    sheet.cell_value(rownum, time), \
+                    wbsheet.cell_value(rownum, time), \
                     workbook.datemode)[:3]\
                     )
         rows.append(values)
