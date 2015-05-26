@@ -24,7 +24,7 @@ def read_columnfile(columnfile):
 
     column_sequence = "label, doc_id, user_id, username, date, time, text, \
         frogged".split()
-    defaultline = ["-", "-", "-", "-", "-", "-", "-", "-"]
+    defaultline = ["-", "-", "-", "-", "-", "-", "-"]
 
     #initialize columndict
     columndict = {
@@ -80,7 +80,7 @@ def read_json(filename):
             tweet_id = decoded["id"]
             user_id = decoded["user"]["id"]
             dtsearch = date_time.search(decoded["created_at"]).groups()
-            date = dtsearch[1] + "-" + month[dtsearch[0]] + "-" + dtsearch[3]
+            date = dtsearch[3] + "-" + month[dtsearch[0]] + "-" + dtsearch[1]
             time = dtsearch[2]
             username = decoded["user"]["screen_name"]
             text = decoded["text"]
@@ -102,10 +102,6 @@ def read_excel(filename, header = False, date = False, time = False):
     rows : list of lists
         each list corresponds to the cell values of a row
     """
-    #some regexes to normalize time related cells
-    datesearch = re.compile(r"\d{2,4}-\d{2}-\d{2,4}")
-    timesearch = re.compile(r"\d{1,2}:\d{2}(:{2})?")
-
     workbook = xlrd.open_workbook(filename)
     wbsheet = workbook.sheets()[0]
     rows = []
@@ -114,21 +110,26 @@ def read_excel(filename, header = False, date = False, time = False):
         begin = 1
     for rownum in range(begin, wbsheet.nrows):
         values = wbsheet.row_values(rownum)
-        print(values)
-        if date:
-            values[date] = \
-                datetime.date(*xlrd.xldate_as_tuple\
+        if date == 0 or date:
+            try:
+                datefields = xlrd.xldate_as_tuple\
                     (\
                     wbsheet.cell_value(rownum, date), \
-                    workbook.datemode)[:3]\
-                    )           
-        if time:
-            values[time] = \
-                datetime.time(*xlrd.xldate_as_tuple\
+                    workbook.datemode\
+                    )[:3]
+                values[date] = datetime.date(*datefields)
+            except TypeError:
+                values[date] = values[date]           
+        if time == 0 or time:
+            try:
+                timefields = xlrd.xldate_as_tuple\
                     (\
                     wbsheet.cell_value(rownum, time), \
-                    workbook.datemode)[:3]\
-                    )
+                    workbook.datemode\
+                    )[3:]
+                values[time] = datetime.time(*timefields)
+            except TypeError:
+                values[time] = values[time]        
         rows.append(values)
     return rows
 
