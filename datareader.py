@@ -1,5 +1,6 @@
 
 import csv
+import sys
 
 class Datareader:
     """
@@ -31,7 +32,7 @@ class Datareader:
     def __init__(self, max_n=False):
         self.max_n = max_n
         self.headers = "label tweet_id user_id date time username text frog".split()
-        self.dataset = {k: [] for k in fields}
+        self.dataset = {k: [] for k in self.headers}
 
     def set(self, filename):
         """
@@ -53,7 +54,7 @@ class Datareader:
                 rows.append(line)
         
         for row in rows:
-            for category, val in zip(fields, row):
+            for category, val in zip(self.headers, row):
                 self.dataset[category].append(val)
 
     def get(self):
