@@ -133,26 +133,6 @@ def read_excel(filename, header = False, date = False, time = False):
         rows.append(values)
     return rows
 
-def dataset_2_rows(data):
-    """
-    Dataset converter
-    =====
-    Converts a dataset into rows
-    Needed to write a dataset to a file in csv format 
-
-    Parameters
-    -----
-    dataset : dictionary of lists (each list represents a column)
-
-    Returns
-    -----
-    rows : list of lists (rows and columns respectively)
-    """
-    #format is now {'texts'=[], 'user_id'=[], ...}. Needs to be converted in an instance per line
-    fields = "label tweet_id user_id date time username text frogs".split()
-    rows = zip(*[data[field] for field in fields])
-    return rows
-
 def write_csv(rows, outfile):
     """
     CSV writer

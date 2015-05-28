@@ -32,8 +32,9 @@ class Datahandler:
     def __init__(self, filename, max_n=False):
         self.max_n = max_n
         self.headers = "label tweet_id user_id date time username text frogs".split()
-        self.dataset = {k: [] for k in self.headers}
-        self.set(filename)
+        self.dataset = self.set(filename)
+        if self.dataset['frogs'][0] != '-':
+            self.decode_frog()
 
     def set(self, filename):
         """
@@ -46,17 +47,62 @@ class Datahandler:
         filename : str
             The name of the csv file
 
+        Returns
+        -----
+        dataset : dict of lists
+            each column with an identifier
+
         """
         csv.field_size_limit(sys.maxsize)
-        rows = []
+        self.rows = []
         with open(filename, 'r') as csvfile:
             csv_reader = csv.reader(csvfile)
             for line in csv_reader:
-                rows.append(line)
+                self.rows.append(line)
         
-        for row in rows:
+        dataset = self.rows_2_dataset(self.rows)
+        return dataset
+
+    def decode_frog(self):
+        """
+        Frog decoder
+        =====
+        Function to decode a frog string into a list of lists per document
+        """
+        new_frogs = []
+        for doc in self.dataset['frogs']:
+            new_frogs.append([token.split("\t") for token in doc.split("\n")])
+        self.dataset['frogs'] = new_frogs
+
+    def dataset_2_rows(self):
+        """
+        Dataset converter
+        =====
+        Converts a dataset into rows
+        Needed to write a dataset to a file in csv format 
+
+        Sets
+        -----
+        self.rows : list of lists (rows and columns respectively)
+        """
+        #format is now {'texts'=[], 'user_id'=[], ...}. Needs to be converted in an instance per line
+        self.rows = zip(*[dataset[field] for field in self.headers])
+
+    def rows_2_dataset(self):
+        """
+        Row converter
+        =====
+        Converts rows into a dataset
+
+        returns
+        -----
+        dataset : dict of lists (each column with an identifier)
+        """
+        dataset = {k: [] for k in self.headers}
+        for row in self.rows:
             for category, val in zip(self.headers, row):
-                self.dataset[category].append(val)
+                dataset[category].append(val)
+        return dataset
 
     def return_sequences(self, tag):
         """
@@ -95,22 +141,18 @@ class Datahandler:
         -----
         blacklist : list of strings 
             Any instance that contains a word from the blacklist is filtered
-
-
-
         """
 
-        print("removing tweets containing",blacklist)
-        print("freq tweets before",len(self.instances))
-        templist = []
-        for t in self.instances:
+        tokenized_docs = self.return_sequences('token')
+        filtered_docs = [] #list of indices
+        for i, doc in enumerate(tokenized_docs):
             black = False
-            for w in t.wordsequence:
-                for b in blacklist:
-                    if re.match(b,w,re.IGNORECASE):
+            for token in doc:
+                for string in blacklist:
+                    if re.match(string, token, re.IGNORECASE):
                         black = True
             if not black:
-                templist.append(t)
+                filtered_docs.append(i)
 
-        self.instances = templist
-        print("freq tweets after",len(self.instances))
+        self.rows = [self.rows[i] for i in filtered_docs]
+        self.dataset_2_rows()        
