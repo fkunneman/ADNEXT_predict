@@ -1,5 +1,9 @@
 
 import os
+import frogger
+import datahandler
+
+
 
 jsonfile = "/home/fkunneman/test_predict/tweets_ecoli.json"
 xlsfile = "/home/fkunneman/test_predict/politiehorst.xlsx"
@@ -19,6 +23,12 @@ jsoncsv_fr = "/home/fkunneman/test_predict/tweets_ecoli_frogged.csv"
 xlscsv_fr = "/home/fkunneman/test_predict/politiehorst_frogged.csv"
 xls2csv_fr = "/home/fkunneman/test_predict/tweets_mazelen_frogged.csv"
 txtcsv_fr = "/home/fkunneman/test_predict/tweets_zinin_frogged.csv"
+
+jsoncsv_ins = "/home/fkunneman/test_predict/tweets_ecoli_filtered.csv"
+xlscsv_ins = "/home/fkunneman/test_predict/politiehorst_filtered.csv"
+xls2csv_ins = "/home/fkunneman/test_predict/tweets_mazelen_filtered.csv"
+txtcsv_ins = "/home/fkunneman/test_predict/tweets_zinin_filtered.csv"
+
 
 print("Read in json")
 os.system("python3 doc2csv.py -i " + jsonfile + " -o " + jsoncsv)
@@ -40,3 +50,13 @@ print("frog xls2")
 os.system("python3 frog_data.py " + xls2csv + " " + xls2csv_fr)
 #print("frog txt")
 #os.system("python3 frog_data.py " + txtcsv + " " + txtcsv_fr)
+
+print("setting all")
+os.system("python3 format_instances.py -i " + jsoncsv_fr + " " + xlscsv_fr + 
+    " " + xls2csv_fr + " -l ziekte plisie pokken -o " + jsoncsv_ins + " " +
+    xlscsv_ins + " " + xls2csv_ins + " -b rt --punctuation --us --ur")
+
+
+#print("setting json")
+
+

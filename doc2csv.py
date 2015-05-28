@@ -2,6 +2,7 @@
 
 import argparse
 import utils
+import datahandler
 
 """
 Converts docs to standard format
@@ -61,4 +62,6 @@ if args.c:
         csvrows.append(csvrow)
 
 # write to csv
-utils.write_csv(csvrows, args.o)
+dh = datahandler.Datahandler()
+dh.set_rows(csvrows)
+dh.write_csv(args.o)

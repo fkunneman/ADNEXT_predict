@@ -30,12 +30,24 @@ class Datahandler:
     >>> blogs = reader.get()
     """
 
-    def __init__(self, filename, max_n=False):
+    def __init__(self, max_n = False):
         self.max_n = max_n
         self.headers = "label tweet_id user_id date time username text frogs".split()
-        self.dataset = self.set(filename)
-        if self.dataset['frogs'][0] != '-':
-            self.decode_frog()
+        self.dataset = {}
+        self.rows = {}
+
+    def set_rows(self, rows):
+        """
+        Data reader
+        =====
+        Function to read in rows directly
+
+        Parameters
+        -----
+        rows : list of lists (rows and columns)
+        """
+        self.rows = rows
+        self.rows_2_dataset()
 
     def set(self, filename):
         """
@@ -61,8 +73,7 @@ class Datahandler:
             for line in csv_reader:
                 self.rows.append(line)
         
-        dataset = self.rows_2_dataset()
-        return dataset
+        self.rows_2_dataset()
 
     def write_csv(self, outfile):
         """
@@ -102,16 +113,12 @@ class Datahandler:
         Row converter
         =====
         Converts rows into a dataset
-
-        returns
-        -----
-        dataset : dict of lists (each column with an identifier)
         """
-        dataset = {k: [] for k in self.headers}
+        self.dataset = {k: [] for k in self.headers}
         for row in self.rows:
             for category, val in zip(self.headers, row):
-                dataset[category].append(val)
-        return dataset
+                self.dataset[category].append(val)
+        self.decode_frog()
 
     def decode_frog(self):
         """
@@ -119,10 +126,11 @@ class Datahandler:
         =====
         Function to decode a frog string into a list of lists per document
         """
-        new_frogs = []
-        for doc in self.dataset['frogs']:
-            new_frogs.append([token.split("\t") for token in doc.split("\n")])
-        self.dataset['frogs'] = new_frogs
+        if self.dataset['frogs'][0] != '-':
+            new_frogs = []
+            for doc in self.dataset['frogs']:
+                new_frogs.append([token.split("\t") for token in doc.split("\n")])
+            self.dataset['frogs'] = new_frogs
 
     def encode_frog(self):
         """
