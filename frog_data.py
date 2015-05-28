@@ -7,7 +7,7 @@ Presumes frog as python binding
 import sys
 import frog
 
-import datareader
+import datahandler
 import utils
 
 infile = sys.argv[1]
@@ -18,9 +18,8 @@ fo = frog.FrogOptions(parser=False)
 frogger = frog.Frog(fo, "/vol/customopt/uvt-ru/etc/frog/frog-twitter.cfg")
 
 #read in file
-datareader = datareader.Datareader()
-datareader.set(infile)
-dataset = datareader.get()
+datahandler = datahandler.Datahandler(infile)
+dataset = datahandler.dataset
 texts = dataset["text"]
 
 #frog lines
@@ -31,6 +30,7 @@ frogged_texts = []
 for i, text in enumerate(texts):
     if i in checks:
         print("line",i,"of",l)
+    #get frogged data
     data = frogger.process(text)
     tokens = []
     sentence = -1
@@ -41,8 +41,10 @@ for i, text in enumerate(texts):
     frogged_texts.append("\n".join(tokens))
     #write intermediate output to a file
     if i in shows:
-        write_dataset["frog"] = frogged_texts
-        utils.write_data_csv(write_dataset, outfile, ["frog"])
+        dataset["frogs"] = frogged_texts
+        rows = utils.dataset_2_rows(dataset)
+        utils.write_csv(rows, outfile)
 
-dataset["frog"] = frogged_texts
-utils.write_data_csv(dataset, outfile)
+dataset["frogs"] = frogged_texts
+rows = utils.dataset_2_rows(dataset)
+utils.write_csv(rows, outfile)

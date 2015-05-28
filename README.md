@@ -10,18 +10,15 @@ Experiment-dir:
     data/formatted/
 
 Pipeline
-    1a: doc_2_csv
-        possible input: excel, txt
-        arguments: column
-        output: csv with fields doc_id, user_id, date, time, user
-    1b: json_2_csv
-        input: json-file
-        arguments: how to 
-        output: 
-    2: frog_csv
+    1a: doc2csv
+        possible input: excel, txt, json
+        arguments: infile, outfile, configfile specifying the columns
+        uses: utils
+        output: csv with fields doc_id, user_id, date, time, user, text
+    2: frog_data
         input: csv-file
         arguments: tokenize only --> ucto
-        uses: csv-reader
+        uses: datareader, utils
         output: csv-file with extra (frogged) column
     3: format_instances
         - remove 
@@ -30,7 +27,7 @@ Pipeline
             * by end hashtag 
         - add label
         - combine files
-        uses: csv-reader
+        uses: datareader
         output: csv-file, log-file
     4: extract features
         input: csv-file (frogged or not)
