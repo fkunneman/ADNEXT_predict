@@ -105,7 +105,9 @@ class Datahandler:
         """
         #format is now {'texts'=[], 'user_id'=[], ...}. Needs to be converted in an instance per line
         self.encode_frog()
+        print("rows before",self.rows[0])
         self.rows = list(zip(*[self.dataset[field] for field in self.headers]))
+        print("rows after",self.rows[0])
         self.decode_frog()
 
     def rows_2_dataset(self):
