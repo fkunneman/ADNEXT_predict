@@ -86,7 +86,7 @@ class Datahandler:
         outfile : the name of the file to write the rows to
 
         """
-        #write lines to outfile
+        self.dataset_2_rows()
         with open(outfile, 'w') as csvfile:
             writer = csv.writer(csvfile)
             for row in self.rows:
@@ -270,4 +270,3 @@ class Datahandler:
 
         """
         self.dataset['label'] = [label for doc in self.dataset['label']]
-        self.dataset_2_rows()
