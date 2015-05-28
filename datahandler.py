@@ -32,7 +32,8 @@ class Datahandler:
     def __init__(self, filename, max_n=False):
         self.max_n = max_n
         self.headers = "label tweet_id user_id date time username text frog".split()
-        self.dataset = self.set(filename)
+        self.dataset = {}
+        self.set(filename)
 
     def set(self, filename):
         """
