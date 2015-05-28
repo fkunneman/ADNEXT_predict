@@ -64,16 +64,22 @@ class Datahandler:
         dataset = self.rows_2_dataset()
         return dataset
 
-    def decode_frog(self):
+    def write_csv(self, outfile):
         """
-        Frog decoder
+        CSV writer
         =====
-        Function to decode a frog string into a list of lists per document
+        Function to write rows to a file in csv format
+
+        Parameters
+        -----
+        outfile : the name of the file to write the rows to
+
         """
-        new_frogs = []
-        for doc in self.dataset['frogs']:
-            new_frogs.append([token.split("\t") for token in doc.split("\n")])
-        self.dataset['frogs'] = new_frogs
+        #write lines to outfile
+        with open(outfile, 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            for row in self.rows:
+                writer.writerow(row)
 
     def dataset_2_rows(self):
         """
@@ -87,7 +93,9 @@ class Datahandler:
         self.rows : list of lists (rows and columns respectively)
         """
         #format is now {'texts'=[], 'user_id'=[], ...}. Needs to be converted in an instance per line
+        self.encode_frog()
         self.rows = list(zip(*[self.dataset[field] for field in self.headers]))
+        self.decode_frog()
 
     def rows_2_dataset(self):
         """
@@ -104,6 +112,28 @@ class Datahandler:
             for category, val in zip(self.headers, row):
                 dataset[category].append(val)
         return dataset
+
+    def decode_frog(self):
+        """
+        Frog decoder
+        =====
+        Function to decode a frog string into a list of lists per document
+        """
+        new_frogs = []
+        for doc in self.dataset['frogs']:
+            new_frogs.append([token.split("\t") for token in doc.split("\n")])
+        self.dataset['frogs'] = new_frogs
+
+    def encode_frog(self):
+        """
+        Frog encoder
+        =====
+        Function to encode a frog list into a string
+        """
+        frogstrings = []
+        for doc in self.dataset['frogs']:
+            frogstrings.append("\n".join(["\t".join(token) for token in doc]))
+        self.dataset['frogs'] = frogstrings
 
     def return_sequences(self, tag):
         """
@@ -134,7 +164,7 @@ class Datahandler:
     def filter_instances(self, blacklist):
         """
         Instance filter
-        ===
+        =====
         Function to filter instances from the dataset if they contain a string
         from the blacklist
 
@@ -156,4 +186,80 @@ class Datahandler:
                 filtered_docs.append(i)
 
         self.rows = [self.rows[i] for i in filtered_docs]
-        self.rows_2_dataset()        
+        self.rows_2_dataset()
+
+    def normalize(self, regex, dummy):
+        """
+        Normalizer
+        =====
+        Function to normalize tokens and lemmas that match a regex to a dummy
+
+        Parameters
+        -----
+        regex : re.compile object
+            the regular expression to match
+        dummy : string
+            the dummy to replace a matching token with
+
+        """
+        new_frogs = []
+        for doc in self.dataset['frogs']:
+            new_doc = []
+            for token in doc:
+                if regex.match(token[0]):
+                    token[0] = dummy
+                    token[1] = dummy
+                new_doc.append(token)
+            new_frogs.append(new_doc)
+        self.dataset['frogs'] = new_frogs
+
+    def normalize_urls(self):
+        """
+        URL normalizer
+        =====
+        Function to normalize URLs to a dummy
+        """
+        find_url = re.compile(r"^(http://|www|[^\.]+)\.([^\.]+\.)+[^\.]{2,}")
+        dummy = "_URL_"
+        self.normalize(find_url, dummy)
+
+    def normalize_usernames(self):
+        """
+        Username normalizer
+        =====
+        Function to normalize usernames to a dummy
+            presumes 'twitter-format' (@username)
+        """
+        find_username = re.compile("^@\w+")
+        dummy = "_USER_"
+        self.normalize(find_username, dummy)
+
+    def filter_punctuation(self):
+        """
+        Punctuation remover
+        =====
+        Function to remove punctuation from frogged data
+
+        """
+        new_frogs = []
+        for doc in self.dataset['frogs']:
+            new_doc = []
+            for token in doc:
+                if not token[3] == "LET()":
+                    new_doc.append(token)
+            new_frogs.append(new_doc)
+        self.dataset['frogs'] = new_frogs
+
+    def set_label(self, label):
+        """
+        Label editor
+        =====
+        Function to set a universal label for each instance
+
+        Parameters
+        -----
+        label : string
+
+        """
+        self.dataset['label'] = [label for doc in self.dataset['label']]
+        self.dataset_2_rows()

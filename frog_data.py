@@ -8,7 +8,6 @@ import sys
 import frog
 
 import datahandler
-import utils
 
 infile = sys.argv[1]
 outfile = sys.argv[2]
@@ -18,9 +17,8 @@ fo = frog.FrogOptions(parser=False)
 frogger = frog.Frog(fo, "/vol/customopt/uvt-ru/etc/frog/frog-twitter.cfg")
 
 #read in file
-datahandler = datahandler.Datahandler(infile)
-dataset = datahandler.dataset
-texts = dataset["text"]
+dh = datahandler.Datahandler(infile)
+texts = dh.dataset["text"]
 
 #frog lines
 l = len(texts)
@@ -37,14 +35,14 @@ for i, text in enumerate(texts):
     for token in data:
         if token["index"] == '1':
             sentence += 1
-        tokens.append("\t".join([token["text"], token["pos"], token["lemma"], str(sentence)]))
-    frogged_texts.append("\n".join(tokens))
+        tokens.append([token["text"], token["pos"], token["lemma"], str(sentence)])
+    frogged_texts.append(tokens)
     #write intermediate output to a file
     if i in shows:
-        dataset["frogs"] = frogged_texts
-        rows = utils.dataset_2_rows(dataset)
-        utils.write_csv(rows, outfile)
+        dh.dataset["frogs"] = frogged_texts
+        dh.dataset = dataset_2_rows()
+        dh.write_csv(outfile)
 
-dataset["frogs"] = frogged_texts
-rows = utils.dataset_2_rows(dataset)
-utils.write_csv(rows, outfile)
+dh.dataset["frogs"] = frogged_texts
+dh.dataset_2_rows()
+dh.write_csv(outfile)

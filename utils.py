@@ -132,21 +132,3 @@ def read_excel(filename, header = False, date = False, time = False):
                 values[time] = values[time]        
         rows.append(values)
     return rows
-
-def write_csv(rows, outfile):
-    """
-    CSV writer
-    =====
-    Function to write rows to a file in csv format
-
-    Parameters
-    -----
-    rows : list of lists (rows and columns respectively)
-    outfile : the name of the file to write the rows to
-
-    """
-    #write lines to outfile
-    with open(outfile, 'w') as csvfile:
-        writer = csv.writer(csvfile)
-        for row in rows:
-            writer.writerow(row)

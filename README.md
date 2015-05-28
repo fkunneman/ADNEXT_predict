@@ -18,7 +18,7 @@ Pipeline
     2: frog_data
         input: csv-file
         arguments: tokenize only --> ucto
-        uses: datareader, utils
+        uses: datahandler, utils
         output: csv-file with extra (frogged) column
     3: format_instances
         - remove 
@@ -27,7 +27,7 @@ Pipeline
             * by end hashtag 
         - add label
         - combine files
-        uses: datareader
+        uses: datahandler
         output: csv-file, log-file
     4: extract features
         input: csv-file (frogged or not)
@@ -47,7 +47,7 @@ Pipeline
         * top features
 
 Classes:
-    Datareader
+    Datahandler
     Featurizer
     Classifier
     Evaluation
@@ -57,6 +57,5 @@ Functions:
     Utils
 
 Procedures:
-    doc_2_csv
-    json_2_csv
-    frog_csv
+    doc2csv
+    frog_data
