@@ -105,9 +105,7 @@ class Datahandler:
         """
         #format is now {'texts'=[], 'user_id'=[], ...}. Needs to be converted in an instance per line
         self.encode_frog()
-        print("rows before",self.rows[0])
         self.rows = list(zip(*[self.dataset[field] for field in self.headers]))
-        print("rows after",self.rows[0])
         self.decode_frog()
 
     def rows_2_dataset(self):
@@ -183,7 +181,6 @@ class Datahandler:
         blacklist : list of strings 
             Any instance that contains a word from the blacklist is filtered
         """
-
         tokenized_docs = self.return_sequences('token')
         filtered_docs = [] #list of indices
         for i, doc in enumerate(tokenized_docs):
@@ -195,6 +192,7 @@ class Datahandler:
             if not black:
                 filtered_docs.append(i)
 
+        self.dataset_2_rows()
         self.rows = [self.rows[i] for i in filtered_docs]
         self.rows_2_dataset()
 
@@ -229,7 +227,7 @@ class Datahandler:
         =====
         Function to normalize URLs to a dummy
         """
-        find_url = re.compile(r"^(http://|www|[^\.]+)\.([^\.]+\.)+[^\.]{2,}")
+        find_url = re.compile(r"^(http://|www|[^\.]+)\.([^\.]+\.)*[^\.]{2,}")
         dummy = "_URL_"
         self.normalize(find_url, dummy)
 
@@ -255,7 +253,7 @@ class Datahandler:
         for doc in self.dataset['frogs']:
             new_doc = []
             for token in doc:
-                if not token[3] == "LET()":
+                if not token[2] == "LET()":
                     new_doc.append(token)
             new_frogs.append(new_doc)
         self.dataset['frogs'] = new_frogs
@@ -271,4 +269,4 @@ class Datahandler:
         label : string
 
         """
-        self.dataset['label'] = [label for doc in self.dataset['label']]
+        self.dataset['label'] = [label] * len(self.dataset['label'])
