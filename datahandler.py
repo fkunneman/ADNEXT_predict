@@ -1,6 +1,7 @@
 
 import csv
 import sys
+import re
 
 class Datahandler:
     """
@@ -60,7 +61,7 @@ class Datahandler:
             for line in csv_reader:
                 self.rows.append(line)
         
-        dataset = self.rows_2_dataset(self.rows)
+        dataset = self.rows_2_dataset()
         return dataset
 
     def decode_frog(self):
@@ -86,7 +87,7 @@ class Datahandler:
         self.rows : list of lists (rows and columns respectively)
         """
         #format is now {'texts'=[], 'user_id'=[], ...}. Needs to be converted in an instance per line
-        self.rows = zip(*[dataset[field] for field in self.headers])
+        self.rows = list(zip(*[self.dataset[field] for field in self.headers]))
 
     def rows_2_dataset(self):
         """
@@ -126,7 +127,7 @@ class Datahandler:
         tagdict = {'token' : 0, 'lemma' : 1, 'postag' : 2, 'sentence' : 3}
         tagindex = tagdict[tag]
         sequences = []
-        for instance in dataset['frogs']:
+        for instance in self.dataset['frogs']:
             sequences.append([token[tagindex] for token in instance])
         return sequences
 
@@ -155,4 +156,4 @@ class Datahandler:
                 filtered_docs.append(i)
 
         self.rows = [self.rows[i] for i in filtered_docs]
-        self.dataset_2_rows()        
+        self.rows_2_dataset()        
