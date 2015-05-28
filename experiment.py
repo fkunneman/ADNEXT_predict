@@ -1,9 +1,10 @@
 
 import os
-import frogger
-import datahandler
+import sys
+#import frogger
+#import datahandler
 
-
+level = int(sys.argv[1])
 
 jsonfile = "/home/fkunneman/test_predict/tweets_ecoli.json"
 xlsfile = "/home/fkunneman/test_predict/politiehorst.xlsx"
@@ -29,32 +30,34 @@ xlscsv_ins = "/home/fkunneman/test_predict/politiehorst_filtered.csv"
 xls2csv_ins = "/home/fkunneman/test_predict/tweets_mazelen_filtered.csv"
 txtcsv_ins = "/home/fkunneman/test_predict/tweets_zinin_filtered.csv"
 
-
-print("Read in json")
-os.system("python3 doc2csv.py -i " + jsonfile + " -o " + jsoncsv)
-print("Read in xls")
-os.system("python3 doc2csv.py -i " + xlsfile + " -o " + xlscsv + 
-    " -c " + xlsconfig)
-print("Read in xls2")
-os.system("python3 doc2csv.py -i " + xlsfile2 + " -o " + xls2csv + 
-    " -c " + xlsconfig2 + " --header")
+if level <= 1:
+	print("Read in json")
+	os.system("python3 doc2csv.py -i " + jsonfile + " -o " + jsoncsv)
+	print("Read in xls")
+	os.system("python3 doc2csv.py -i " + xlsfile + " -o " + xlscsv + 
+		" -c " + xlsconfig)
+	print("Read in xls2")
+	os.system("python3 doc2csv.py -i " + xlsfile2 + " -o " + xls2csv + 
+		" -c " + xlsconfig2 + " --header")
 #print("Read in txt")
 #os.system("python3 doc2csv.py -i " + txtfile + " -o " + txtcsv + 
 #    " -c " + txtconfig)
 
-print("frog json")
-os.system("python3 frog_data.py " + jsoncsv + " " + jsoncsv_fr)
-print("frog xls")
-os.system("python3 frog_data.py " + xlscsv + " " + xlscsv_fr)
-print("frog xls2")
-os.system("python3 frog_data.py " + xls2csv + " " + xls2csv_fr)
+if level <= 2:
+	print("frog json")
+	os.system("python3 frog_data.py " + jsoncsv + " " + jsoncsv_fr)
+	print("frog xls")
+	os.system("python3 frog_data.py " + xlscsv + " " + xlscsv_fr)
+	print("frog xls2")
+	os.system("python3 frog_data.py " + xls2csv + " " + xls2csv_fr)
 #print("frog txt")
 #os.system("python3 frog_data.py " + txtcsv + " " + txtcsv_fr)
 
-print("setting all")
-os.system("python3 format_instances.py -i " + jsoncsv_fr + " " + xlscsv_fr + 
-    " " + xls2csv_fr + " -l ziekte plisie pokken -o " + jsoncsv_ins + " " +
-    xlscsv_ins + " " + xls2csv_ins + " -b rt --punctuation --us --ur")
+if level <= 3:
+	print("setting all")
+	os.system("python3 format_instances.py -i " + jsoncsv_fr + " " + xlscsv_fr + 
+		" " + xls2csv_fr + " -l ziekte plisie pokken -o " + jsoncsv_ins + " " +
+		xlscsv_ins + " " + xls2csv_ins + " -b rt --punctuation --us --ur")
 
 
 #print("setting json")

@@ -8,11 +8,11 @@ Script to format classification files by filtering instances and adding labels
 """
 parser = argparse.ArgumentParser(description = "Script to format " +
     "classification files by filtering instances and adding labels")
-parser.add_argument('-i', action = 'store', required = True, nargs = '+'
+parser.add_argument('-i', action = 'store', required = True, nargs = '+',
     help = "The input files")  
-parser.add_argument('-l', action = 'store', required = False, nargs = '+'
+parser.add_argument('-l', action = 'store', required = False, nargs = '+',
     help = "The label for each file")
-parser.add_argument('-o', action = 'store', required = True, nargs = '+'
+parser.add_argument('-o', action = 'store', required = True, nargs = '+',
     help = "The output files")
 parser.add_argument('-b', action = 'store', required = False, nargs = '+',
     help = "Remove instances if they contain one of the given words")
@@ -30,7 +30,7 @@ for infile, label, outfile in fl:
     dh.set(infile)
     dh.set_label(label)
     if args.b:
-        dh.filter_instances(b)
+        dh.filter_instances(args.b)
     if args.punctuation:
         dh.filter_punctuation()
     if args.us:

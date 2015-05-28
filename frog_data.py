@@ -17,7 +17,8 @@ fo = frog.FrogOptions(parser=False)
 frogger = frog.Frog(fo, "/vol/customopt/uvt-ru/etc/frog/frog-twitter.cfg")
 
 #read in file
-dh = datahandler.Datahandler(infile)
+dh = datahandler.Datahandler()
+dh.set(infile)
 texts = dh.dataset["text"]
 
 #frog lines
@@ -35,7 +36,7 @@ for i, text in enumerate(texts):
     for token in data:
         if token["index"] == '1':
             sentence += 1
-        tokens.append([token["text"], token["pos"], token["lemma"], str(sentence)])
+        tokens.append([token["text"], token["lemma"], token["pos"], str(sentence)])
     frogged_texts.append(tokens)
     #write intermediate output to a file
     if i in shows:
