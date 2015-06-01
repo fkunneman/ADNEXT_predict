@@ -50,6 +50,7 @@ class Featurizer:
         features = {}
         for helper in self.helpers:
             features[helper.name] = helper.fit_transform(self.raw, self.frog)
+        print(features)
         submatrices = [features[ft] for ft in sorted(features.keys())]
         X = np.hstack(submatrices)
         return X

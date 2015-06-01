@@ -6,32 +6,32 @@ import featurizer
 
 level = int(sys.argv[1])
 
-jsonfile = "/home/fkunneman/test_predict/tweets_ecoli.json"
-xlsfile = "/home/fkunneman/test_predict/politiehorst.xlsx"
-xlsfile2 = "/home/fkunneman/test_predict/tweets_mazelen_2.xls"
-txtfile = "/home/fkunneman/test_predict/tweets_zinin.txt"
+jsonfile = "/home/fkunneman/test_predict/data/raw/tweets_ecoli.json"
+xlsfile = "/home/fkunneman/test_predict/data/raw/politiehorst.xlsx"
+xlsfile2 = "/home/fkunneman/test_predict/data/raw/tweets_mazelen_2.xls"
+txtfile = "/home/fkunneman/test_predict/data/raw/tweets_zinin.txt"
 
-xlsconfig = "/home/fkunneman/test_predict/columns_xls.txt"
-xlsconfig2 = "/home/fkunneman/test_predict/columns_xls2.txt"
-txtconfig = "/home/fkunneman/test_predict/columns_txt.txt"
+xlsconfig = "/home/fkunneman/test_predict/data/raw/columns_xls.txt"
+xlsconfig2 = "/home/fkunneman/test_predict/data/raw/columns_xls2.txt"
+txtconfig = "/home/fkunneman/test_predict/data/raw/columns_txt.txt"
 
-jsoncsv = "/home/fkunneman/test_predict/tweets_ecoli.csv"
-xlscsv = "/home/fkunneman/test_predict/politiehorst.csv"
-xls2csv = "/home/fkunneman/test_predict/tweets_mazelen.csv"
-txt1csv = "/home/fkunneman/test_predict/tweets_zinin_n.csv"
-txt2csv = "/home/fkunneman/test_predict/tweets_geenzinin.csv"
+jsoncsv = "/home/fkunneman/test_predict/data/csv/tweets_ecoli.csv"
+xlscsv = "/home/fkunneman/test_predict/data/csv/politiehorst.csv"
+xls2csv = "/home/fkunneman/test_predict/data/csv/tweets_mazelen.csv"
+txt1csv = "/home/fkunneman/test_predict/data/csv/tweets_zinin_n.csv"
+txt2csv = "/home/fkunneman/test_predict/data/csv/tweets_geenzinin.csv"
 
-jsoncsv_fr = "/home/fkunneman/test_predict/tweets_ecoli_frogged.csv"
-xlscsv_fr = "/home/fkunneman/test_predict/politiehorst_frogged.csv"
-xls2csv_fr = "/home/fkunneman/test_predict/tweets_mazelen_frogged.csv"
-txt1csv_fr = "/home/fkunneman/test_predict/tweets_zinin_frogged.csv"
-txt2csv_fr = "/home/fkunneman/test_predict/tweets_geenzinin_frogged.csv"
+jsoncsv_fr = "/home/fkunneman/test_predict/data/frogged/tweets_ecoli_frogged.csv"
+xlscsv_fr = "/home/fkunneman/test_predict/data/frogged/politiehorst_frogged.csv"
+xls2csv_fr = "/home/fkunneman/test_predict/data/frogged/tweets_mazelen_frogged.csv"
+txt1csv_fr = "/home/fkunneman/test_predict/data/frogged/tweets_zinin_frogged.csv"
+txt2csv_fr = "/home/fkunneman/test_predict/data/frogged/tweets_geenzinin_frogged.csv"
 
-jsoncsv_ins = "/home/fkunneman/test_predict/tweets_ecoli_filtered.csv"
-xlscsv_ins = "/home/fkunneman/test_predict/politiehorst_filtered.csv"
-xls2csv_ins = "/home/fkunneman/test_predict/tweets_mazelen_filtered.csv"
-txt1csv_ins = "/home/fkunneman/test_predict/tweets_zinin_filtered.csv"
-txt2csv_ins = "/home/fkunneman/test_predict/tweets_geenzinin_filtered.csv"
+jsoncsv_ins = "/home/fkunneman/test_predict/data/formatted/tweets_ecoli_filtered.csv"
+xlscsv_ins = "/home/fkunneman/test_predict/data/formatted/politiehorst_filtered.csv"
+xls2csv_ins = "/home/fkunneman/test_predict/data/formatted/tweets_mazelen_filtered.csv"
+txt1csv_ins = "/home/fkunneman/test_predict/data/formatted/tweets_zinin_filtered.csv"
+txt2csv_ins = "/home/fkunneman/test_predict/data/formatted/tweets_geenzinin_filtered.csv"
 
 if level <= 1:
 	print("Read in json")
