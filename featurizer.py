@@ -1,7 +1,5 @@
 import numpy as np
 import operator
-from .utils import liwc
-from .utils import find_ngrams, freq_dict
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -204,98 +202,4 @@ class PosNgrams:
 
     def fit_transform(self, raw_data, frog_data, n_list, max_feats=None):
         self.fit(raw_data, frog_data, n_list, max_feats=max_feats)
-        return self.transform(raw_data, frog_data)
-
-
-class FuncWords:
-    """
-    Computes relative frequencies of function words.
-    """
-    def __init__(self):
-        self.feats = None
-        self.name = 'function_words'
-
-    @staticmethod
-    def func_words(frogstring):
-        """
-        Return a frequency dictionary of the function words in the text.
-        Input is a string of frog output.
-        """
-        # Define the POS tags that comprise function words
-        functors = {'VNW':'pronouns', 'LID':'determiners', 'VZ':'prepositions', 'BW':'adverbs', 
-                    'TW':'quantifiers', 'VG':'conjunction', }
-        # Make a list of all tokens where the POS tag is in the functors list
-        tokens = [item[0] for item in frogstring if item[2].split('(')[0] in functors]
-        return tokens
-    
-    def fit(self, raw_data, frog_data):
-        feats = {}
-        for inst in frog_data:
-            feats.update(freq_dict(func_words(inst)))
-        self.feats = feats.keys()
-        #print self.feats
-        
-    def transform(self, raw_data, frog_data):
-        if self.feats == None:
-            raise ValueError('There are no features to transform the data with. You probably did not "fit" before "transforming".')
-        instances = []
-        for inst in frog_data:
-            func_dict = func_words(inst)
-            instances.append([func_dict.get(f,0) for f in self.feats])
-        return np.array(instances)
-        
-    def fit_transform(self, raw_data, frog_data):
-        self.fit(raw_data, frog_data)
-        return self.transform(raw_data, frog_data)
-
-
-class TokenPCA():
-    """
-    Tryout: transforms unigram counts to PCA matrix
-    """
-    def __init__(self, **kwargs):
-        # set params
-        self.name = "token_pca"
-        self.dimensions = kwargs['dimensions']
-        self.max_tokens = kwargs['max_tokens']
-        # init fitters:
-        self.pca = PCA(n_components=self.dimensions)
-        self.vectorizer = TfidfVectorizer(analyzer=identity, use_idf=False,
-                                          max_features=self.max_tokens)
-
-    def fit(self, raw_data, frog_data):
-        X = self.vectorizer.fit_transform(raw_data).toarray()
-        self.pca.fit(X)
-        return self
-
-    def transform(self, raw_data, frog_data):
-        X = self.vectorizer.transform(raw_data).toarray()
-        return self.pca.transform(X)
-
-    def fit_transform(self, raw_data, frog_data):
-        self.fit(raw_data)
-        return self.transform(raw_data)
-
-
-class LiwcCategories():
-    """
-    Compute relative frequencies for the LIWC categories.
-    """
-    def __init__(self, **kwargs):
-        self.name = "liwc"
-
-    def fit(self, raw_data, frog_data):
-        self.feats = liwc.liwc_nl_dict.keys()
-        return self
-
-    def transform(self, raw_data, frog_data):
-        instances = []
-        tok_data = [dat.split() for dat in raw_data]  # adapt to frog words
-        for inst in tok_data:
-            liwc_dict = liwc.liwc_nl(inst)
-            instances.append([liwc_dict[f] for f in self.feats])
-        return np.array(instances)
-
-    def fit_transform(self, raw_data, frog_data):
-        self.fit(raw_data, frog_data)
         return self.transform(raw_data, frog_data)
