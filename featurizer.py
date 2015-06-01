@@ -39,7 +39,7 @@ class Featurizer:
         self.raw = raws
         self.modules = {
             'simple_stats':         SimpleStats,
-            'simple_token_ngrams':  SimpleTokenNgrams
+            'simple_token_ngrams':  SimpleTokenNgrams,
             'token_ngrams':         TokenNgrams,
             'char_ngrams':          CharNgrams,
             'pos_ngrams':           PosNgrams,
@@ -127,9 +127,8 @@ class TokenNgrams:
                 tokens = [t[0] for t in inst]
                 feats.update(utils.freq_dict(["_".join(item) for item in \
                     utils.find_ngrams(tokens, n)]))
-        self.feats = [i for i, j in sorted(feats.items() \
-            if not bool(set(i.split("_")) & set(self.blackfeats)), 
-            reverse = True, key = operator.itemgetter(1))][:self.max_feats]
+        self.feats = [i for i, j in sorted(feats.items(), reverse = True, 
+            key = operator.itemgetter(1)) if not bool(set(i.split("_")) & set(self.blackfeats))][:self.max_feats]
 
     def transform(self, raw_data, frog_data):
         instances = []
