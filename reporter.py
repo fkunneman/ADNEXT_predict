@@ -14,7 +14,7 @@ class Reporter:
             self.ce.append(instance[0], instance[1])
 
     def calculate_performance(self):
-        results = 
+        results = \
         [[
         "Class", 
         "Precision", "Recall", "F1", 
@@ -22,7 +22,7 @@ class Reporter:
         "Samples", "Classifications", "Correct"
         ]]
         for label in sorted(list(set(self.ce.goals))):
-            label_results = 
+            label_results = \
                 [
                 self.ce.precision(cls = label),
                 self.ce.recall(cls = label),
@@ -35,7 +35,7 @@ class Reporter:
                 self.ce.tp[label]
                 ]
             results.append([label] + [round(x, 2) for x in label_results])
-        micro_results = 
+        micro_results = \
             [
             self.ce.precision(), self.ce.recall(), self.ce.fscore(),
             self.ce.tp_rate(), self.ce.fp_rate(),

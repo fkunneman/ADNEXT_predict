@@ -4,7 +4,7 @@ import time
 
 import featurizer
 import lcs_classifier
-import sklearn_classifier
+#import sklearn_classifier
 import reporter
 import utils
 
@@ -18,7 +18,7 @@ class ExperimentGrid:
         self.featurized = []
 
     def set_features(self, train, test = False, grid = 'low'):
-        if grid = 'low': #only one setting
+        if grid == 'low': #only one setting
             settings = [self.features]
         for setting in settings:
             text = self.train['text']

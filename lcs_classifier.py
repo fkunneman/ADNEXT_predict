@@ -167,7 +167,7 @@ class LCS_classifier:
         current_chunks = current.split("/")
         data = "/".join(current_chunks) + "/./data"
         index = "/".join(current_chunks) + "/./index"
-        config = "\n".join
+        config = "\n".join\
             ([
             "docprof.normalise=NONE",
             "general.analyser=nl.cs.ru.phasar.lcs3.analyzers.FreqAnalyzer",
