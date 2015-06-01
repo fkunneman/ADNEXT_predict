@@ -27,7 +27,7 @@ class Datahandler:
 
     >>> reader = Datareader(max_n=1000)
     >>> reader.set('blogs.csv')
-    >>> blogs = reader.get()
+
     """
 
     def __init__(self, max_n = False):

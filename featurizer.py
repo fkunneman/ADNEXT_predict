@@ -1,8 +1,12 @@
+#!/usr/bin/env 
+
 from collections import Counter
 import numpy as np
 import operator
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfVectorizer
+
+import utils
 
 class Featurizer:
     """
@@ -34,10 +38,11 @@ class Featurizer:
         self.frog = frogs
         self.raw = raws
         self.modules = {
-            'simple_stats':     SimpleStats,
-            'token_ngrams':     TokenNgrams,
-            'char_ngrams':      CharNgrams,
-            'pos_ngrams':       PosNgrams,
+            'simple_stats':         SimpleStats,
+            'simple_token_ngrams':  SimpleTokenNgrams
+            'token_ngrams':         TokenNgrams,
+            'char_ngrams':          CharNgrams,
+            'pos_ngrams':           PosNgrams,
         }
 
         self.helpers = [v(**features[k]) for k, v in
@@ -48,13 +53,15 @@ class Featurizer:
 
     def fit_transform(self):
         features = {}
+        vocabularies = {}
         for helper in self.helpers:
-            features[helper.name] = helper.fit_transform(self.raw, self.frog)
-        print(features)
+            feats, vocabulary = helper.fit_transform(self.raw, self.frog)
+            features[helper.name] = feats
+            vocabularies[helper.name] = vocabulary
         submatrices = [features[ft] for ft in sorted(features.keys())]
         X = np.hstack(submatrices)
-        return X
-
+        vocab = [vocabularies[v] for v in sorted(vocabularies.keys())]
+        return X, vocab
 
 class BlueprintFeature:
 
@@ -116,8 +123,8 @@ class TokenNgrams:
         for inst in frog_data:
             for n in self.n_list:
                 tokens = [t[0] for t in inst]
-                feats.update(self.freq_dict(["_".join(item) for item in \
-                    self.find_ngrams(tokens, n)]))
+                feats.update(utils.freq_dict(["_".join(item) for item in \
+                    utils.find_ngrams(tokens, n)]))
         self.feats = [i for i,j in sorted(feats.items(), reverse=True, \
             key=operator.itemgetter(1))][:self.max_feats]
 
@@ -127,8 +134,8 @@ class TokenNgrams:
             tok_dict = {}
             for n in self.n_list:
                 tokens = [t[0] for t in inst]
-                tok_dict.update(self.freq_dict(["_".join(item) for item in \
-                    self.find_ngrams(tokens, n)]))
+                tok_dict.update(utils.freq_dict(["_".join(item) for item in \
+                    utils.find_ngrams(tokens, n)]))
             instances.append([tok_dict.get(f,0) for f in self.feats])
         return np.array(instances)
 
@@ -136,25 +143,41 @@ class TokenNgrams:
         self.fit(raw_data, frog_data)
         return self.transform(raw_data, frog_data)
 
-    def find_ngrams(self, input_list, n):
-        """
-        Calculate n-grams from a list of tokens/characters with added begin and end
-        items. Based on the implementation by Scott Triglia
-        http://locallyoptimal.com/blog/2013/01/20/elegant-n-gram-generation-in-python/
-        """
-        for x in range(n-1):
-            input_list.insert(0, '')
-            input_list.append('')
-        return zip(*[input_list[i:] for i in range(n)])
+class SimpleTokenNgrams:
+    """
+    Calculate token ngram frequencies after simple tokenization.
+    """
+    def __init__(self, **kwargs):
+        self.name = 'token_ngrams'
+        self.max_feats = kwargs['max_feats']
+        self.n_list = kwargs['n_list']
 
-    def freq_dict(self, text):
-        """
-        Returns a frequency dictionary of the input list
-        """
-        c = Counter()
-        for word in text:
-            c[word] += 1
-        return c
+    # retrieve indices of features
+    def fit(self, raw_data, frog_data):
+        feats = {}
+        for inst in raw_data:
+            for n in self.n_list:
+                tokens = inst.split(" ")
+                feats.update(utils.freq_dict(["_".join(item) for item in \
+                    utils.find_ngrams(tokens, n)]))
+        self.feats = [i for i,j in sorted(feats.items(), reverse=True, \
+            key=operator.itemgetter(1))][:self.max_feats]
+
+    def transform(self, raw_data, frog_data):
+        instances = []
+        for inst in frog_data:
+            tok_dict = {}
+            for n in self.n_list:
+                tokens = inst.split(" ")
+                tok_dict.update(utils.freq_dict(["_".join(item) for item in \
+                    utils.find_ngrams(tokens, n)]))
+            instances.append([tok_dict.get(f,0) for f in self.feats])
+        return np.array(instances)
+
+    def fit_transform(self, raw_data, frog_data):
+        self.fit(raw_data, frog_data)
+        return self.transform(raw_data, frog_data)
+
 
 class CharNgrams:
     """
