@@ -2,7 +2,7 @@
 import os
 import sys
 #import frogger
-#import datahandler
+import datahandler
 
 level = int(sys.argv[1])
 
@@ -23,12 +23,14 @@ txtcsv = "/home/fkunneman/test_predict/tweets_zinin.csv"
 jsoncsv_fr = "/home/fkunneman/test_predict/tweets_ecoli_frogged.csv"
 xlscsv_fr = "/home/fkunneman/test_predict/politiehorst_frogged.csv"
 xls2csv_fr = "/home/fkunneman/test_predict/tweets_mazelen_frogged.csv"
-txtcsv_fr = "/home/fkunneman/test_predict/tweets_zinin_frogged.csv"
+txt1csv_fr = "/home/fkunneman/test_predict/tweets_zinin_frogged.csv"
+txt2csv_fr = "/home/fkunneman/test_predict/tweets_geenzinin_frogged.csv"
 
 jsoncsv_ins = "/home/fkunneman/test_predict/tweets_ecoli_filtered.csv"
 xlscsv_ins = "/home/fkunneman/test_predict/politiehorst_filtered.csv"
 xls2csv_ins = "/home/fkunneman/test_predict/tweets_mazelen_filtered.csv"
-txtcsv_ins = "/home/fkunneman/test_predict/tweets_zinin_filtered.csv"
+txt1csv_ins = "/home/fkunneman/test_predict/tweets_zinin_filtered.csv"
+txt2csv_ins = "/home/fkunneman/test_predict/tweets_geenzinin_filtered.csv"
 
 if level <= 1:
 	print("Read in json")
@@ -50,16 +52,29 @@ if level <= 2:
 	os.system("python3 frog_data.py " + xlscsv + " " + xlscsv_fr)
 	print("frog xls2")
 	os.system("python3 frog_data.py " + xls2csv + " " + xls2csv_fr)
-#print("frog txt")
-#os.system("python3 frog_data.py " + txtcsv + " " + txtcsv_fr)
+    print("frog txt")
+    os.system("python3 frog_data.py " + txtcsv + " " + txtcsv_fr)
 
 if level <= 3:
 	print("setting all")
 	os.system("python3 format_instances.py -i " + jsoncsv_fr + " " + xlscsv_fr + 
-		" " + xls2csv_fr + " -l ziekte plisie pokken -o " + jsoncsv_ins + " " +
-		xlscsv_ins + " " + xls2csv_ins + " -b rt --punctuation --us --ur")
+		" " + xls2csv_fr + " " + txt1csv_fr + " " + txt2csv_fr + " -l ziekte plisie pokken zinin geenzinin -o " + jsoncsv_ins + " " +
+		xlscsv_ins + " " + xls2csv_ins + " " + txtcsv1_ins + " " + txtcsv2_ins + " -b rt --punctuation --us --ur")
+
+if level <= 4:
+    print("extracting features")
+    #read data
+    dh_zin = datahandler.Datahandler()
+    dh_zin.set(txtcsv1_ins)
+    dh_geenzin = datahandler.Datahandler()
+    dh_geenzin.set(txtcsv2_ins)
+    raw = dh_zin.dataset['text'] + dh_geenzin.dataset['text']
+    frogs = dh_zin.dataset['frogs'] + dh_geenzin.dataset['frogs']
+    features = {'token_ngrams': {'n_list': [1, 2, 3], 'max_feats': 1500}}
+    f = featurizer.Featurizer(raw, frogs, features)
+    feats = f.fit_transform()
+    print(feats)
 
 
-#print("setting json")
 
 
