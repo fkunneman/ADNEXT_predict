@@ -120,6 +120,7 @@ class TokenNgrams:
                     self.find_ngrams(tokens, n)]))
         self.feats = [i for i,j in sorted(feats.items(), reverse=True, \
             key=operator.itemgetter(1))][:self.max_feats]
+        print(self.feats)
 
     def transform(self, raw_data, frog_data):
         instances = []
