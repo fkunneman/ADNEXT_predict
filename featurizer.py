@@ -33,7 +33,7 @@ class Featurizer:
     For an explanation regarding the frog features, please refer either to
     utils.frog.extract_tags or http://ilk.uvt.nl/frog/.
     """
-    def __init__(self, raws, frogs, features):
+    def __init__(self, raws, frogs, features, blackfeats = []):
 
         self.frog = frogs
         self.raw = raws
@@ -47,6 +47,8 @@ class Featurizer:
 
         self.helpers = [v(**features[k]) for k, v in
                         self.modules.items() if k in features.keys()]
+
+        self.filter = black_feats
 
         # construct feature_families by combining the given features with
         # their indices, omits the use of an OrderedDict
@@ -125,8 +127,9 @@ class TokenNgrams:
                 tokens = [t[0] for t in inst]
                 feats.update(utils.freq_dict(["_".join(item) for item in \
                     utils.find_ngrams(tokens, n)]))
-        self.feats = [i for i,j in sorted(feats.items(), reverse=True, \
-            key=operator.itemgetter(1))][:self.max_feats]
+        self.feats = [i for i, j in sorted(feats.items() \
+            if not bool(set(i.split("_")) & set(self.blackfeats)), 
+            reverse = True, key = operator.itemgetter(1))][:self.max_feats]
 
     def transform(self, raw_data, frog_data):
         instances = []
@@ -136,7 +139,7 @@ class TokenNgrams:
                 tokens = [t[0] for t in inst]
                 tok_dict.update(utils.freq_dict(["_".join(item) for item in \
                     utils.find_ngrams(tokens, n)]))
-            instances.append([tok_dict.get(f,0) for f in self.feats])
+            instances.append([tok_dict.get(f, 0) for f in self.feats])
         return np.array(instances)
 
     def fit_transform(self, raw_data, frog_data):

@@ -10,16 +10,16 @@ import utils
 
 class ExperimentGrid:
 
-    def __init__(self, features, classifiers, directory):
+    def __init__(self, features, featurefilter, classifiers, directory):
         self.features = features
+        self.featurefilter = featurefilter # list of tokens to be removed
         self.classifiers = classifiers
         self.directory = directory
+        self.featurized = []
 
     def set_features(self, train, test = False, grid = 'low'):
-        self.featurized = []
         if grid = 'low': #only one setting
             settings = [self.features]
-
         for setting in settings:
             text = self.train['text']
             frog = self.train['frog'] 
@@ -34,6 +34,7 @@ class ExperimentGrid:
             else:
                 test = False
             self.featurized.append([train, test, vocabulary, setting.keys()])
+
 
     def experiment(self):
         experimentlog = self.directory + "log.txt"
