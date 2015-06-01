@@ -39,7 +39,7 @@ class Featurizer:
         self.raw = raws
         self.modules = {
             'simple_stats':         SimpleStats,
-            'simple_token_ngrams':  SimpleTokenNgrams
+            'simple_token_ngrams':  SimpleTokenNgrams,
             'token_ngrams':         TokenNgrams,
             'char_ngrams':          CharNgrams,
             'pos_ngrams':           PosNgrams,
