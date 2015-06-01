@@ -21,19 +21,19 @@ class ExperimentGrid:
         if grid == 'low': #only one setting
             settings = [self.features]
         for setting in settings:
-            text = self.train['text']
-            frog = self.train['frog'] 
+            text = train['text']
+            frog = train['frog'] 
             if self.test:
-                text += self.test['text']
-                frog += self.test['frog']      
+                text += test['text']
+                frog += test['frog']      
             featurizer = featurizer.Featurizer(text, frog, setting)
             vectors, vocabulary = featurizer.fit_transform()
-            train = list(zip(self.train['labels'], vectors[:len(self.train['text'])]))
-            if self.test:
-                test = list(zip(self.test['labels'], vectors[len(self.train['text']):]))
+            train_instances = list(zip(train['labels'], vectors[:len(train['text'])]))
+            if test:
+                test_instances = list(zip(test['labels'], vectors[len(train['text']):]))
             else:
-                test = False
-            self.featurized.append([train, test, vocabulary, setting.keys()])
+                test_instances = False
+            self.featurized.append([train_instances, test_instances, vocabulary, setting.keys()])
 
 
     def experiment(self):
