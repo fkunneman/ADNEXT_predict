@@ -132,3 +132,39 @@ def read_excel(filename, header = False, date = False, time = False):
                 values[time] = values[time]        
         rows.append(values)
     return rows
+
+def return_folds(instances, n = 10):
+    folds = []
+    for i in range(n):
+        j = i
+        fold = []
+        while j < len(instances):
+            fold.append(instances[j])
+            j += n
+        folds.append(fold)
+    runs = []
+    for run in range(n):
+        train = folds[:run] + folds[run+1:]
+        test = folds[run]
+        runs.append([train, test])
+    return runs
+
+def find_ngrams(input_list, n):
+    """
+    Calculate n-grams from a list of tokens/characters with added begin and end
+    items. Based on the implementation by Scott Triglia
+    http://locallyoptimal.com/blog/2013/01/20/elegant-n-gram-generation-in-python/
+    """
+    for x in range(n-1):
+        input_list.insert(0, '')
+        input_list.append('')
+    return zip(*[input_list[i:] for i in range(n)])
+
+def freq_dict(text):
+    """
+    Returns a frequency dictionary of the input list
+    """
+    c = Counter()
+    for word in text:
+        c[word] += 1
+    return c
