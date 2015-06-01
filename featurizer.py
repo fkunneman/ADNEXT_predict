@@ -107,7 +107,7 @@ class TokenNgrams:
     """
     def __init__(self):
         self.feats = None
-        #self.name = 'token_ngrams'
+        self.name = 'token_ngrams'
 
     # retrieve indexes of features
     def fit(self, frog_data, n_list, max_feats=None):
@@ -116,8 +116,8 @@ class TokenNgrams:
         for inst in frog_data:
             for n in self.n_list:
                 tokens = zip(inst)[0]
-                feats.update(freq_dict(["token-"+"_".join(item) for item in \
-                    find_ngrams(tokens, n)]))
+                feats.update(self.freq_dict(["token-"+"_".join(item) for item in \
+                    self.find_ngrams(tokens, n)]))
         self.feats = [i for i,j in sorted(feats.items(), reverse=True, \
             key=operator.itemgetter(1))][:max_feats]
 
@@ -131,7 +131,7 @@ class TokenNgrams:
             for n in self.n_list:
                 tokens = zip(inst)[0]
                 tok__dict.update(freq_dict(["tok-"+"_".join(item) for item in \
-                    find_ngrams(tokens, n)]))
+                    self.find_ngrams(tokens, n)]))
             instances.append([tok_dict.get(f,0) for f in self.feats])
         return np.array(instances)
 
@@ -139,6 +139,25 @@ class TokenNgrams:
         self.fit(frog_data, n_list, max_feats=max_feats)
         return self.transform(frog_data)
 
+    def find_ngrams(self, input_list, n):
+        """
+        Calculate n-grams from a list of tokens/characters with added begin and end
+        items. Based on the implementation by Scott Triglia
+        http://locallyoptimal.com/blog/2013/01/20/elegant-n-gram-generation-in-python/
+        """
+        for x in range(n-1):
+            input_list.insert(0, '')
+            input_list.append('')
+        return zip(*[input_list[i:] for i in range(n)])
+
+    def freq_dict(self, text):
+        """
+        Returns a frequency dictionary of the input list
+        """
+        c = Counter()
+        for word in text:
+            c[word] += 1
+        return c
 
 class CharNgrams:
     """

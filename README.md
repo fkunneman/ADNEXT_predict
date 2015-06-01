@@ -3,7 +3,10 @@ Framework for supervised classification experiments, applied in the context of t
 
 Experiment-dir:
     exp/ ---> rank: Data, Features, Weights, Classifier
-    per setting: feature file, pickles: vocabulary;classifier, folds, results (performance, plots, featurefiles), config
+        config file
+        column file
+    per setting (exp/exp1/ exp/exp2/: feature file, files (for LCS), pickles: vocabulary;classifier, folds, results 
+        (performance, plots, featurefiles), config
     data/ ---> storage of all csv-files
     data/raw/
     data/frogged/
