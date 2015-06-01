@@ -1,3 +1,4 @@
+from collections import Counter
 import numpy as np
 import operator
 from sklearn.decomposition import PCA
@@ -37,7 +38,6 @@ class Featurizer:
             'token_ngrams':     TokenNgrams,
             'char_ngrams':      CharNgrams,
             'pos_ngrams':       PosNgrams,
-            'lemma_ngrams':     LemmaNgrams            
         }
 
         self.helpers = [v(**features[k]) for k, v in
@@ -49,8 +49,7 @@ class Featurizer:
     def fit_transform(self):
         features = {}
         for helper in self.helpers:
-            h = helper.fit(self.raw, self.frog)
-            features[h.name] = h.transform(self.raw, self.frog)
+            features[helper.name] = helper.fit_transform(self.raw, self.frog)
         submatrices = [features[ft] for ft in sorted(features.keys())]
         X = np.hstack(submatrices)
         return X
@@ -105,39 +104,36 @@ class TokenNgrams:
     """
     Calculate token ngram frequencies.
     """
-    def __init__(self):
-        self.feats = None
+    def __init__(self, **kwargs):
         self.name = 'token_ngrams'
+        self.max_feats = kwargs['max_feats']
+        self.n_list = kwargs['n_list']
 
     # retrieve indexes of features
-    def fit(self, frog_data, n_list, max_feats=None):
-        self.n_list = n_list
+    def fit(self, raw_data, frog_data):
         feats = {}
         for inst in frog_data:
             for n in self.n_list:
-                tokens = zip(inst)[0]
-                feats.update(self.freq_dict(["token-"+"_".join(item) for item in \
+                tokens = [t[0] for t in inst]
+                feats.update(self.freq_dict(["_".join(item) for item in \
                     self.find_ngrams(tokens, n)]))
         self.feats = [i for i,j in sorted(feats.items(), reverse=True, \
-            key=operator.itemgetter(1))][:max_feats]
+            key=operator.itemgetter(1))][:self.max_feats]
 
-    def transform(self, frog_data):
-        if self.feats == None:
-            raise ValueError("There are no features to transform the data " +
-                "with. You probably did not \'fit\'' before \'transforming\'.")
+    def transform(self, raw_data, frog_data):
         instances = []
         for inst in frog_data:
             tok_dict = {}
             for n in self.n_list:
-                tokens = zip(inst)[0]
-                tok__dict.update(freq_dict(["tok-"+"_".join(item) for item in \
+                tokens = [t[0] for t in inst]
+                tok_dict.update(self.freq_dict(["_".join(item) for item in \
                     self.find_ngrams(tokens, n)]))
             instances.append([tok_dict.get(f,0) for f in self.feats])
         return np.array(instances)
 
-    def fit_transform(self, frog_data, n_list, max_feats=None):
-        self.fit(frog_data, n_list, max_feats=max_feats)
-        return self.transform(frog_data)
+    def fit_transform(self, raw_data, frog_data):
+        self.fit(raw_data, frog_data)
+        return self.transform(raw_data, frog_data)
 
     def find_ngrams(self, input_list, n):
         """

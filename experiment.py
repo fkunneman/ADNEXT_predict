@@ -75,8 +75,3 @@ if level <= 4:
     features = {'token_ngrams': {'n_list': [1, 2, 3], 'max_feats': 1500}}
     f = featurizer.Featurizer(raw, frogs, features)
     feats = f.fit_transform()
-    print(feats)
-
-
-
-
