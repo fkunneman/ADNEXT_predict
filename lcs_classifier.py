@@ -11,6 +11,7 @@ class LCS_classifier:
         """
         self.train = train
         self.test = test
+        self.convert_features()
         self.expdir = directory
         self.vocabulary = vocabulary
         self.targets = {}
@@ -160,7 +161,7 @@ class LCS_classifier:
         feature_freqs = [(i,f) for i,f in enumerate(instance[1]) if f > 0]
         features = []
         for feature in feature_freqs:
-            features += vocabulary[feature[0]] * feature[1]
+            features += self.vocabulary[feature[0]] * feature[1]
         return [instance[0], features]
 
     def write_config(self):
