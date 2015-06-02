@@ -6,6 +6,8 @@ import csv
 import re
 import datetime
 
+from collections import Counter
+
 def read_columnfile(columnfile):
     """
     Reader

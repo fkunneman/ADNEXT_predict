@@ -25,6 +25,7 @@ class LCS_classifier:
             self.targets = dict((filename, target) for filename, target in test_tuples)
             self.classify(trainparts, testparts, self.expdir)
         else: 
+            print("preparing files")
             parts = self.prepare(self.train)
             parts_tuples = [instance.split() for instance in parts]
             self.targets = dict((filename, target) for filename, target in parts_tuples)

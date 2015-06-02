@@ -33,7 +33,7 @@ class Featurizer:
     For an explanation regarding the frog features, please refer either to
     utils.frog.extract_tags or http://ilk.uvt.nl/frog/.
     """
-    def __init__(self, raws, frogs, features, blackfeats = []):
+    def __init__(self, raws, frogs, features):
 
         self.frog = frogs
         self.raw = raws
@@ -48,7 +48,6 @@ class Featurizer:
         self.helpers = [v(**features[k]) for k, v in
                         self.modules.items() if k in features.keys()]
 
-        self.filter = black_feats
 
         # construct feature_families by combining the given features with
         # their indices, omits the use of an OrderedDict
@@ -118,6 +117,7 @@ class TokenNgrams:
         self.name = 'token_ngrams'
         self.max_feats = kwargs['max_feats']
         self.n_list = kwargs['n_list']
+        self.blackfeats = kwargs['blackfeats']
 
     # retrieve indexes of features
     def fit(self, raw_data, frog_data):
@@ -139,10 +139,12 @@ class TokenNgrams:
                 tok_dict.update(utils.freq_dict(["_".join(item) for item in \
                     utils.find_ngrams(tokens, n)]))
             instances.append([tok_dict.get(f, 0) for f in self.feats])
-        return np.array(instances)
+        return np.array(instances), self.feats
 
     def fit_transform(self, raw_data, frog_data):
+        print("fitting")
         self.fit(raw_data, frog_data)
+        print("transforming")
         return self.transform(raw_data, frog_data)
 
 class SimpleTokenNgrams:
@@ -164,7 +166,6 @@ class SimpleTokenNgrams:
                     utils.find_ngrams(tokens, n)]))
         self.feats = [i for i,j in sorted(feats.items(), reverse=True, \
             key=operator.itemgetter(1))][:self.max_feats]
-        print(self.feats)
 
     def transform(self, raw_data, frog_data):
         instances = []

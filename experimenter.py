@@ -1,6 +1,7 @@
 #!/usr/bin/env 
 
 import time
+import os
 
 import featurizer
 import lcs_classifier
@@ -22,18 +23,19 @@ class ExperimentGrid:
             settings = [self.features]
         for setting in settings:
             text = train['text']
-            frog = train['frog'] 
-            if self.test:
-                text += test['text']
-                frog += test['frog']      
-            featurizer = featurizer.Featurizer(text, frog, setting)
-            vectors, vocabulary = featurizer.fit_transform()
-            train_instances = list(zip(train['labels'], vectors[:len(train['text'])]))
+            frog = train['frogs'] 
             if test:
-                test_instances = list(zip(test['labels'], vectors[len(train['text']):]))
+                text += test['text']
+                frog += test['frogs']      
+            fr = featurizer.Featurizer(text, frog, setting)
+            vectors, vocabulary = fr.fit_transform()
+            train_instances = list(zip(train['label'], vectors[:len(train['text'])]))
+            if test:
+                test_instances = list(zip(test['label'], vectors[len(train['text']):]))
             else:
                 test_instances = False
-            self.featurized.append([train_instances, test_instances, vocabulary, setting.keys()])
+            self.featurized.append([train_instances, test_instances, vocabulary, 
+                setting.keys()])
 
 
     def experiment(self):
@@ -59,7 +61,7 @@ class ExperimentGrid:
                         results.file.write(
                             "\n".join
                             (
-                                ["\t".join([str(x) for x in label]) for label in performance])
+                            ["\t".join([str(x) for x in label]) for label in performance])
                             )
                     with open(overview, "a") as ov:
                         ov.write("\t".join([expname] + performance[-1]))
