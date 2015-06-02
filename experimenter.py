@@ -46,7 +46,7 @@ class ExperimentGrid:
             train, test, vocabulary, featuretypes = setting
             features = "-".join(featuretypes)
             for classifier in self.classifiers:
-                expdir = self.directory + "exp" + str(expindex) + ".txt"
+                expdir = self.directory + "exp" + str(expindex) + "/"
                 os.mkdir(expdir)
                 expname = features + "_" + classifier
                 print("classifying", expname)

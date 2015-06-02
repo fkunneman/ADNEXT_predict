@@ -253,8 +253,11 @@ class Datahandler:
         for doc in self.dataset['frogs']:
             new_doc = []
             for token in doc:
-                if not token[2] == "LET()":
-                    new_doc.append(token)
+                try:
+                    if not token[2] == "LET()":
+                        new_doc.append(token)
+                except:
+                    continue
             new_frogs.append(new_doc)
         self.dataset['frogs'] = new_frogs
 

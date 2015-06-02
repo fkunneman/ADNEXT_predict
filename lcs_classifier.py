@@ -1,6 +1,5 @@
 #!/usr/bin/env 
 
-import numpy
 import os
 
 import utils
@@ -36,7 +35,7 @@ class LCS_classifier:
                 os.mkdir(expdir)
                 train, test = fold
                 self.targets.update()
-                self.classify(train, test)
+                self.classify(train, test, expdir)
 
     def prepare(self, data):
         """
@@ -57,20 +56,23 @@ class LCS_classifier:
         parts = []
         # make directory to write files to
         self.filesdir = self.expdir + "files/"
-        os.mkdir(filesdir)
+        os.mkdir(self.filesdir)
         # make chunks of 25000 from the data
-        chunks = numpy.array_split(data,int(len(data)/25000))
+        if len(data) > 25000:
+            chunks = [list(t) for t in zip(*[iter(data)]*int(round(len(data)/25000),0))]
+        else:
+            chunks = [data]
         for i, chunk in enumerate(chunks):
             # make subdirectory
-            subdir = filesdir + "sd" + str(i) + "/"
+            subdir = self.filesdir + "sd" + str(i) + "/"
             os.mkdir(subdir)
-            for j, instance in chunk:
+            for j, instance in enumerate(chunk):
                 zeros = 5 - len(str(j))
                 filename = subdir + ('0' * zeros) + str(j) + ".txt"
-                with open(filesdir + filename, 'w', encoding = 'utf-8') as outfile: 
-                    outfile.write("\n".join(features))
                 label = instance[0]
                 features = instance[1]
+                with open(filename, 'w', encoding = 'utf-8') as outfile: 
+                    outfile.write("\n".join(features))
                 parts.append(filename + " " + label)
         return parts
 
