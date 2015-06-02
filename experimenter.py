@@ -54,9 +54,10 @@ class ExperimentGrid:
                     el.write(str(time.asctime()) + "\t" + expname)
                 if classifier == "lcs":
                     clf = lcs_classifier.LCS_classifier(train, test, expdir, vocabulary)
+                    clf.experiment()
                     rep = reporter.Reporter()
                     rep.add_instances(clf.classifications)
-                    performance = reporter.calculate_performance()
+                    performance = rep.calculate_performance()
                     with open(expdir + "results.txt", "w") as resultsfile:
                         results.file.write(
                             "\n".join
