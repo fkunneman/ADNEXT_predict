@@ -270,3 +270,12 @@ class Datahandler:
 
         """
         self.dataset['label'] = [label] * len(self.dataset['label'])
+
+    def to_lower(self):
+        new_frogs = []
+        for doc in self.dataset['frogs']:
+            new_doc = []
+            for token in doc:
+                new_doc.append([token[0].lower(), token[1].lower(), token[2], token[3]])
+            new_frogs.append(new_doc)
+        self.dataset['frogs'] = new_frogs
