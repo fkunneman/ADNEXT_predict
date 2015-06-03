@@ -35,7 +35,7 @@ class LCS_classifier:
                 expdir = self.expdir + "fold_" + str(i) + "/"
                 os.mkdir(expdir)
                 train, test = fold
-                self.targets.update()
+                #self.targets.update()
                 self.classify(train, test, expdir)
 
     def prepare(self, data):
@@ -94,6 +94,7 @@ class LCS_classifier:
         testparts : list
             all test instances as line with a file reference and label
         """
+        print(trainparts)
         with open("train", "w", encoding = "utf-8") as train:
             train.write("\n".join(trainparts))
         with open("test", "w", encoding = "utf-8") as test:
