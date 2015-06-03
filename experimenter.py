@@ -47,7 +47,7 @@ class ExperimentGrid:
             features = "-".join(featuretypes)
             for classifier in self.classifiers:
                 expdir = self.directory + "exp" + str(expindex) + "/"
-                os.mkdir(expdir)
+                #os.mkdir(expdir)
                 expname = features + "_" + classifier
                 print("classifying", expname)
                 with open(experimentlog, "a") as el:

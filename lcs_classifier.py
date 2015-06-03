@@ -36,6 +36,7 @@ class LCS_classifier:
                 os.mkdir(expdir)
                 train, test = fold
                 #self.targets.update()
+                print(len(train), len(test))
                 self.classify(train, test, expdir)
 
     def prepare(self, data):
@@ -57,7 +58,7 @@ class LCS_classifier:
         parts = []
         # make directory to write files to
         self.filesdir = self.expdir + "files/"
-        os.mkdir(self.filesdir)
+        #os.mkdir(self.filesdir)
         # make chunks of 25000 from the data
         if len(data) > 25000:
             chunks = [list(t) for t in zip(*[iter(data)]*int(round(len(data)/25000),0))]
@@ -65,17 +66,17 @@ class LCS_classifier:
             chunks = [data]
         for i, chunk in enumerate(chunks):
             # make subdirectory
-            subdir = self.filesdir + "sd" + str(i) + "/"
-            os.mkdir(subdir)
+            subpart = "sd" + str(i) + "/"
+            subdir = self.filesdir + subpart
+            #os.mkdir(subdir)
             for j, instance in enumerate(chunk):
                 zeros = 5 - len(str(j))
-                filename = subdir + ('0' * zeros) + str(j) + ".txt"
+                filename = subpart + ('0' * zeros) + str(j) + ".txt"
                 label = instance[0]
                 features = instance[1]
-                with open(filename, 'w', encoding = 'utf-8') as outfile: 
-                    outfile.write("\n".join(features))
+                #with open(self.filesdir + filename, 'w', encoding = 'utf-8') as outfile: 
+                #    outfile.write("\n".join(features))
                 parts.append(filename + " " + label)
-        print(parts)
         return parts
 
     def classify(self, trainparts, testparts, expdir):
@@ -94,7 +95,6 @@ class LCS_classifier:
         testparts : list
             all test instances as line with a file reference and label
         """
-        print(trainparts)
         with open("train", "w", encoding = "utf-8") as train:
             train.write("\n".join(trainparts))
         with open("test", "w", encoding = "utf-8") as test:

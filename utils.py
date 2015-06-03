@@ -146,7 +146,7 @@ def return_folds(instances, n = 10):
         folds.append(fold)
     runs = []
     for run in range(n):
-        train = folds[:run] + folds[run+1:]
+        train = reduce(lambda y, z: y+z, folds[:run]) + reduce(lambda y, z: y+z, folds[run+1:])
         test = folds[run]
         runs.append([train, test])
     return runs
