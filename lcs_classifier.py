@@ -11,9 +11,9 @@ class LCS_classifier:
         """
         self.train = train
         self.test = test
-        self.convert_features()
         self.expdir = directory
         self.vocabulary = vocabulary
+        self.convert_features()
         self.targets = {}
         self.classifications = []
 
@@ -75,6 +75,7 @@ class LCS_classifier:
                 with open(filename, 'w', encoding = 'utf-8') as outfile: 
                     outfile.write("\n".join(features))
                 parts.append(filename + " " + label)
+        print(parts)
         return parts
 
     def classify(self, trainparts, testparts, expdir):
@@ -161,7 +162,7 @@ class LCS_classifier:
         feature_freqs = [(i,f) for i,f in enumerate(instance[1]) if f > 0]
         features = []
         for feature in feature_freqs:
-            features += self.vocabulary[feature[0]] * feature[1]
+            features += [self.vocabulary[feature[0]]] * feature[1]
         return [instance[0], features]
 
     def write_config(self):

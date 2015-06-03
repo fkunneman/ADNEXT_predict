@@ -61,7 +61,7 @@ class Featurizer:
             vocabularies[helper.name] = vocabulary
         submatrices = [features[ft] for ft in sorted(features.keys())]
         X = np.hstack(submatrices)
-        vocab = [vocabularies[v] for v in sorted(vocabularies.keys())]
+        vocab = np.hstack([vocabularies[v] for v in sorted(vocabularies.keys())])
         return X, vocab
 
 class BlueprintFeature:
