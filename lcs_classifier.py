@@ -5,6 +5,42 @@ import os
 import utils
 
 class LCS_classifier:
+    """
+    Classification by LCS balanced winnow
+    ======
+    Interface to LCS classifier
+
+    Parameters
+    ------
+    train : list 
+        featurized training instances
+    test : list
+        featurized test instances
+    directory : str
+        directory in which classificationfiles are written 
+        experiment itself is performed in current directory
+    vocabulary : dict
+        dictionary with a mapping between indices and features
+
+    Attributes
+    -----
+    train : holder of 'train' parameter
+    test : holder of 'test' parameter
+    expdir : holder of 'expdir' parameter
+    vocabulary : holder of 'vocabulary' parameter
+    convert_features : function call
+        converts featurized features to format used in LCS classification
+
+    Examples
+    -----
+    Interactive:
+
+    >>> reader = Datareader(max_n=1000)
+    >>> reader.set('blogs.csv')
+    >>> docs = reader.rows
+    >>> reader.set_rows(docs)
+
+    """
 
     def __init__(self, train, test, directory, vocabulary):
         """
