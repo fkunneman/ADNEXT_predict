@@ -32,7 +32,8 @@ class Datahandler:
 
     def __init__(self, max_n = False):
         self.max_n = max_n
-        self.headers = "label tweet_id user_id date time username text frogs".split()
+#        self.headers = "label tweet_id user_id date time username text frogs".split()
+        self.headers = "user age gender country location region education liwc irc text frogs".split()
         self.dataset = {}
         self.rows = {}
 

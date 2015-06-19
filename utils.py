@@ -5,7 +5,7 @@ import json
 import csv
 import re
 import datetime
-
+import functools
 from collections import Counter
 
 def read_columnfile(columnfile):
@@ -29,14 +29,24 @@ def read_columnfile(columnfile):
     defaultline = ["-", "-", "-", "-", "-", "-", "-", "-"]
 
     #initialize columndict
+    #columndict = {
+    #    "Label" : 0,
+    #    "Tweet_id" : 1,
+    #    "User_id" : 2,
+    #    "Date" : 3,
+    #    "Time" : 4,
+    #    "Username" : 5,
+    #    "Text" : 6
+    #}
+
     columndict = {
-        "Label" : 0,
-        "Tweet_id" : 1,
-        "User_id" : 2,
-        "Date" : 3,
-        "Time" : 4,
-        "Username" : 5,
-        "Text" : 6
+        "id_str" : 0,
+        "created_at" : 2,
+        "text" : 3,
+        "retweet_count" : 4,
+        "favorite_count" : 5,
+        "screen_name" : 6,
+        "user_mentions" : 7
     }
 
     with open(columnfile) as cf:
@@ -112,26 +122,26 @@ def read_excel(filename, header = False, date = False, time = False):
         begin = 1
     for rownum in range(begin, wbsheet.nrows):
         values = wbsheet.row_values(rownum)
-        if date == 0 or date:
-            try:
-                datefields = xlrd.xldate_as_tuple\
-                    (\
-                    wbsheet.cell_value(rownum, date), \
-                    workbook.datemode\
-                    )[:3]
-                values[date] = datetime.date(*datefields)
-            except TypeError:
-                values[date] = values[date]           
-        if time == 0 or time:
-            try:
-                timefields = xlrd.xldate_as_tuple\
-                    (\
-                    wbsheet.cell_value(rownum, time), \
-                    workbook.datemode\
-                    )[3:]
-                values[time] = datetime.time(*timefields)
-            except TypeError:
-                values[time] = values[time]        
+        #if date == 0 or date:
+        #    try:
+        #        datefields = xlrd.xldate_as_tuple\
+        #            (\
+        #            wbsheet.cell_value(rownum, date), \
+        #            workbook.datemode\
+        #            )[:3]
+        #        values[date] = datetime.date(*datefields)
+        #    except TypeError:
+        #        values[date] = values[date]           
+        #if time == 0 or time:
+        #    try:
+        #        timefields = xlrd.xldate_as_tuple\
+        #            (\
+        #            wbsheet.cell_value(rownum, time), \
+        #            workbook.datemode\
+        #            )[3:]
+        #        values[time] = datetime.time(*timefields)
+        #    except TypeError:
+        #        values[time] = values[time]        
         rows.append(values)
     return rows
 
@@ -145,9 +155,13 @@ def return_folds(instances, n = 10):
             j += n
         folds.append(fold)
     runs = []
-    for run in range(n):
-        train = reduce(lambda y, z: y+z, folds[:run]) + reduce(lambda y, z: y+z, folds[run+1:])
-        test = folds[run]
+    foldindices = range(n)
+    for run in foldindices:
+        testindex = run
+        trainindices = list(set(foldindices) - set([testindex]))
+        trainfolds = [folds[i] for i in trainindices]
+        train = functools.reduce(lambda y, z: y+z, trainfolds)
+        test = folds[testindex]
         runs.append([train, test])
     return runs
 

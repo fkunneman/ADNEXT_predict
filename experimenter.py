@@ -11,9 +11,8 @@ import utils
 
 class ExperimentGrid:
 
-    def __init__(self, features, featurefilter, classifiers, directory):
+    def __init__(self, features, classifiers, directory):
         self.features = features
-        self.featurefilter = featurefilter # list of tokens to be removed
         self.classifiers = classifiers
         self.directory = directory
         self.featurized = []
@@ -59,7 +58,7 @@ class ExperimentGrid:
                     rep.add_instances(clf.classifications)
                     performance = rep.calculate_performance()
                     with open(expdir + "results.txt", "w") as resultsfile:
-                        results.file.write(
+                        resultsfile.write(
                             "\n".join
                             (
                             ["\t".join([str(x) for x in label]) for label in performance])

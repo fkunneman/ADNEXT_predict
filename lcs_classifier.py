@@ -232,4 +232,4 @@ class LCS_classifier:
             "winnow.thetaplus=2.5"
             ])
         with open("lcs3.conf", "w", encoding = "utf-8") as config_out:
-            config_out.write("\n".join(config))
+            config_out.write(config)

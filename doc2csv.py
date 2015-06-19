@@ -3,6 +3,7 @@
 import argparse
 import utils
 import datahandler
+import csv
 
 """
 Converts docs to standard format
@@ -48,6 +49,12 @@ else: # txt file
         if args.header:
             lines = lines[1:]
 
+with open(args.o, 'w') as csvfile:
+    writer = csv.writer(csvfile)
+    for line in lines:
+        writer.writerow(line)
+quit()
+
 # set columns of lines in right order
 if args.c: 
     indexline = utils.read_columnfile(args.c)
@@ -60,6 +67,8 @@ if args.c:
             else:
                 csvrow.append(line[i])
         csvrows.append(csvrow)
+
+
 
 # write to csv
 dh = datahandler.Datahandler()
