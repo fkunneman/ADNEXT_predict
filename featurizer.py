@@ -18,7 +18,7 @@ class Featurizer:
         instance in the data file.
 
     frogs : list
-        The frog data ...
+        The frog data
 
     features : dict
         Subset any of the entries in the following dictionary:

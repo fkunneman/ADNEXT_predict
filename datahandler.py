@@ -17,9 +17,11 @@ class Datahandler:
 
     Attributes
     -----
-    datasets : dict
+    dataset : dict
         Dictionary where key is the name of a dataset, and the value its rows.
         Will not be filled if data is streamed.
+    rows : list of lists
+        list of documents, document is a list of csv-fields
 
     Examples
     -----
@@ -27,6 +29,8 @@ class Datahandler:
 
     >>> reader = Datareader(max_n=1000)
     >>> reader.set('blogs.csv')
+    >>> docs = reader.rows
+    >>> reader.set_rows(docs)
 
     """
 
@@ -34,7 +38,7 @@ class Datahandler:
         self.max_n = max_n
         self.headers = "label tweet_id user_id date time username text frogs".split()
         self.dataset = {}
-        self.rows = {}
+        self.rows = []
 
     def set_rows(self, rows):
         """
