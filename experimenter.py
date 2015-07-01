@@ -43,13 +43,13 @@ class ExperimentGrid:
 
     Examples
     -----
-    grid = experimenter.ExperimentGrid(f, clf, d)
+    grid = experimenter.ExperimentGrid(features, classifiers, directory, 'low')
     grid.set_features(dataset)
     grid.experiment()
 
     """
 
-    def __init__(self, features, featurefilter, classifiers, directory, grid):
+    def __init__(self, features, classifiers, directory, grid):
         self.features = features
         self.classifiers = classifiers
         self.directory = directory

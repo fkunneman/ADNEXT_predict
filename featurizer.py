@@ -117,10 +117,13 @@ class TokenNgrams:
         self.name = 'token_ngrams'
         self.max_feats = kwargs['max_feats']
         self.n_list = kwargs['n_list']
-        self.blackfeats = kwargs['blackfeats']
+        if 'blackfeats' in kwargs:
+            self.blackfeats = kwargs['blackfeats']
+        else:
+            self.blackfeats = []
 
     # retrieve indexes of features
-    def fit(self, raw_data, frog_data):
+    def fit(self, frog_data):
         feats = {}
         for inst in frog_data:
             for n in self.n_list:
@@ -130,7 +133,7 @@ class TokenNgrams:
         self.feats = [i for i, j in sorted(feats.items(), reverse = True, 
             key = operator.itemgetter(1)) if not bool(set(i.split("_")) & set(self.blackfeats))][:self.max_feats]
 
-    def transform(self, raw_data, frog_data):
+    def transform(self, frog_data):
         instances = []
         for inst in frog_data:
             tok_dict = {}
@@ -143,9 +146,9 @@ class TokenNgrams:
 
     def fit_transform(self, raw_data, frog_data):
         print("fitting")
-        self.fit(raw_data, frog_data)
+        self.fit(frog_data)
         print("transforming")
-        return self.transform(raw_data, frog_data)
+        return self.transform(frog_data)
 
 class SimpleTokenNgrams:
     """
