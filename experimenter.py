@@ -106,7 +106,7 @@ class ExperimentGrid:
         experimentlog = self.directory + 'log.txt'
         overview = self.directory + 'overview.txt'
         expindex = 1
-        print(list(itertools.product(self.featurized, classifiers)))
+        print("iter", list(itertools.product(self.featurized, classifiers)))
         quit()
         for setting in self.featurized:
             train, test, vocabulary, featuretypes = setting
