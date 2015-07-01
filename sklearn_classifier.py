@@ -6,6 +6,8 @@ from sklearn import svm, naive_bayes, tree
 class SKlearn_classifier:
 
     def __init__(self, train, test, experimentdir):
+        print(test)
+        print([instance[0] for instance in train][:2])
         self.train = sparse.csr_matrix([instance[0] for instance in train])
         self.trainlabels = [instance[1] for instance in train]
         self.test = [instance[0] for instance in test]
