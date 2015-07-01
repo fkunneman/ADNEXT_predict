@@ -178,7 +178,7 @@ class LCS_classifier:
 
     def return_featurelist(self, instance):
         """
-        Function to retrieve the feature from feature indices
+        Function to retrieve the vocabulary feature from feature indices
 
         Parameters
         -----

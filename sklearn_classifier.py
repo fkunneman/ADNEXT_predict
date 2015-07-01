@@ -1,5 +1,7 @@
 #!/usr/bin/env
 
+from sklearn import svm, naive_bayes, tree
+
 class SKlearn_classifier:
 
     def __init__(self, train, test, classifier):
@@ -8,14 +10,16 @@ class SKlearn_classifier:
 
 
 
+    def prepare(self):
+        
 
-    def classify(self, classifier):
+    def train_nb(self):
         """
-        Learner
+        Naive Bayes Learner
         =====
-
-
+        Function to train a Naive Bayes classifier
 
         """
-
+        self.clf = naive_bayes.MultinomialNB()
+        self.clf.fit(self.training_csr, self.trainlabels)
 

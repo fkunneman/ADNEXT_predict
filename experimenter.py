@@ -87,11 +87,15 @@ class ExperimentGrid:
                 frog += test['frogs']      
             fr = featurizer.Featurizer(text, frog, setting)
             vectors, vocabulary = fr.fit_transform()
+            print(vectors[1])
+            quit()
             train_instances = list(zip(train['label'], vectors[:len(train['text'])]))
             if test:
                 test_instances = list(zip(test['label'], vectors[len(train['text']):]))
             else:
                 test_instances = False
+            # the different feature settings are appended to a class-level list, in order to 
+            # make different combinations of features and classifiers in the experiment function
             self.featurized.append([train_instances, test_instances, vocabulary, setting.keys()])
 
     def experiment(self):
@@ -107,7 +111,7 @@ class ExperimentGrid:
         experimentlog = self.directory + "log.txt"
         overview = self.directory + "overview.txt"
         expindex = 1
-        for clasification in classifications:
+        for classification in classifications:
             for setting in self.featurized:
                 train, test, vocabulary, featuretypes = setting
                 features = "-".join(featuretypes)
