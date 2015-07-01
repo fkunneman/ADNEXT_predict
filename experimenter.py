@@ -76,9 +76,6 @@ class ExperimentGrid:
         if self.grid == 'low': #only one setting
             settings = [self.features]
         #else: #combinations of settings
-
-
-
         for setting in settings:
             text = train['text']
             frog = train['frogs'] 
@@ -87,11 +84,9 @@ class ExperimentGrid:
                 frog += test['frogs']      
             fr = featurizer.Featurizer(text, frog, setting)
             vectors, vocabulary = fr.fit_transform()
-            print(vectors[1])
-            quit()
-            train_instances = list(zip(train['label'], vectors[:len(train['label'])]))
+            train_instances = list(zip(vectors[:len(train['label'])], train['label']))
             if test:
-                test_instances = list(zip(test['label'], vectors[len(train['label']):]))
+                test_instances = list(zip(vectors[len(train['label']):], test['label']))
             else:
                 test_instances = False
             # the different feature settings are appended to a class-level list, in order to 
@@ -115,8 +110,8 @@ class ExperimentGrid:
             for setting in self.featurized:
                 train, test, vocabulary, featuretypes = setting
                 features = '-'.join(featuretypes)
-                clf = sklearn_classifier.SKlearn_classifier(train, test, expdir)
                 expdir = self.directory + 'exp' + str(expindex) + '/'
+                clf = sklearn_classifier.SKlearn_classifier(train, test, expdir)
                 os.mkdir(expdir)
                 expindex += 1
                 #report on experiment
@@ -131,7 +126,7 @@ class ExperimentGrid:
                     clf = lcs_classifier.LCS_classifier(train, test, expdir, vocabulary)
                     clf.classify()
                 else:
-                    if classifier == 'nb'
+                    if classifier == 'nb':
                         clf.train_nb()
                     clf.predict()
 
