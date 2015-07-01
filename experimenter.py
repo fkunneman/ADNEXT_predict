@@ -2,6 +2,7 @@
 
 import time
 import os
+import itertools
 
 import featurizer
 import lcs_classifier
@@ -105,12 +106,13 @@ class ExperimentGrid:
         experimentlog = self.directory + 'log.txt'
         overview = self.directory + 'overview.txt'
         expindex = 1
+        print(list(itertools.product(self.featurized, classifiers)))
+        quit()
         for setting in self.featurized:
+            train, test, vocabulary, featuretypes = setting
+            clf = sklearn_classifier.SKlearn_classifier(train, test)
             for classifier in classifiers:            
-                train, test, vocabulary, featuretypes = setting
-                features = '-'.join(featuretypes)
                 expdir = self.directory + 'exp' + str(expindex) + '/'
-                clf = sklearn_classifier.SKlearn_classifier(train, test, expdir)
                 os.mkdir(expdir)
                 expindex += 1
                 #report on experiment
@@ -119,8 +121,8 @@ class ExperimentGrid:
                 with open(experimentlog, 'a') as el:
                     el.write(str(time.asctime()) + '\t' + expname + '\n')
                 #perform classification
-                if len(classification) == 1:
-                    classifier = classification
+                if len(classifier) == 1:
+                    classifier = classifier[0]
                 if classifier == 'lcs':
                     clf = lcs_classifier.LCS_classifier(train, test, expdir, vocabulary)
                     clf.classify()
