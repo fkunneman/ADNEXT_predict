@@ -89,9 +89,9 @@ class ExperimentGrid:
             vectors, vocabulary = fr.fit_transform()
             print(vectors[1])
             quit()
-            train_instances = list(zip(train['label'], vectors[:len(train['text'])]))
+            train_instances = list(zip(train['label'], vectors[:len(train['label'])]))
             if test:
-                test_instances = list(zip(test['label'], vectors[len(train['text']):]))
+                test_instances = list(zip(test['label'], vectors[len(train['label']):]))
             else:
                 test_instances = False
             # the different feature settings are appended to a class-level list, in order to 
@@ -108,32 +108,35 @@ class ExperimentGrid:
             classifications = [[clf] for clf in self.classifiers]
         #elif self.grid == "high": #all single classifiers + all different combinations of ensemble
 
-        experimentlog = self.directory + "log.txt"
-        overview = self.directory + "overview.txt"
+        experimentlog = self.directory + 'log.txt'
+        overview = self.directory + 'overview.txt'
         expindex = 1
         for classification in classifications:
             for setting in self.featurized:
                 train, test, vocabulary, featuretypes = setting
-                features = "-".join(featuretypes)
-                expdir = self.directory + "exp" + str(expindex) + "/"
+                features = '-'.join(featuretypes)
+                clf = sklearn_classifier.SKlearn_classifier(train, test, expdir)
+                expdir = self.directory + 'exp' + str(expindex) + '/'
                 os.mkdir(expdir)
                 expindex += 1
                 #report on experiment
-                expname = expdir + "\t" + features + "_" + "+".join(classification)
-                print("classifying", expname)
-                with open(experimentlog, "a") as el:
-                    el.write(str(time.asctime()) + "\t" + expname + "\n")
+                expname = expdir + "\t" + features + '_' + '+'.join(classification)
+                print('classifying', expname)
+                with open(experimentlog, 'a') as el:
+                    el.write(str(time.asctime()) + '\t' + expname + '\n')
                 #perform classification
                 if len(classification) == 1:
                     classifier = classification
-                if classifier == "lcs":
+                if classifier == 'lcs':
                     clf = lcs_classifier.LCS_classifier(train, test, expdir, vocabulary)
                     clf.classify()
                 else:
-                    clf = sklearn_classifier.SKlearn_classifier(train, test, expodir, vocabulary)
-                    clf.classify(classifier)                    
+                    if classifier == 'nb'
+                        clf.train_nb()
+                    clf.predict()
+
                 rep = reporter.Reporter()
-                rep.add_instances(clf.classifications)
+                rep.add_instances(clf.predictions)
                 performance = rep.calculate_performance()
                 with open(expdir + "results.txt", "w") as resultsfile:
                     resultsfile.write(

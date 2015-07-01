@@ -97,7 +97,7 @@ class LCS_classifier:
         #os.mkdir(self.filesdir)
         # make chunks of 25000 from the data
         if len(data) > 25000:
-            chunks = [list(t) for t in zip(*[iter(data)]*int(round(len(data)/25000),0))]
+            chunks = [list(t) for t in zip(*[iter(data)]*int(round(len(data) / 25000), 0))]
         else:
             chunks = [data]
         for i, chunk in enumerate(chunks):
