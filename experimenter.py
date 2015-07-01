@@ -105,14 +105,13 @@ class ExperimentGrid:
         Function to perform classifications
         """
         if self.grid == "low" or self.grid == "normal": #all single classifiers
-            classifications = [[clf] for clf in self.classifiers]
+            classifiers = [[clf] for clf in self.classifiers]
         #elif self.grid == "high": #all single classifiers + all different combinations of ensemble
-
         experimentlog = self.directory + 'log.txt'
         overview = self.directory + 'overview.txt'
         expindex = 1
-        for classification in classifications:
-            for setting in self.featurized:
+        for setting in self.featurized:
+            for classifier in classifiers:            
                 train, test, vocabulary, featuretypes = setting
                 features = '-'.join(featuretypes)
                 clf = sklearn_classifier.SKlearn_classifier(train, test, expdir)
