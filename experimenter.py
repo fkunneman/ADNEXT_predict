@@ -10,7 +10,7 @@ import sklearn_classifier
 import reporter
 import utils
 
-class ExperimentGrid:
+class Experiment:
     """
     Experiment wrapper
     ======
@@ -18,19 +18,12 @@ class ExperimentGrid:
 
     Parameters
     ------
-    features : dict
-        dictionary of features to include
-        keys : 'token_ngrams' (list of int), 'max_feats' : int
-    featurefilter : list
-        strings of feature tokens to exclude
     classifiers : list
         names of classifiers to include
-        options : 'lcs', 'svm', 'knn', 'nb', 'ripper', 'tree'    
+        options : 'lcs', 'svm', 'knn', 'nb', 'ripper', 'tree', 'ensemble_clf', 
+            'ensemble_prediction', 'joint_prediction'    
     directory : str
         the directory to write all experiment files to
-    grid : str
-        parameter to define the degree of different experiment combinations
-        options : 'low', 'normal', 'high'
 
     Attributes
     -----
@@ -50,92 +43,122 @@ class ExperimentGrid:
 
     """
 
-    def __init__(self, features, classifiers, directory, grid):
+    def __init__(self, train, test, features, classifiers, directory):
+        self.train_csv = train
+        self.test_csv = test # can be False
         self.features = features
+        self.featurizer = False
         self.classifiers = classifiers
         self.directory = directory
-        self.grid = grid
-        self.featurized = []
+    
+    def run_experiment(self, featuretypes, weight, prune, directory):
+        # Select features
+        instances, vocabulary = self.featurizer.return_instances(featuretypes)
+        print("Instance", instances[:5])
+        print("Vocab", vocabulary[:25])
+        quit()
+        # Save vocabulary
+        with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
+            v_out.write('\n'.join(vocabulary))
+        # if test, run experiment
+        if self.test_csv:
+            train = {
+                'featurized' : instances[:len(self.train_csv['text'])],
+                'labels'    : self.train_csv['label']
+            }
+            test = {
+                'featurized' : instances[len(self.train_csv['text']):],
+                'labels'    : self.test_csv['label']
+            } 
 
-    def set_features(self, train, test = False, grid = 'low'):
-        """
-        Featurizer interface
-        =====
-        Function transform documents into features
 
-        Parameters
-        -----
-        train : dict
-            csv dictionary from datahandler
-        test : dict, default = False
-            csv dictionary from datahandler
 
-        Attributes
-        -----
-        settings : the number of different feature combinations
-        """
-        if self.grid == 'low': #only one setting
-            settings = [self.features]
-        #else: #combinations of settings
-        for setting in settings:
-            text = train['text']
-            frog = train['frogs'] 
-            if test:
-                text += test['text']
-                frog += test['frogs']      
-            fr = featurizer.Featurizer(text, frog, setting)
-            vectors, vocabulary = fr.fit_transform()
-            train_instances = list(zip(vectors[:len(train['label'])], train['label']))
-            if test:
-                test_instances = list(zip(vectors[len(train['label']):], test['label']))
-            else:
-                test_instances = False
-            # the different feature settings are appended to a class-level list, in order to 
-            # make different combinations of features and classifiers in the experiment function
-            self.featurized.append([train_instances, test_instances, vocabulary, setting.keys()])
+        else: # 10-fold
+            pass
 
-    def experiment(self):
+        # Weight and prune
+
+        # Classify
+
+    def run_grid(self):
         """
         Classifier interface
         =====
         Function to perform classifications
-        """
-        if self.grid == "low" or self.grid == "normal": #all single classifiers
-            classifiers = [[clf] for clf in self.classifiers]
-        #elif self.grid == "high": #all single classifiers + all different combinations of ensemble
-        experimentlog = self.directory + 'log.txt'
-        overview = self.directory + 'overview.txt'
-        expindex = 1
-        print("iter", list(itertools.product(self.featurized, classifiers)))
-        quit()
-        for setting in self.featurized:
-            train, test, vocabulary, featuretypes = setting
-            clf = sklearn_classifier.SKlearn_classifier(train, test)
-            for classifier in classifiers:            
-                expdir = self.directory + 'exp' + str(expindex) + '/'
-                os.mkdir(expdir)
-                expindex += 1
-                #report on experiment
-                expname = expdir + "\t" + features + '_' + '+'.join(classification)
-                print('classifying', expname)
-                with open(experimentlog, 'a') as el:
-                    el.write(str(time.asctime()) + '\t' + expname + '\n')
-                #perform classification
-                if len(classifier) == 1:
-                    classifier = classifier[0]
-                if classifier == 'lcs':
-                    clf = lcs_classifier.LCS_classifier(train, test, expdir, vocabulary)
-                    clf.classify()
-                else:
-                    if classifier == 'nb':
-                        clf.train_nb()
-                    clf.predict()
+        """ 
+        # Make grid
+        featuretypes = self.features.keys()
+        weights = ['binary']
+        pruning = [5000]
+        combinations = list(itertools.product(featuretypes, 
+            list(itertools.product(weights, pruning))))
+        # For each cell
+        for combination in combinations:
+            print("Combi", combination)
+            directory = self.directory + "_".join(combination) + "/"
+            print("Directory", directory)
+            os.mkdir(directory)
+            self.run_experiment(combination[0], combination[1], combination[2],
+                directory)
 
-                rep = reporter.Reporter()
-                rep.add_instances(clf.predictions)
-                performance = rep.calculate_performance()
-                with open(expdir + "results.txt", "w") as resultsfile:
-                    resultsfile.write(
-                        "\n".join(["\t".join([str(x) for x in label]) for label in performance]))
-                with open(overview, "a") as ov:
-                    ov.write("\t".join([expname] + performance[-1]))
+
+        # if self.grid == "low" or self.grid == "normal": #all single classifiers
+        #     classifiers = [[clf] for clf in self.classifiers]
+        # #elif self.grid == "high": #all single classifiers + all different combinations of ensemble
+        # experimentlog = self.directory + 'log.txt'
+        # overview = self.directory + 'overview.txt'
+        # expindex = 1
+        # print("iter", list(itertools.product(self.featurized, classifiers)))
+        # quit()
+        # for setting in self.featurized:
+        #     train, test, vocabulary, featuretypes = setting
+        #     clf = sklearn_classifier.SKlearn_classifier(train, test)
+        #     for classifier in classifiers:            
+        #         expdir = self.directory + 'exp' + str(expindex) + '/'
+        #         os.mkdir(expdir)
+        #         expindex += 1
+        #         #report on experiment
+        #         expname = expdir + "\t" + features + '_' + '+'.join(classification)
+        #         print('classifying', expname)
+        #         with open(experimentlog, 'a') as el:
+        #             el.write(str(time.asctime()) + '\t' + expname + '\n')
+        #         #perform classification
+        #         if len(classifier) == 1:
+        #             classifier = classifier[0]
+        #         if classifier == 'lcs':
+        #             clf = lcs_classifier.LCS_classifier(train, test, expdir, vocabulary)
+        #             clf.classify()
+        #         else:
+        #             if classifier == 'nb':
+        #                 clf.train_nb()
+        #             clf.predict()
+
+        #         rep = reporter.Reporter()
+        #         rep.add_instances(clf.predictions)
+        #         performance = rep.calculate_performance()
+        #         with open(expdir + "results.txt", "w") as resultsfile:
+        #             resultsfile.write(
+        #                 "\n".join(["\t".join([str(x) for x in label]) for label in performance]))
+        #         with open(overview, "a") as ov:
+        #             ov.write("\t".join([expname] + performance[-1]))
+
+
+    def set_features(self):
+        """
+        Featurizer interface
+        =====
+        Function to transform documents into features
+
+        Parameters
+        -----
+        features : dict
+            dictionary of features to include
+            (see the featurizer class for an overview of the features and how 
+                to extract them)
+        """
+        text = self.train_csv['text'] 
+        frogs = self.train_csv['frogs']
+        if self.test_csv:
+            text += self.test_csv['text']
+            frogs += self.test_csv['frogs']
+        self.featurizer = featurizer.Featurizer(text, frogs, self.features)

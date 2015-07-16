@@ -14,7 +14,7 @@ Script to perform classification with scikit-learn.
 """
 parser = argparse.ArgumentParser(
     description = "Script to perform classification with scikit-learn.")
-parser.add_argument('-i', action = 'store', required = True, 
+parser.add_argument('-i', action = 'store', required = True,
     help = "file with either all instances or testinstances")
 parser.add_argument('-t', action = 'store', required = False, 
     help = "file with test data (no testfile means ten-fold cross-validation is performed)")
