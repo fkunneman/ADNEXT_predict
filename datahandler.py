@@ -2,6 +2,7 @@
 import csv
 import sys
 import re
+import random
 
 class Datahandler:
     """
@@ -152,6 +153,27 @@ class Datahandler:
         for doc in self.dataset['frogs']:
             frogstrings.append("\n".join(["\t".join(token) for token in doc]))
         self.dataset['frogs'] = frogstrings
+
+    def split_dataset(self, shuffle = False):
+        """
+        Dataset splitter
+        =====
+        Function to split the dataset in two sets of 90% and 10 %
+
+        Parameters
+        -----
+        shuffle : Bool
+            choose to shuffle the dataset before splitting (in order to mix
+                the labels)
+
+        Returns
+        ------
+        train, test : list, list
+        """
+        if shuffle:
+            self.rows = random.shuffle(self.rows)
+        train_split = int(len(self.rows) * 0.9)
+        return(self.rows[:train_split], self.rows[train_split:])
 
     def return_sequences(self, tag):
         """
