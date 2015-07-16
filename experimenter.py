@@ -62,9 +62,9 @@ class Experiment:
             v_out.write('\n'.join(vocabulary))
         # if test, run experiment
         if self.test_csv:
-            vectorizer = vectorizer.Vectorizer(instances[:len(self.train_csv['text'])],
+            vr = vectorizer.Vectorizer(instances[:len(self.train_csv['text'])],
                 instances[len(self.train_csv['text']):], weight, prune)
-            train_vectors, test_vectors =  vectorizer.vectorize()
+            train_vectors, test_vectors =  vr.vectorize()
             train = {
                 'instances' : train_vectors,
                 'labels'    : self.train_csv['label']
@@ -73,8 +73,7 @@ class Experiment:
                 'instances' : test_vectors,
                 'labels'    : self.test_csv['label']
             }
-            print(train['instances'][:5], test['instances'][:5])
-            quit()
+            
 
         else: # 10-fold
             pass
@@ -163,8 +162,8 @@ class Experiment:
             (see the featurizer class for an overview of the features and how 
                 to extract them)
         """
-        text = self.train_csv['text'] 
-        frogs = self.train_csv['frogs']
+        text = self.train_csv['text'][:] 
+        frogs = self.train_csv['frogs'][:]
         if self.test_csv:
             text += self.test_csv['text']
             frogs += self.test_csv['frogs']

@@ -33,28 +33,27 @@ class Vectorizer:
 
     def count_features(self):
         feature_counts = Counter()
-        print("Before", self.train[:2], len(self.train[0]))
         for instance in self.train:
             feature_counts.update([i for i, v in enumerate(instance) if v > 0]) #document count
-        print("After", self.train[:2], len(self.train[0]))
         return feature_counts
 
     def prune_instances(self, indices):
         self.train = [[instance[index] for index in indices] for instance in self.train]
+        print("Before", self.test[0], len(self.test[0]))
         self.test = [[instance[index] for index in indices] for instance in self.test] 
+        print("After", self.test[0], len(self.test[0]))
 
     def prune_features(self):
-        feature_counts = self.count(features())
-        selected_features = feature_counts.most_common()[:self.prune]
-        print("Selected features", selected_features)
+        feature_counts = self.count_features()
+        selected_features = [x[0] for x in feature_counts.most_common()[:self.prune]]
         self.prune_instances(selected_features)
 
     def weight_features(self):
         #if weight == 'tfidf':
         #    idf = self.return_idf()
-        if weight == 'binary':
-            self.train = [1 if x > 0 else 0 for x in self.train]
-            self.test = [1 if x > 0 else 0 for x in self.train]
+        if self.weight == 'binary':
+            self.train = [[1 if x > 0 else 0 for x in instance] for instance in self.train]
+            self.test = [[1 if x > 0 else 0 for x in instance] for instance in self.test]
 
     def vectorize(self):
         self.weight_features()
