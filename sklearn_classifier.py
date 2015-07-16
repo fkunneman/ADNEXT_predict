@@ -96,6 +96,7 @@ class NB_classifier:
         Classifier model
     self.settings : dict
         Classifier parameter settings
+
     """
     def __init__(self, le):
         self.le = le

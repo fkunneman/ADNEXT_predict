@@ -73,7 +73,10 @@ class Experiment:
                 'instances' : test_vectors,
                 'labels'    : self.test_csv['label']
             }
-            
+            print("Performing classification")
+            skc = sklearn_classifier.SKlearn_classifier(train, test, self.classifiers)
+            results = skc.fit_transform()
+            print(results)
 
         else: # 10-fold
             pass
