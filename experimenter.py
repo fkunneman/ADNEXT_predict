@@ -53,6 +53,8 @@ class Experiment:
     
     def run_experiment(self, featuretypes, weight, prune, directory):
         # Select features
+        print("Featuretypes", featuretypes)
+        print(self.featurizer.features.keys())
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
         print("Instance", instances[:5])
         print("Vocab", vocabulary[:25])
@@ -87,17 +89,22 @@ class Experiment:
         Function to perform classifications
         """ 
         # Make grid
-        featuretypes = self.features.keys()
+        featuretypes = []
+        for L in range(1, len(self.features.keys()) + 1):
+            for subset in itertools.combinations(self.features.keys(), L):
+                featuretypes.append(list(subset))
         weights = ['binary']
         pruning = [5000]
-        combinations = list(itertools.product(featuretypes, 
-            list(itertools.product(weights, pruning))))
+        all_settings = [featuretypes, weights, pruning]
+        combinations = list(itertools.product(*all_settings))
         # For each cell
         for combination in combinations:
             print("Combi", combination)
-            directory = self.directory + "_".join(combination) + "/"
+            print(self.directory)
+            directory = self.directory + "_".join([str(x) for x in combination]) + "/"
             print("Directory", directory)
-            os.mkdir(directory)
+            if not os.path.isdir(directory):
+                os.mkdir(directory)
             self.run_experiment(combination[0], combination[1], combination[2],
                 directory)
 
@@ -162,3 +169,4 @@ class Experiment:
             text += self.test_csv['text']
             frogs += self.test_csv['frogs']
         self.featurizer = featurizer.Featurizer(text, frogs, self.features)
+        self.featurizer.fit_transform()

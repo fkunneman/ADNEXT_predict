@@ -171,7 +171,7 @@ class Datahandler:
         train, test : list, list
         """
         if shuffle:
-            self.rows = random.shuffle(self.rows)
+            random.shuffle(self.rows)
         train_split = int(len(self.rows) * 0.9)
         return(self.rows[:train_split], self.rows[train_split:])
 

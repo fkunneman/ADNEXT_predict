@@ -57,7 +57,6 @@ class Featurizer:
         self.raw = raws
         self.modules = {
             'simple_stats':         SimpleStats,
-            'simple_token_ngrams':  SimpleTokenNgrams,
             'token_ngrams':         TokenNgrams,
             'char_ngrams':          CharNgrams,
             'pos_ngrams':           PosNgrams,
@@ -104,7 +103,7 @@ class Featurizer:
         Vocabulary : list
             List with the feature name per index
         """
-        submatrices = [features[name] for name in helpernames]
+        submatrices = [self.features[name] for name in helpernames]
         #instances = sparse.csr_matrix(np.hstack(submatrices))
         instances = np.hstack(submatrices)
         vocabulary = np.hstack([self.vocabularies[name] for name in helpernames])
@@ -145,7 +144,7 @@ class TokenNgrams: # note: to be Colibrized in the future?
                     utils.find_ngrams(tokens, n)]))
         self.feats = [i for i, j in sorted(feats.items(), reverse = True, 
             key = operator.itemgetter(1)) if not bool(set(i.split("_")) & 
-            set(self.blackfeats))][:self.max_feats]
+            set(self.blackfeats))]
 
     def transform(self, frog_data):
         instances = []
