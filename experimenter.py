@@ -5,6 +5,7 @@ import os
 import itertools
 
 import featurizer
+import vectorizer
 import lcs_classifier
 import sklearn_classifier
 import reporter
@@ -53,27 +54,27 @@ class Experiment:
     
     def run_experiment(self, featuretypes, weight, prune, directory):
         # Select features
-        print("Featuretypes", featuretypes)
-        print(self.featurizer.features.keys())
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
         print("Instance", instances[:5])
         print("Vocab", vocabulary[:25])
-        quit()
         # Save vocabulary
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
             v_out.write('\n'.join(vocabulary))
         # if test, run experiment
         if self.test_csv:
+            vectorizer = vectorizer.Vectorizer(instances[:len(self.train_csv['text'])],
+                instances[len(self.train_csv['text']):], weight, prune)
+            train_vectors, test_vectors =  vectorizer.vectorize()
             train = {
-                'featurized' : instances[:len(self.train_csv['text'])],
+                'instances' : train_vectors,
                 'labels'    : self.train_csv['label']
             }
             test = {
-                'featurized' : instances[len(self.train_csv['text']):],
+                'instances' : test_vectors,
                 'labels'    : self.test_csv['label']
-            } 
-
-
+            }
+            print(train['instances'][:5], test['instances'][:5])
+            quit()
 
         else: # 10-fold
             pass
@@ -90,8 +91,8 @@ class Experiment:
         """ 
         # Make grid
         featuretypes = []
-        for L in range(1, len(self.features.keys()) + 1):
-            for subset in itertools.combinations(self.features.keys(), L):
+        for length in range(1, len(self.features.keys()) + 1):
+            for subset in itertools.combinations(self.features.keys(), length):
                 featuretypes.append(list(subset))
         weights = ['binary']
         pruning = [5000]
@@ -100,7 +101,6 @@ class Experiment:
         # For each cell
         for combination in combinations:
             print("Combi", combination)
-            print(self.directory)
             directory = self.directory + "_".join([str(x) for x in combination]) + "/"
             print("Directory", directory)
             if not os.path.isdir(directory):
