@@ -56,7 +56,7 @@ class Vectorizer:
     def vectorize(self):
         self.weight_features()
         self.prune_features()
-        return sparse.csr_matrix(self.train), self.test
+        return sparse.csr_matrix(self.train), sparse.csr_matrix(self.test)
 
     # def return_idf(self):
     #     num_docs = len(self.train)

@@ -123,9 +123,6 @@ class NB_classifier:
             Trained Naive Bayes classifier
         """
         self.clf = naive_bayes.MultinomialNB()
-        print(self.le.transform(train['labels']))
-        #print(len(train['instances']))
-        print(len(train['labels']))
         self.clf.fit(train['instances'], self.le.transform(train['labels']))
 
     def transform(self, test):
@@ -158,8 +155,6 @@ class NB_classifier:
             predictions_prob.append(self.clf.predict_proba(instance))
         output = zip(test['labels'], self.le.inverse_transform(predictions), 
             predictions_prob)
-        for line in output:
-            print(line)
         return output
 
     def fit_transform(self, train, test):
@@ -344,7 +339,7 @@ class SVM_classifier:
         self.clf : SVC
             Trained Support Vector Machines classifier
         """
-        if self.multi
+        if self.multi:
             params = ['estimator__C', 'estimator__kernel', 'estimator__gamma', 'estimator__degree']
         else:
             params = ['C', 'kernel', 'gamma', 'degree']
@@ -356,21 +351,29 @@ class SVM_classifier:
             params[3]: [1, 2, 3, 4]
             }
         model = svm.SVC(probability=True)
-        if multi:
+        if self.multi:
             model = OutputCodeClassifier(model)
-        paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 2, n_iter = 10, n_jobs = 12) 
+        paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 1, n_iter = 10, n_jobs = 12) 
         paramsearch.fit(train['instances'], self.le.transform(train['labels']))
         self.settings = paramsearch.best_params_
         # train an SVC classifier with the settings that led to the best performance
-        self.clf = svm.SVC(
-            probability = True, 
-            C = self.settings[params[0]],
-            kernel = self.settings[params[1]],
-            gamma = self.settings[params[2]],
-            degree = self.settings[params[3]]
-            )
-        if multi:
-            self.clf = OutputCodeClassifier(self.clf)
+        if self.multi:
+            clf = svm.SVC(
+                probability = True, 
+                C = self.settings[params[0]],
+                kernel = self.settings[params[1]],
+                gamma = self.settings[params[2]],
+                degree = self.settings[params[3]]
+                )
+            self.clf = OutputCodeClassifier(clf)
+        #else:
+        #    self.clf = svm.SVC(
+        #        probability = True, 
+        #        C = self.settings[params[0]],
+        #        kernel = self.settings[params[1]],
+        #        gamma = self.settings[params[2]],
+        #        degree = self.settings[params[3]]
+        #        )        
         self.clf.fit(train['instances'], self.le.transform(train['labels']))
 
     def transform(self, test):
@@ -398,14 +401,17 @@ class SVM_classifier:
         """
         predictions = []
         predictions_prob = []
-        for i, instance in enumerate(test['instances']):
+        print(type(self.clf))
+        for i, instance in enumerate(test['instances']):  
             predictions.append(self.clf.predict(instance))
-            if self.multi
-                predictions.prob.append('-')
-            else:
-                predictions_prob.append(self.clf.predict_proba(instance))
+            #if self.multi:
+            #    predictions_prob.append('-')
+            #else:
+            predictions_prob.append(self.clf.predict_proba(instance))
         output = zip(test['labels'], self.le.inverse_transform(predictions), 
             predictions_prob)
+        for line in output:
+            print(line)
         return output
 
     def fit_transform(self, train, test):
