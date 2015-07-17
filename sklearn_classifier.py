@@ -401,6 +401,8 @@ class SVM_classifier:
                 predictions_prob.append(self.clf.predict_proba(instance))
         output = zip(test['labels'], self.le.inverse_transform(predictions), 
             predictions_prob)
+        for line in output:
+            print(line)
         return output
 
     def fit_transform(self, train, test):

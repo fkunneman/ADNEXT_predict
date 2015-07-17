@@ -471,7 +471,7 @@ class CharNgrams:
     self.feats : list
         List of feature names, to keep track of the values of feature indices
     """
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.name = 'char_ngrams'
         self.n_list = kwargs['n_list']
         self.blackfeats = kwargs['blackfeats']

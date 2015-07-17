@@ -103,7 +103,7 @@ class Experiment:
         # For each cell
         for combination in combinations:
             print("Combi", combination)
-            directory = self.directory + "_".join([str(x) for x in combination]) + "/"
+            directory = self.directory + "_".join(["-".join(x) for x in combination]) + "/"
             print("Directory", directory)
             if not os.path.isdir(directory):
                 os.mkdir(directory)
