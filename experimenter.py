@@ -56,7 +56,7 @@ class Experiment:
         # Select features
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
         print("Instance", instances[:5])
-        print("Vocab", vocabulary[:250])
+        print("Vocab", vocabulary[:50], vocabulary[-50:])
         # Save vocabulary
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
             v_out.write('\n'.join(vocabulary))
