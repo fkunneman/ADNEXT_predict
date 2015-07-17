@@ -49,7 +49,7 @@ class SKlearn_classifier:
             'Tree': Tree_classifier
         }
         self.helpers = [value(le) for key, value in modules.items() if \
-            key in clfs.keys()]
+            key in clfs]
 
     def fit_transform(self):
         """
@@ -99,6 +99,7 @@ class NB_classifier:
 
     """
     def __init__(self, le):
+        self.name = "Naive Bayes"
         self.le = le
         self.clf = None
         self.settings = None
@@ -121,7 +122,11 @@ class NB_classifier:
             Trained Naive Bayes classifier
         """
         self.clf = naive_bayes.MultinomialNB()
-        self.clf.fit(train['instances'], self.le.transform([train['labels']]))
+        print(train['instances'][0])
+        print(self.le.transform(train['labels'])[0])
+        #print(len(train['instances']))
+        print(len(train['labels']))
+        self.clf.fit(train['instances'], self.le.transform(train['labels']))
 
     def transform(self, test):
         """
@@ -153,6 +158,8 @@ class NB_classifier:
             predictions_prob.append(self.clf.predict_proba(instance))
         output = zip(test['labels'], self.le.inverse_transform(predictions), 
             predictions_prob)
+        for line in output:
+            print(line)
         return output
 
     def fit_transform(self, train, test):
@@ -226,7 +233,7 @@ class Tree_classifier:
             Trained Decision Tree classifier
         """
         self.clf = tree.DecisionTreeClassifier()
-        self.clf.fit(train['instances'], self.le.transform([train['labels']]))
+        self.clf.fit(train['instances'], self.le.transform(train['labels']))
 
     def transform(self, test):
         """
@@ -342,7 +349,7 @@ class SVM_classifier:
         model = OutputCodeClassifier(svm.SVC(probability = True))
         paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, 
             verbose = 2, n_iter = 10, n_jobs = 12) 
-        paramsearch.fit(train['instances'], self.le.transform([train['labels']]))
+        paramsearch.fit(train['instances'], self.le.transform(train['labels']))
         self.settings = paramsearch.best_params_
         # train an SVC classifier with the settings that led to the best performance
         clf = svm.SVC(
@@ -353,7 +360,7 @@ class SVM_classifier:
             degree = self.settings['estimator__degree']
             )
         self.clf = OutputCodeClassifier(clf, n_jobs = 12)
-        self.clf.fit(train['instances'], self.le.transform([train['labels']]))
+        self.clf.fit(train['instances'], self.le.transform(train['labels']))
 
     def transform(self, test):
         """
