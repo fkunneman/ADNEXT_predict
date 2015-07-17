@@ -43,6 +43,7 @@ class SKlearn_classifier:
         self.test = test
         le = preprocessing.LabelEncoder()
         le.fit(train['labels'] + test['labels'])
+        print(le.classes_)
         modules = {
             'Naive Bayes':          NB_classifier,
             'SVM':  SVM_classifier,
