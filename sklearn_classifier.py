@@ -211,6 +211,7 @@ class Tree_classifier:
         Classifier parameter settings
     """
     def __init__(self, le):
+        self.name = "Tree"
         self.le = le
         self.clf = None
         self.settings = None
@@ -316,6 +317,7 @@ class SVM_classifier:
         Classifier parameter settings
     """
     def __init__(self, le):
+        self.name = "SVM"
         self.le = le
         self.clf = None
         self.settings = None
