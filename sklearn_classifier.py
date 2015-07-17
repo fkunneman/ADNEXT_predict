@@ -357,23 +357,15 @@ class SVM_classifier:
         paramsearch.fit(train['instances'], self.le.transform(train['labels']))
         self.settings = paramsearch.best_params_
         # train an SVC classifier with the settings that led to the best performance
+        self.clf = svm.SVC(
+           probability = True, 
+           C = self.settings[params[0]],
+           kernel = self.settings[params[1]],
+           gamma = self.settings[params[2]],
+           degree = self.settings[params[3]]
+           )      
         if self.multi:
-            clf = svm.SVC(
-                probability = True, 
-                C = self.settings[params[0]],
-                kernel = self.settings[params[1]],
-                gamma = self.settings[params[2]],
-                degree = self.settings[params[3]]
-                )
-            self.clf = OutputCodeClassifier(clf)
-        #else:
-        #    self.clf = svm.SVC(
-        #        probability = True, 
-        #        C = self.settings[params[0]],
-        #        kernel = self.settings[params[1]],
-        #        gamma = self.settings[params[2]],
-        #        degree = self.settings[params[3]]
-        #        )        
+            self.clf = OutputCodeClassifier(self.clf)
         self.clf.fit(train['instances'], self.le.transform(train['labels']))
 
     def transform(self, test):
@@ -401,17 +393,14 @@ class SVM_classifier:
         """
         predictions = []
         predictions_prob = []
-        print(type(self.clf))
         for i, instance in enumerate(test['instances']):  
             predictions.append(self.clf.predict(instance))
-            #if self.multi:
-            #    predictions_prob.append('-')
-            #else:
-            predictions_prob.append(self.clf.predict_proba(instance))
+            if self.multi:
+               predictions_prob.append('-')
+            else:
+                predictions_prob.append(self.clf.predict_proba(instance))
         output = zip(test['labels'], self.le.inverse_transform(predictions), 
             predictions_prob)
-        for line in output:
-            print(line)
         return output
 
     def fit_transform(self, train, test):
