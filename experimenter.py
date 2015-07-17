@@ -56,7 +56,7 @@ class Experiment:
         # Select features
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
         print("Instance", instances[:5])
-        print("Vocab", vocabulary[:25])
+        print("Vocab", vocabulary[:250])
         # Save vocabulary
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
             v_out.write('\n'.join(vocabulary))
@@ -102,8 +102,9 @@ class Experiment:
         combinations = list(itertools.product(*all_settings))
         # For each cell
         for combination in combinations:
-            print("Combi", combination)
-            directory = self.directory + "_".join(["-".join(x) for x in combination]) + "/"
+            print('Combi', combination)
+            featurestring = '+'.join(combination[0])
+            directory = self.directory + featurestring + '_' + '_'.join([str(x) for x in combination[1:]]) + '/'
             print("Directory", directory)
             if not os.path.isdir(directory):
                 os.mkdir(directory)
