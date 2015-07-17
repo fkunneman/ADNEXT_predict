@@ -1,12 +1,8 @@
 #!/usr/bin/env 
 
-from collections import Counter
 import numpy as np
 import operator
-from scipy import sparse
-
-from sklearn.decomposition import PCA
-from sklearn.feature_extraction.text import TfidfVectorizer
+#from scipy import sparse
 
 import utils
 
