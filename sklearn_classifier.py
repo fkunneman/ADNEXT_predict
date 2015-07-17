@@ -122,8 +122,7 @@ class NB_classifier:
             Trained Naive Bayes classifier
         """
         self.clf = naive_bayes.MultinomialNB()
-        print(train['instances'][0])
-        print(self.le.transform(train['labels'])[0])
+        print(self.le.transform(train['labels']))
         #print(len(train['instances']))
         print(len(train['labels']))
         self.clf.fit(train['instances'], self.le.transform(train['labels']))
@@ -353,6 +352,7 @@ class SVM_classifier:
             verbose = 2, n_iter = 10, n_jobs = 12) 
         paramsearch.fit(train['instances'], self.le.transform(train['labels']))
         self.settings = paramsearch.best_params_
+        print(self.settings)
         # train an SVC classifier with the settings that led to the best performance
         clf = svm.SVC(
             probability = True, 
@@ -361,7 +361,8 @@ class SVM_classifier:
             gamma = self.settings['estimator__gamma'],
             degree = self.settings['estimator__degree']
             )
-        self.clf = OutputCodeClassifier(clf, n_jobs = 12)
+        self.clf = OutputCodeClassifier(clf)
+        print(self.le.transform(train['labels']))
         self.clf.fit(train['instances'], self.le.transform(train['labels']))
 
     def transform(self, test):
@@ -391,7 +392,7 @@ class SVM_classifier:
         predictions_prob = []
         for i, instance in enumerate(test['instances']):
             predictions.append(self.clf.predict(instance))
-            predictions_prob.append(self.clf.predict_proba(instance))
+            #predictions_prob.append(self.clf.predict_proba(instance))
         output = zip(test['labels'], self.le.inverse_transform(predictions), 
             predictions_prob)
         return output

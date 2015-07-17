@@ -39,9 +39,7 @@ class Vectorizer:
 
     def prune_instances(self, indices):
         self.train = [[instance[index] for index in indices] for instance in self.train]
-        print("Before", self.test[0], len(self.test[0]))
         self.test = [[instance[index] for index in indices] for instance in self.test] 
-        print("After", self.test[0], len(self.test[0]))
 
     def prune_features(self):
         feature_counts = self.count_features()
