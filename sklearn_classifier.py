@@ -318,6 +318,11 @@ class SVM_classifier:
     def __init__(self, le):
         self.name = "SVM"
         self.le = le
+        # Different settings are required if there are more than two classes
+        if len(self.le.classes_) > 2:
+            self.multi = True
+        else:
+            self.multi = False
         self.clf = None
         self.settings = None
 
@@ -338,31 +343,33 @@ class SVM_classifier:
         self.clf : SVC
             Trained Support Vector Machines classifier
         """
+        if self.multi
+            params = ['estimator__C', 'estimator__kernel', 'estimator__gamma', 'estimator__degree']
+        else:
+            params = ['C', 'kernel', 'gamma', 'degree']
         # try different parameter settings for an svm outputcode classifier
         param_grid = {
-            'estimator__C': [0.001, 0.005, 0.01, 0.5, 1, 5, 10, 50, 100, 500, 
-                1000],
-            'estimator__kernel': ['linear', 'rbf', 'poly'], 
-            'estimator__gamma': [0.0005, 0.002, 0.008, 0.032, 0.128, 0.512, 
-                1.024, 2.048],
-            'estimator__degree': [1, 2, 3, 4]
+            params[0]: [0.001, 0.005, 0.01, 0.5, 1, 5, 10, 50, 100, 500, 1000],
+            params[1]: ['linear', 'rbf', 'poly'], 
+            params[2]: [0.0005, 0.002, 0.008, 0.032, 0.128, 0.512, 1.024, 2.048],
+            params[3]: [1, 2, 3, 4]
             }
-        model = OutputCodeClassifier(svm.SVC(probability = True))
-        paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, 
-            verbose = 2, n_iter = 10, n_jobs = 12) 
+        model = svm.SVC(probability=True)
+        if multi:
+            model = OutputCodeClassifier(model)
+        paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 2, n_iter = 10, n_jobs = 12) 
         paramsearch.fit(train['instances'], self.le.transform(train['labels']))
         self.settings = paramsearch.best_params_
-        print(self.settings)
         # train an SVC classifier with the settings that led to the best performance
-        clf = svm.SVC(
+        self.clf = svm.SVC(
             probability = True, 
-            C = self.settings['estimator__C'],
-            kernel = self.settings['estimator__kernel'],
-            gamma = self.settings['estimator__gamma'],
-            degree = self.settings['estimator__degree']
+            C = self.settings[params[0]],
+            kernel = self.settings[params[1]],
+            gamma = self.settings[params[2]],
+            degree = self.settings[params[3]]
             )
-        self.clf = OutputCodeClassifier(clf)
-        print(self.le.transform(train['labels']))
+        if multi:
+            self.clf = OutputCodeClassifier(self.clf)
         self.clf.fit(train['instances'], self.le.transform(train['labels']))
 
     def transform(self, test):
@@ -392,7 +399,10 @@ class SVM_classifier:
         predictions_prob = []
         for i, instance in enumerate(test['instances']):
             predictions.append(self.clf.predict(instance))
-            #predictions_prob.append(self.clf.predict_proba(instance))
+            if self.multi
+                predictions.prob.append('-')
+            else:
+                predictions_prob.append(self.clf.predict_proba(instance))
         output = zip(test['labels'], self.le.inverse_transform(predictions), 
             predictions_prob)
         return output
