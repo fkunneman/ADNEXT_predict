@@ -86,8 +86,6 @@ class Vectorizer:
         """
         # select top features
         top_features = sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold]
-        for t in top_features[:50]:
-            print(t, self.feature_weight[t])
         # transform instances
         self.train = [[instance[index] for index in top_features] for instance in self.train]
         self.test = [[instance[index] for index in top_features] for instance in self.test] 
@@ -104,10 +102,7 @@ class Vectorizer:
         self.test : list
         """        
         self.weight_features()
-        print(list(self.feature_weight.items())[:20])
-        print([x[:10] for x in self.train[:20]])
-        self.prune_features()
-        print([x[:10] for x in self.train[:20]])        
+        self.prune_features()    
         return sparse.csr_matrix(self.train), sparse.csr_matrix(self.test)
 
 class Counts:
@@ -248,12 +243,11 @@ class TfIdf(Counts):
 
     def fit(self):
         self.idf = Counts.count_idf(self)        
-        print(sorted(self.idf.keys())[:50])
 
     def transform(self):
-        self.train_instances = [[(round(v * self.idf[i], 2)) for i, v in enumerate(instance)] \
+        self.train_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
             for instance in self.train_instances]
-        self.test_instances = [[(round(v * self.idf[i], 2)) for i, v in enumerate(instance)] \
+        self.test_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
             for instance in self.test_instances]
         return self.train_instances, self.test_instances, self.idf
 
