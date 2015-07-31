@@ -65,6 +65,7 @@ class Experiment:
         # if test, run experiment
         if self.test_csv:
             len_training = len(self.train_csv['text'])
+            print('running vectorizer', weight, prune)
             vr = vectorizer.Vectorizer(instances[:len_training], instances[len_training:], 
                 self.train_csv['label'], weight, prune)
             train_vectors, test_vectors =  vr.vectorize()

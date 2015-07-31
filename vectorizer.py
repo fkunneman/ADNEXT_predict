@@ -35,7 +35,7 @@ class Vectorizer:
     def __init__(self, train_instances, test_instances, train_labels, weight = 'frequency', prune = 5000):
         self.metrics = {
             'frequency':    Frequency,
-            'binary':       Binary
+            'binary':       Binary,
             'tfidf':        TfIdf,
             'infogain':     InfoGain,
             'pmi':          PMI
@@ -86,6 +86,8 @@ class Vectorizer:
         """
         # select top features
         top_features = sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold]
+        for t in top_features[:50]:
+            print(t, self.feature_weight[t])
         # transform instances
         self.train = [[instance[index] for index in top_features] for instance in self.train]
         self.test = [[instance[index] for index in top_features] for instance in self.test] 
@@ -102,7 +104,10 @@ class Vectorizer:
         self.test : list
         """        
         self.weight_features()
+        print(list(self.feature_weight.items())[:20])
+        print([x[:10] for x in self.train[:20]])
         self.prune_features()
+        print([x[:10] for x in self.train[:20]])        
         return sparse.csr_matrix(self.train), sparse.csr_matrix(self.test)
 
 class Counts:
@@ -145,8 +150,8 @@ class Counts:
         """
         document_frequency = Counter()
         if label:
-            for instance in self.instances:
-                document_frequency.update([i for i, v in enumerate(instance) if v > 0 and if self.labels[i] == label])
+            for i, instance in enumerate(self.instances):
+                document_frequency.update([j for j, v in enumerate(instance) if v > 0 and self.labels[i] == label])
         else:
             for instance in self.instances:
                 document_frequency.update([i for i, v in enumerate(instance) if v > 0]) #document count 
@@ -188,7 +193,7 @@ class Counts:
             key : The feature index
             value : The idf of the feature index
         """
-        idf = {}
+        idf = dict.fromkeys(range(len(self.instances[0])), 0) # initialize for all features
         num_docs = len(self.instances)
         feature_counts = self.count_document_frequency()
         for feature in feature_counts.keys():
@@ -204,7 +209,7 @@ class Frequency(Counts):
         self.feature_frequency = {}
 
     def fit(self):
-        self.feature_frequency = Counts.count_document_frequency()
+        self.feature_frequency = Counts.count_document_frequency(self)
 
     def transform(self):
         return self.train_instances, self.test_instances, self.feature_frequency
@@ -222,7 +227,7 @@ class Binary(Counts):
         self.feature_frequency = {}
 
     def fit(self):
-        self.feature_frequency = Counts.count_document_frequency()        
+        self.feature_frequency = Counts.count_document_frequency(self)        
 
     def transform(self):
         self.train_instances = [[1 if i > 0 else 0 for i in instance] for instance in self.train_instances]
@@ -242,12 +247,13 @@ class TfIdf(Counts):
         self.idf = {}
 
     def fit(self):
-        self.idf = Counts.count_idf()        
+        self.idf = Counts.count_idf(self)        
+        print(sorted(self.idf.keys())[:50])
 
     def transform(self):
-        self.train_instances = [[(math.round(v * self.idf[i], 2)) for i, v in enumerate(instance)] \
+        self.train_instances = [[(round(v * self.idf[i], 2)) for i, v in enumerate(instance)] \
             for instance in self.train_instances]
-        self.test_instances = [[(math.round(v * self.idf[i], 2)) for i, v in enumerate(instance)] \
+        self.test_instances = [[(round(v * self.idf[i], 2)) for i, v in enumerate(instance)] \
             for instance in self.test_instances]
         return self.train_instances, self.test_instances, self.idf
 
@@ -281,7 +287,7 @@ class InfoGain(Counts):
         self.train_instances = train_instances
         self.labels = labels
         self.test_instances = test_instances
-        self.feature_infogain = {}
+        self.feature_infogain = dict.fromkeys(range(len(self.train_instances[0])), 0) # initialize for all features
     
     def calculate_label_feature_frequency(self, labels):
         """
@@ -303,7 +309,7 @@ class InfoGain(Counts):
         """
         label_feature_frequency = {}
         for label in labels:
-            label_feature_frequency[label] = Counts.count_document_frequency[label]
+            label_feature_frequency[label] = Counts.count_document_frequency(self, label)
         return label_feature_frequency
 
     def calculate_entropy(self, probs):
@@ -348,7 +354,7 @@ class InfoGain(Counts):
 
     def calculate_positive_feature_entropy(self, feature, len_instances, feature_frequency, label_feature_frequency):
         """
-        Positive entropy calculator
+        Positive feature entropy calculator
         =====
         Function to calculate the entropy for all instances with the target feature
 
@@ -376,9 +382,9 @@ class InfoGain(Counts):
         positive_entropy = self.calculate_entropy(feature_label_probs) * feature_probability
         return positive_entropy
 
-    def calculate_negative_entropy(self, feature, len_instances, feature_frequency, label_frequency, label_feature_frequency):
+    def calculate_negative_feature_entropy(self, feature, len_instances, feature_frequency, label_frequency, label_feature_frequency):
         """
-        Positive entropy calculator
+        Negative feature entropy calculator
         =====
         Function to calculate the entropy for all instances without the target feature
 
@@ -424,14 +430,14 @@ class InfoGain(Counts):
         """
         # some initial calculations
         len_instances = len(self.instances)
-        feature_frequency = Counts.count_document_frequency()
-        label_frequency = Counts.count_label_frequency()
-        label_feature_frequency = self.calculate_label_feature_frequency()
-        initial_entropy = self.calculate_initial_entropy()
+        feature_frequency = Counts.count_document_frequency(self)
+        label_frequency = Counts.count_label_frequency(self)
+        label_feature_frequency = self.calculate_label_feature_frequency(label_frequency.keys())
+        initial_entropy = self.calculate_initial_entropy(len_instances, label_frequency)
         # assign infogain values to each feature
         for feature in feature_frequency.keys():
-            entropy1 = self.calculate_positive_entropy(feature, len_instances, feature_frequency, label_feature_frequency)
-            entropy0 = self.calculate_negative_entropy(feature, len_instances, feature_frequency, label_frequency, 
+            entropy1 = self.calculate_positive_feature_entropy(feature, len_instances, feature_frequency, label_feature_frequency)
+            entropy0 = self.calculate_negative_feature_entropy(feature, len_instances, feature_frequency, label_frequency, 
                 label_feature_frequency)
             after_entropy = entropy1 + entropy0 
             self.feature_infogain[feature] = initial_entropy - after_entropy
@@ -492,3 +498,8 @@ class InfoGain(Counts):
         """
         self.fit()
         return self.transform()
+
+class PMI(Counts):
+
+    def __init__(self, train_instances, labels, test_instances):
+        pass
