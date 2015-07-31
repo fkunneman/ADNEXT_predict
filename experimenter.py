@@ -62,8 +62,9 @@ class Experiment:
             v_out.write('\n'.join(vocabulary))
         # if test, run experiment
         if self.test_csv:
-            vr = vectorizer.Vectorizer(instances[:len(self.train_csv['text'])],
-                instances[len(self.train_csv['text']):], weight, prune)
+            len_training = len(self.train_csv['text'])
+            vr = vectorizer.Vectorizer(instances[:len_training], instances[len_training:], 
+                self.train_csv['label'], self.test_csv['label'], weight, prune)
             train_vectors, test_vectors =  vr.vectorize()
             train = {
                 'instances' : train_vectors,
