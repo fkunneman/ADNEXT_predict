@@ -20,16 +20,12 @@ class Vectorizer:
     train_labels : list
         list of labels (str) of the train instances,
         each index of a label corresponds to the index of the train instance
-    test_labels : list
-        list of labels (str) of the test instances,
-        each index of a label corresponds to the index of the test instance
     weight : str
         names of weighting to perform
-        options : 'frequency', 'binary', 'tfidf'
+        options : 'frequency', 'binary', 'tfidf', 'infogain', 'pmi'
         default : 'frequency'
     prune : int
-        top N of pruning, all features not in the top N features with the highest weight in 
-        training are pruned
+        top N features to select, all features not in the top N features with the highest weight are pruned
         default : 5000
     """
     def __init__(self, train_instances, test_instances, train_labels, weight = 'frequency', prune = 5000):
@@ -50,39 +46,32 @@ class Vectorizer:
         """
         Feature weighter
         =====
-        Function to weight features 
-
-        Parameters
-        -----
-        indices : list
-            List of feature indices that are to be pruned
+        Function to calculate feature weights and transform document vectors accordingly
 
         Transforms
         -----
         self.train : list
-            Each training instance is stripped of the values in the indices parameter
+            Each train instance is weighted by the selected metric
         self.test : list
-            Each testing instance is stripped of the values in the indices parameter
+            Each test instance is weighted by the selected metric
+        self.feature_weight : dict
+            key : feature index (int)
+            value : feature weight or count (int / float)
         """
         self.train, self.test, self.feature_weight = self.metric.fit_transform()
 
     def prune_features(self):
         """
-        Instance pruner
+        Feature pruner
         =====
-        Function to prune every train and test instance of a set list of features
-
-        Parameters
-        -----
-        indices : list
-            List of feature indices that are to be pruned
+        Function to prune every train and test instance of the top N features with the highest weight
 
         Transforms
         -----
         self.train : list
-            Each training instance is stripped of the values in the indices parameter
+            Each train instance is stripped of the feature indices not in the top N weighted features
         self.test : list
-            Each testing instance is stripped of the values in the indices parameter
+            Each test instance is stripped of the feature indices not in the top N weighted features
         """
         # select top features
         top_features = sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold]
@@ -94,12 +83,14 @@ class Vectorizer:
         """
         Vectorizer
         =====
-        Function to weight features 
+        Function to weight instances
 
-        Transforms
+        Returns
         -----
         self.train : list
+            scipy csr_matrix of weighted train vectors
         self.test : list
+            scipy csr_matrix of weighted test vectors
         """        
         self.weight_features()
         self.prune_features()    
@@ -176,14 +167,9 @@ class Counts:
         =====
         Function to calculate the inverse document frequency of every feature
 
-        Attributes
+        Returns
         -----
-        num_docs : int
-            The number of training instances
-
-        Transforms
-        -----
-        self.idf : dict
+        idf : dict
             The idf of every feature based on the training documents
             key : The feature index
             value : The idf of the feature index
@@ -196,6 +182,26 @@ class Counts:
         return idf
 
 class Frequency(Counts):
+    """
+    Frequency Weighter
+    =====
+    Class to count the document frequency of all features
+    Instances already represent feature frequency, and are left unaltered
+
+    Parameters
+    -----
+    train_instances : list
+        list of featurized train instances, as list with feature frequencies
+    labels : list
+        list of labels (str) of the train instances,
+        each index of a label corresponds to the index of the train instance
+    test_instances : list 
+        list of featurized test instances, as list with feature frequencies
+
+    Parent class
+    -----
+    Counts : class to perform frequency counts
+    """
 
     def __init__(self, train_instances, labels, test_instances):
         Counts.__init__(self, train_instances, labels)
@@ -204,16 +210,77 @@ class Frequency(Counts):
         self.feature_frequency = {}
 
     def fit(self):
+        """
+        Frequency fitter
+        =====
+
+        Transforms
+        -----
+        self.feature_frequency : dict
+            dictionary of the frequency per feature
+            key : feature index (int)
+            value : feature document frequency (int)
+        """
         self.feature_frequency = Counts.count_document_frequency(self)
 
     def transform(self):
+        """
+        Instance transformer
+        =====
+
+        Returns
+        -----
+        train_instances : list
+            list of featurized train instances, as list with feature frequencies
+        test_instances : list 
+            list of featurized test instances, as list with feature frequencies
+        self.feature_frequency : dict
+            dictionary of the frequency per feature
+            key : feature index (int)
+            value : feature document frequency (int)
+        """
         return self.train_instances, self.test_instances, self.feature_frequency
 
     def fit_transform(self):
+        """
+        Fit transform
+        =====
+        Function to perform the fit and transform sequence
+
+        Returns
+        -----
+        train_instances : list
+            list of featurized train instances, as list with feature frequencies
+        test_instances : list 
+            list of featurized test instances, as list with feature frequencies
+        self.feature_frequency : dict
+            dictionary of the frequency per feature
+            key : feature index (int)
+            value : feature document frequency (int)
+        """
         self.fit()
         return self.transform()
 
 class Binary(Counts):
+    """
+    Binary Weighter
+    =====
+    Class to count the document frequency of all features and convert instances to binary vectors
+
+    Parameters
+    -----
+    train_instances : list
+        list of featurized train instances, as list with feature frequencies
+    labels : list
+        list of labels (str) of the train instances,
+        each index of a label corresponds to the index of the train instance
+    test_instances : list 
+        list of featurized test instances, as list with feature frequencies
+
+    Parent class
+    -----
+    Counts : class to perform frequency counts
+    """
 
     def __init__(self, train_instances, labels, test_instances):
         Counts.__init__(self, train_instances, labels)
@@ -222,18 +289,86 @@ class Binary(Counts):
         self.feature_frequency = {}
 
     def fit(self):
+        """
+        Frequency fitter
+        =====
+
+        Transforms
+        -----
+        self.feature_frequency : dict
+            dictionary of the frequency per feature
+            key : feature index (int)
+            value : feature document frequency (int)
+        """
         self.feature_frequency = Counts.count_document_frequency(self)        
 
     def transform(self):
+        """
+        Instance transformer
+        =====
+
+        Transforms
+        -----
+        self.train_instances : list
+            Feature frequency is transformed into a binary value
+        self.test_instances : list
+            Feature frequency is transformed into a binary value
+
+        Returns
+        -----
+        train_instances : list
+            list of featurized train instances, as list with binary values
+        test_instances : list 
+            list of featurized test instances, as list with binary values
+        self.feature_frequency : dict
+            dictionary of the frequency per feature
+            key : feature index (int)
+            value : feature document frequency (int)
+        """
         self.train_instances = [[1 if i > 0 else 0 for i in instance] for instance in self.train_instances]
         self.test_instances = [[1 if i > 0 else 0 for i in instance] for instance in self.test_instances]
         return self.train_instances, self.test_instances, self.feature_frequency
 
     def fit_transform(self):
+        """
+        Fit transform
+        =====
+        Function to perform the fit and transform sequence
+
+        Returns
+        -----
+        train_instances : list
+            list of featurized train instances, as list with binary values
+        test_instances : list 
+            list of featurized test instances, as list with binary values
+        self.feature_frequency : dict
+            dictionary of the frequency per feature
+            key : feature index (int)
+            value : feature document frequency (int)
+        """
         self.fit()
         return self.transform()
 
 class TfIdf(Counts):
+    """
+    Tfidf Weighter
+    =====
+    Class to calculate the inverse document frequency of all features and weight instances by tfidf
+
+    Parameters
+    -----
+    train_instances : list
+        list of featurized train instances, as list with feature frequencies
+    labels : list
+        list of labels (str) of the train instances,
+        each index of a label corresponds to the index of the train instance
+    test_instances : list 
+        list of featurized test instances, as list with feature frequencies
+
+    Parent class
+    -----
+    Counts : class to perform frequency counts
+    """
 
     def __init__(self, train_instances, labels, test_instances):
         Counts.__init__(self, train_instances, labels)
@@ -242,10 +377,42 @@ class TfIdf(Counts):
         self.idf = {}
 
     def fit(self):
-        self.idf = Counts.count_idf(self)
+        """
+        Tfidf fitter
+        =====
+
+        Transforms
+        -----
+        self.idf : dict
+            dictionary with the idf per feature
+            key : feature index (int)
+            value : feature idf (float)
+        """
+        self.idf = Counts.count_idf(self)        
 
     def transform(self):
-        # Try: matrix calculation
+        """
+        Instance transformer
+        =====
+
+        Transforms
+        -----
+        self.train_instances : list
+            Feature frequency is replaced by tfidf
+        self.test_instances : list
+            Feature frequency is replaced by tfidf
+
+        Returns
+        -----
+        train_instances : list
+            list of featurized train instances, weighted with tfidf values
+        test_instances : list 
+            list of featurized test instances, weighted with tfidf values
+        self.feature_frequency : dict
+            dictionary with the idf per feature
+            key : feature index (int)
+            value : feature idf (float)
+        """
         self.train_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
             for instance in self.train_instances]
         self.test_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
@@ -253,6 +420,22 @@ class TfIdf(Counts):
         return self.train_instances, self.test_instances, self.idf
 
     def fit_transform(self):
+        """
+        Fit transform
+        =====
+        Function to perform the fit and transform sequence
+
+        Returns
+        -----
+        train_instances : list
+            list of featurized train instances, weighted with tfidf values
+        test_instances : list 
+            list of featurized test instances, weighted with tfidf values
+        self.feature_frequency : dict
+            dictionary with the idf per feature
+            key : feature index (int)
+            value : feature idf (float)
+        """
         self.fit()
         return self.transform()
 
