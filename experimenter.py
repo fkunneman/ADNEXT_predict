@@ -44,10 +44,12 @@ class Experiment:
 
     """
 
-    def __init__(self, train, test, features, classifiers, directory):
+    def __init__(self, train, test, features, weights, prune, classifiers, directory):
         self.train_csv = train
         self.test_csv = test # can be False
         self.features = features
+        self.weights = weights
+        self.prune = prune
         self.featurizer = False
         self.classifiers = classifiers
         self.directory = directory
@@ -64,7 +66,7 @@ class Experiment:
         if self.test_csv:
             len_training = len(self.train_csv['text'])
             vr = vectorizer.Vectorizer(instances[:len_training], instances[len_training:], 
-                self.train_csv['label'], self.test_csv['label'], weight, prune)
+                self.train_csv['label'], weight, prune)
             train_vectors, test_vectors =  vr.vectorize()
             train = {
                 'instances' : train_vectors,
@@ -97,9 +99,7 @@ class Experiment:
         for length in range(1, len(self.features.keys()) + 1):
             for subset in itertools.combinations(self.features.keys(), length):
                 featuretypes.append(list(subset))
-        weights = ['binary']
-        pruning = [5000]
-        all_settings = [featuretypes, weights, pruning]
+        all_settings = [featuretypes, self.weights, self.prune]
         combinations = list(itertools.product(*all_settings))
         # For each cell
         for combination in combinations:
