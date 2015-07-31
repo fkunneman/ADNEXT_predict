@@ -242,9 +242,10 @@ class TfIdf(Counts):
         self.idf = {}
 
     def fit(self):
-        self.idf = Counts.count_idf(self)        
+        self.idf = Counts.count_idf(self)
 
     def transform(self):
+        # Try: matrix calculation
         self.train_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
             for instance in self.train_instances]
         self.test_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
