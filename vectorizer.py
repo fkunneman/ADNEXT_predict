@@ -2,6 +2,7 @@
 
 from collections import Counter
 from scipy import sparse
+import numpy
 import math
 
 class Vectorizer:
@@ -413,10 +414,16 @@ class TfIdf(Counts):
             key : feature index (int)
             value : feature idf (float)
         """
-        self.train_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
-            for instance in self.train_instances]
-        self.test_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
-            for instance in self.test_instances]
+        feature_idf_ordered = numpy.array([self.idf[feature] for feature in sorted(self.idf.keys())])
+        print('before', len(self.train_instances, len(self.test_instances)))
+        self.train_instances = feature_idf_ordered * numpy.array(self.train_instances)
+        self.test_instances = feature_idf_ordered * numpy.array(self.test_instances)
+        print('after', len(self.train_instances, len(self.test_instances)))
+        print(self.train_instances[:20])
+        #self.train_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
+        #    for instance in self.train_instances]
+        #self.test_instances = [[v * self.idf[i] if i > 0 else 0 for i, v in enumerate(instance)] \
+        #    for instance in self.test_instances]
         return self.train_instances, self.test_instances, self.idf
 
     def fit_transform(self):
