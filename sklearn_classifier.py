@@ -153,8 +153,7 @@ class NB_classifier:
         for i, instance in enumerate(test['instances']):
             predictions.append(self.clf.predict(instance))
             predictions_prob.append(self.clf.predict_proba(instance))
-        output = zip(test['labels'], self.le.inverse_transform(predictions), 
-            predictions_prob)
+        output = list(zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob))
         return output
 
     def fit_transform(self, train, test):
