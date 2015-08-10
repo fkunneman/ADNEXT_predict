@@ -205,7 +205,7 @@ class Tree_classifier:
         Classifier parameter settings
     """
     def __init__(self, le):
-        self.name = "Tree"
+        self.name = "tree"
         self.le = le
         self.clf = None
         self.settings = None
@@ -256,10 +256,11 @@ class Tree_classifier:
         predictions = []
         predictions_prob = []
         for i, instance in enumerate(test['instances']):
+            prediction = self.clf.predict(instance)[0]
+            predictions.append(prediction)
             predictions.append(self.clf.predict(instance))
-            predictions_prob.append(self.clf.predict_proba(instance))
-        output = zip(test['labels'], self.le.inverse_transform(predictions), 
-            predictions_prob)
+            predictions_prob.append(str(round(self.clf.predict_proba(instance)[0][prediction], 2)))
+        output = zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob)
         return output
 
     def fit_transform(self, train, test):
@@ -311,7 +312,7 @@ class SVM_classifier:
         Classifier parameter settings
     """
     def __init__(self, le):
-        self.name = "SVM"
+        self.name = "svm"
         self.le = le
         # Different settings are required if there are more than two classes
         if len(self.le.classes_) > 2:
@@ -393,15 +394,13 @@ class SVM_classifier:
         predictions = []
         predictions_prob = []
         for i, instance in enumerate(test['instances']):  
-            predictions.append(self.clf.predict(instance))
+            prediction = self.clf.predict(instance)[0]
+            predictions.append(prediction)
             if self.multi:
-               predictions_prob.append('-')
+                predictions_prob.append('-')
             else:
-                predictions_prob.append(self.clf.predict_proba(instance))
-        output = zip(test['labels'], self.le.inverse_transform(predictions), 
-            predictions_prob)
-        for line in output:
-            print(line)
+                predictions_prob.append(str(round(self.clf.predict_proba(instance)[0][prediction], 2)))
+        output = zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob)
         return output
 
     def fit_transform(self, train, test):
