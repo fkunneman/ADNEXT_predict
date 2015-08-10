@@ -15,33 +15,43 @@ class Experiment:
     """
     Experiment wrapper
     ======
-    Interface to classifiers. Can run a grid of combinations
+    Interface to classification experiments. Can run a grid of combinations
 
     Parameters
     ------
+    train : list
+        train instances from the datahandler class
+    test : list
+        test instances from the datahandler class
+        can be set to false to run tenfold classifications
+    features : dict
+        dict of featuretypes to extract, as input to the featurizer class
+        all single featuretypes and combinations of featuretypes will be 
+            included in the grid
+        options : 
+            'char_ngrams' --> 'n_list', 'blackfeats'
+            'token_ngrams' --> 'n_list', 'blackfeats'
+            'lemma_ngrams' --> 'n_list', 'blackfeats'
+            'pos_ngrams' --> 'n_list', 'blackfeats'
+    weights : list
+        list of featureweights to include, as input to the vectorizer class
+        options : 'frequency', 'binary', 'tfidf', 'infogain', 'pmi'
+    prune : int
+        top N features to select after weighting, as input to the vectorizer class
+        all features not in the top N features with the highest weight are pruned
+        only one pruning value is used throughout the grid, to reduce its size 
     classifiers : list
-        names of classifiers to include
-        options : 'lcs', 'svm', 'knn', 'nb', 'ripper', 'tree', 'ensemble_clf', 
+        list of classifiers to apply
+        options : 'svm', 'knn', 'nb', 'ripper', 'tree', 'ensemble_clf', 
             'ensemble_prediction', 'joint_prediction'    
     directory : str
-        the directory to write all experiment files to
+        the directory to write all experiment output to
 
-    Attributes
+    Example
     -----
-        features : holder of 'features' parameter
-        featurefilter : holder of 'featurefilter' parameter
-        classifiers : holder of 'classifiers' parameter
-        directory : holder of 'directory' parameter
-        grid : holder of 'grid' parameter
-        featurized : list
-            holder featurized instances to be fed to classifiers
-
-    Examples
-    -----
-    grid = experimenter.ExperimentGrid(features, classifiers, directory, 'low')
-    grid.set_features(dataset)
-    grid.experiment()
-
+    grid = experimenter.Experiment(train, False, features, weights, prune, clfs, directory)
+    grid.set_features()
+    grid.run_grid()
     """
 
     def __init__(self, train, test, features, weights, prune, classifiers, directory):
@@ -54,7 +64,60 @@ class Experiment:
         self.classifiers = classifiers
         self.directory = directory
     
+    def set_features(self):
+        """
+        Featurizer interface
+        =====
+        Function to transform documents into lists of feature values
+
+        Transforms
+        -----
+        self.featurizer : featurizer.Featurizer object
+            container of the feature values for different feature types, with an accompanying feature vocabulary
+        """
+        text = self.train_csv['text'][:] 
+        frogs = self.train_csv['frogs'][:]
+        if self.test_csv:
+            text += self.test_csv['text']
+            frogs += self.test_csv['frogs']
+        self.featurizer = featurizer.Featurizer(text, frogs, self.features)
+        self.featurizer.fit_transform()
+
     def run_predictions(self, train, trainlabels, test, testlabels, weight, prune):
+        """
+        Classification nterface
+        =====
+        Function to run classifiers on a given set of train and test instances
+
+        Parameters
+        -----
+        train : list
+            list of featurized train instances
+        trainlabels : list
+            list of train labels
+            each index of a label corresponds to the index of the train instance
+        test : list
+            list of featurized test instances
+        testlabels : list
+            list of test labels
+            each index of a label corresponds to the index of the test instance
+        weight : str
+            feature weight to apply, as input to the vectorizer class
+            options : 'frequency', 'binary', 'tfidf', 'infogain', 'pmi'
+        prune : int
+            top N features to select after weighting, as input to the vectorizer class
+            all features not in the top N features with the highest weight are pruned
+
+        Returns
+        -----
+        predictions : dict
+            keys : classifiers
+            values : classifier output 
+                zip of lists
+                    list of target labels
+                    list of classifications
+                    list of prediction certainties
+        """
         print('running vectorizer', weight, prune)
         vr = vectorizer.Vectorizer(train, test, trainlabels, weight, prune)
         train_vectors, test_vectors =  vr.vectorize()
@@ -72,6 +135,26 @@ class Experiment:
         return predictions
 
     def run_experiment(self, featuretypes, weight, prune, directory):
+        """
+        Experiment interface
+        =====
+        Function to run an experiment based on a combination of feature, weight and pruning settings
+        Will run train-test or tenfold dependent on the value of self.test_csv
+
+        Parameters
+        -----
+        Featuretypes : list
+            list of the feature types to combine, as input to the self.featurizer object
+            options : 'char_ngrams', 'token_ngrams', 'lemma_ngrams', 'pos_ngrams'
+        weight : str
+            feature weight to apply, as input to the vectorizer class
+            options : 'frequency', 'binary', 'tfidf', 'infogain', 'pmi'
+        prune : int
+            top N features to select after weighting, as input to the vectorizer class
+            all features not in the top N features with the highest weight are pruned
+        directory : str
+            the directory to write the experiment output to        
+        """
         # Select features
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
         print("Instance", instances[:5])
@@ -88,7 +171,7 @@ class Experiment:
             testlabels = self.test_csv['label']
             predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
             print(predictions)
-        else: #run 10-fold
+        else: #run tenfold
             instances_labels = list(zip(instances, self.train_csv['label']))
             folds = utils.return_folds(instances_labels)
             fold_predictions = []
@@ -103,9 +186,9 @@ class Experiment:
 
     def run_grid(self):
         """
-        Classifier interface
+        Grid interface
         =====
-        Function to perform classifications
+        Function to generate and run a grid of experiments
         """ 
         # Make grid
         featuretypes = []
@@ -114,7 +197,7 @@ class Experiment:
                 featuretypes.append(list(subset))
         all_settings = [featuretypes, self.weights, self.prune]
         combinations = list(itertools.product(*all_settings))
-        # For each cell
+        # For each grid cell
         for combination in combinations:
             print('Combi', combination)
             featurestring = '+'.join(combination[0])
@@ -123,24 +206,3 @@ class Experiment:
             if not os.path.isdir(directory):
                 os.mkdir(directory)
             self.run_experiment(combination[0], combination[1], combination[2], directory)
-
-    def set_features(self):
-        """
-        Featurizer interface
-        =====
-        Function to transform documents into features
-
-        Parameters
-        -----
-        features : dict
-            dictionary of features to include
-            (see the featurizer class for an overview of the features and how 
-                to extract them)
-        """
-        text = self.train_csv['text'][:] 
-        frogs = self.train_csv['frogs'][:]
-        if self.test_csv:
-            text += self.test_csv['text']
-            frogs += self.test_csv['frogs']
-        self.featurizer = featurizer.Featurizer(text, frogs, self.features)
-        self.featurizer.fit_transform()

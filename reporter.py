@@ -13,7 +13,7 @@ class Reporter:
         for instance in instances:
             self.ce.append(instance[0], instance[1])
 
-    def calculate_performance(self):
+    def assess_performance(self):
         results = \
         [[
         "Class", 
