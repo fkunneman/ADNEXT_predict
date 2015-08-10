@@ -43,11 +43,10 @@ class SKlearn_classifier:
         self.test = test
         le = preprocessing.LabelEncoder()
         le.fit(train['labels'] + test['labels'])
-        print(le.classes_)
         modules = {
-            'Naive Bayes':          NB_classifier,
-            'SVM':  SVM_classifier,
-            'Tree': Tree_classifier
+            'nb':          NB_classifier,
+            'svm':  SVM_classifier,
+            'tree': Tree_classifier
         }
         self.helpers = [value(le) for key, value in modules.items() if \
             key in clfs]
@@ -100,7 +99,7 @@ class NB_classifier:
 
     """
     def __init__(self, le):
-        self.name = "Naive Bayes"
+        self.name = "nb"
         self.le = le
         self.clf = None
         self.settings = None
@@ -151,8 +150,9 @@ class NB_classifier:
         predictions = []
         predictions_prob = []
         for i, instance in enumerate(test['instances']):
-            predictions.append(self.clf.predict(instance))
-            predictions_prob.append(self.clf.predict_proba(instance))
+            prediction = self.clf.predict(instance)[0]
+            predictions.append(prediction)
+            predictions_prob.append(str(round(self.clf.predict_proba(instance)[0][prediction], 2)))
         output = list(zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob))
         return output
 

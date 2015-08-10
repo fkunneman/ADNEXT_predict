@@ -3,7 +3,7 @@
 import time
 import os
 import itertools
-import cPickle
+import pickle
 
 import featurizer
 import vectorizer
@@ -165,19 +165,20 @@ class Experiment:
             data = predictions[classifier]
             classifications = data[0]
             with open(classifierdir + 'classifications_document.txt', 'w', encoding = 'utf-8') as cl_out:
-                cl_out.write('\t'.join(['document', 'target label', 'predicted label', 'prediction probabilities']) + '\n')
+                cl_out.write('\t'.join(['document', 'target', 'prediction', 'prob']) + '\n')
                 for i, instance in enumerate(classifications):
-                    cl_out.write('\t'.join([documents[i], instance[0], instance[1], ' '.join(instance[2])]))
+                    cl_out.write('\t'.join([documents[i], instance[0], instance[1], instance[2]]) + '\n')
             with open(classifierdir + 'classifications.txt', 'w', encoding = 'utf-8') as cl_out:
-                cl_out.write('\t'.join(['target label', 'predicted label', 'prediction probabilities']) + '\n')
+                cl_out.write('\t'.join(['target', 'prediction', 'prob']) + '\n')
                 for i, instance in enumerate(classifications):
-                    cl_out.write('\t'.join([instance[0], instance[1], ' '.join(instance[2])]))
+                    cl_out.write('\t'.join([instance[0], instance[1], instance[2]]) + '\n')
             model = data[1]
             with open(classifierdir + classifier + '.joblib.pkl', 'wb') as model_out:
-                cPickle.dump(model, model_out)
+                pickle.dump(model, model_out)
             settings = data[2]
-            with open(classifierdir + 'settings.txt', 'w') as settings_out:
-                settings_out.write(settings)
+            if settings:
+                with open(classifierdir + 'settings.txt', 'w') as settings_out:
+                    settings_out.write(settings)
 
     def run_experiment(self, featuretypes, weight, prune, directory):
         """
@@ -215,7 +216,7 @@ class Experiment:
             test = instances[len_training:]
             testlabels = self.test_csv['label']
             predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
-            self.save_classifications(self.test_csv['text'], predictions, directory)
+            self.save_predictions(self.test_csv['text'], predictions, directory)
         else: #run tenfold
             instances_labels = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             folds = utils.return_folds(instances_labels)
@@ -231,7 +232,7 @@ class Experiment:
                 testlabels = [x[1] for x in fold[1]]
                 testdocuments = [x[2] for x in fold[1]]
                 predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
-                self.save_classifications(testdocuments, predictions, fold_directory)
+                self.save_predictions(testdocuments, predictions, fold_directory)
 
     def run_grid(self):
         """
