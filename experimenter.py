@@ -54,6 +54,23 @@ class Experiment:
         self.classifiers = classifiers
         self.directory = directory
     
+    def run_predictions(self, train, test, trainlabels, testlabels, weight, prune):
+        print('running vectorizer', weight, prune)
+        vr = vectorizer.Vectorizer(train, test, trainlabels, weight, prune)
+        train_vectors, test_vectors =  vr.vectorize()
+        train = {
+            'instances' : train_vectors,
+            'labels'    : trainlabels
+        }
+        test = {
+            'instances' : test_vectors,
+            'labels'    : testlabels
+        }
+        print("Performing classification")
+        skc = sklearn_classifier.SKlearn_classifier(train, test, self.classifiers)
+        predictions = skc.fit_transform()
+        return predictions
+
     def run_experiment(self, featuretypes, weight, prune, directory):
         # Select features
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
@@ -65,29 +82,24 @@ class Experiment:
         # if test, run experiment
         if self.test_csv:
             len_training = len(self.train_csv['text'])
-            print('running vectorizer', weight, prune)
-            vr = vectorizer.Vectorizer(instances[:len_training], instances[len_training:], 
-                self.train_csv['label'], weight, prune)
-            train_vectors, test_vectors =  vr.vectorize()
-            train = {
-                'instances' : train_vectors,
-                'labels'    : self.train_csv['label']
-            }
-            test = {
-                'instances' : test_vectors,
-                'labels'    : self.test_csv['label']
-            }
-            print("Performing classification")
-            skc = sklearn_classifier.SKlearn_classifier(train, test, self.classifiers)
-            results = skc.fit_transform()
-            print(results)
-
-        else: # 10-fold
-            pass
-
-        # Weight and prune
-
-        # Classify
+            train = instances[:len_training]
+            trainlabels = self.train_csv['label']
+            test = instances[len_training:]
+            testlabels = self.test_csv['label']
+            predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
+            print(predictions)
+        else: #run 10-fold
+            instances_labels = zip(instances, self.train_csv['label'])
+            folds = utils.return_folds(instances_labels)
+            fold_predictions = []
+            for i, fold in enumerate(folds):
+                print(fold, i)
+                train = [x[0] for x in fold[0]]
+                trainlabels = [x[1] for x in fold[0]]
+                test = [x[0] for x in fold[1]]
+                testlabels = [x[1] for x in fold[1]]
+                predictions = self.run_predictions(train, test, trainlabels, testlabels, weight, prune)
+                fold_predictions.append(predictions)
 
     def run_grid(self):
         """
@@ -110,50 +122,10 @@ class Experiment:
             print("Directory", directory)
             if not os.path.isdir(directory):
                 os.mkdir(directory)
-            self.run_experiment(combination[0], combination[1], combination[2],
-                directory)
-
-
-        # if self.grid == "low" or self.grid == "normal": #all single classifiers
-        #     classifiers = [[clf] for clf in self.classifiers]
-        # #elif self.grid == "high": #all single classifiers + all different combinations of ensemble
-        # experimentlog = self.directory + 'log.txt'
-        # overview = self.directory + 'overview.txt'
-        # expindex = 1
-        # print("iter", list(itertools.product(self.featurized, classifiers)))
-        # quit()
-        # for setting in self.featurized:
-        #     train, test, vocabulary, featuretypes = setting
-        #     clf = sklearn_classifier.SKlearn_classifier(train, test)
-        #     for classifier in classifiers:            
-        #         expdir = self.directory + 'exp' + str(expindex) + '/'
-        #         os.mkdir(expdir)
-        #         expindex += 1
-        #         #report on experiment
-        #         expname = expdir + "\t" + features + '_' + '+'.join(classification)
-        #         print('classifying', expname)
-        #         with open(experimentlog, 'a') as el:
-        #             el.write(str(time.asctime()) + '\t' + expname + '\n')
-        #         #perform classification
-        #         if len(classifier) == 1:
-        #             classifier = classifier[0]
-        #         if classifier == 'lcs':
-        #             clf = lcs_classifier.LCS_classifier(train, test, expdir, vocabulary)
-        #             clf.classify()
-        #         else:
-        #             if classifier == 'nb':
-        #                 clf.train_nb()
-        #             clf.predict()
-
-        #         rep = reporter.Reporter()
-        #         rep.add_instances(clf.predictions)
-        #         performance = rep.calculate_performance()
-        #         with open(expdir + "results.txt", "w") as resultsfile:
-        #             resultsfile.write(
-        #                 "\n".join(["\t".join([str(x) for x in label]) for label in performance]))
-        #         with open(overview, "a") as ov:
-        #             ov.write("\t".join([expname] + performance[-1]))
-
+            if self.test_csv:
+                self.run_experiment(combination[0], combination[1], combination[2], directory)
+            else:
+                self.run_experiment_10fold(combination[0], combination[1], combination[2], directory)
 
     def set_features(self):
         """
