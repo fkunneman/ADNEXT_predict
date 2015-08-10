@@ -54,7 +54,7 @@ class Experiment:
         self.classifiers = classifiers
         self.directory = directory
     
-    def run_predictions(self, train, test, trainlabels, testlabels, weight, prune):
+    def run_predictions(self, train, trainlabels, test, testlabels, weight, prune):
         print('running vectorizer', weight, prune)
         vr = vectorizer.Vectorizer(train, test, trainlabels, weight, prune)
         train_vectors, test_vectors =  vr.vectorize()
@@ -89,7 +89,7 @@ class Experiment:
             predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
             print(predictions)
         else: #run 10-fold
-            instances_labels = zip(instances, self.train_csv['label'])
+            instances_labels = list(zip(instances, self.train_csv['label']))
             folds = utils.return_folds(instances_labels)
             fold_predictions = []
             for i, fold in enumerate(folds):
@@ -98,7 +98,7 @@ class Experiment:
                 trainlabels = [x[1] for x in fold[0]]
                 test = [x[0] for x in fold[1]]
                 testlabels = [x[1] for x in fold[1]]
-                predictions = self.run_predictions(train, test, trainlabels, testlabels, weight, prune)
+                predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
                 fold_predictions.append(predictions)
 
     def run_grid(self):
@@ -122,10 +122,7 @@ class Experiment:
             print("Directory", directory)
             if not os.path.isdir(directory):
                 os.mkdir(directory)
-            if self.test_csv:
-                self.run_experiment(combination[0], combination[1], combination[2], directory)
-            else:
-                self.run_experiment_10fold(combination[0], combination[1], combination[2], directory)
+            self.run_experiment(combination[0], combination[1], combination[2], directory)
 
     def set_features(self):
         """
