@@ -45,10 +45,10 @@ class Eval:
     def save_classifier_output(self):
         for instance in self.classifications:
             self.ce.append(instance[0], instance[1])
+        self.labels = sorted(list(set(self.ce.goals)))
 
     def assess_performance(self):
-        labels = sorted(list(set(self.ce.goals)))
-        for label in labels:
+        for label in self.labels:
             label_results = \
                 [
                 self.ce.precision(cls = label), self.ce.recall(cls = label), self.ce.fscore(cls = label),
@@ -106,14 +106,13 @@ class Eval:
                 settings_out.write(settings)
 
     def write_performance(self):
-        labels = sorted(list(set(self.ce.goals)))
         labeldict = {}
         results = \
         [
         ["Cat", "Pr", "Re", "F1", "TPR", "FPR", "AUC", "Tot", "Clf", "Cor"],
         [('-' * 6)] * 10
         ]
-        for i, label in enumerate(labels):
+        for i, label in enumerate(self.labels):
             labeldict[i] = label
             results.append([str(i)] + [str(round(val, 2)) for val in self.performance[label]])
         results.append(['Mcr'] + [str(round(val, 2)) for val in self.performance['micro']])
@@ -131,10 +130,20 @@ class Eval:
             out.write(confusion_matrix.__str__())
             
     def write_top_fps(self):
-        pass
+        for label in self.labels:
+            ranked_fps = sorted([[self.documents[i], instance[0], instance[1], instance[2]] for i, instance in \
+                self.classifications if instance[1] == label and instance[0] != instance[1]], key = instance[2], 
+                reverse = True)
+            with open(self.directory + label + '_ranked_fps.txt', 'w', encoding = 'utf-8') as out:
+                out.write('\n'.join(['\t'.join([fp[0], str(fp[3])]) for fp in ranked_fps]))
 
     def write_top_tps(self):
-        pass
+        for label in self.labels:
+            ranked_tps = sorted([[self.documents[i], instance[0], instance[1], instance[2]] for i, instance in \
+                self.classifications if instance[1] == label and instance[0] == instance[1]], key = instance[2], 
+                reverse = True)
+            with open(self.directory + label + '_ranked_tps.txt', 'w', encoding = 'utf-8') as out:
+                out.write('\n'.join(['\t'.join([tp[0], str(tp[3])]) for tp in ranked_tps]))
 
     def report(self):
         self.save_classifier_output()
@@ -142,3 +151,6 @@ class Eval:
         self.write_classifier_output()
         self.write_performance()
         self.write_confusion_matrix()
+        self.write_top_fps()
+        self.write_top_tps()
+        

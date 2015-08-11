@@ -152,7 +152,7 @@ class NB_classifier:
         for i, instance in enumerate(test['instances']):
             prediction = self.clf.predict(instance)[0]
             predictions.append(prediction)
-            predictions_prob.append(str(round(self.clf.predict_proba(instance)[0][prediction], 2)))
+            predictions_prob.append(self.clf.predict_proba(instance)[0][prediction])
         output = list(zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob))
         return output
 
@@ -259,7 +259,7 @@ class Tree_classifier:
             prediction = self.clf.predict(instance)[0]
             predictions.append(prediction)
             predictions.append(self.clf.predict(instance))
-            predictions_prob.append(str(round(self.clf.predict_proba(instance)[0][prediction], 2)))
+            predictions_prob.append(self.clf.predict_proba(instance)[0][prediction])
         output = zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob)
         return output
 
@@ -397,9 +397,9 @@ class SVM_classifier:
             prediction = self.clf.predict(instance)[0]
             predictions.append(prediction)
             if self.multi:
-                predictions_prob.append('-')
+                predictions_prob.append(0)
             else:
-                predictions_prob.append(str(round(self.clf.predict_proba(instance)[0][prediction], 2)))
+                predictions_prob.append(self.clf.predict_proba(instance)[0][prediction])
         output = zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob)
         return output
 
