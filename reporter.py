@@ -36,6 +36,7 @@ class Eval:
         self.model = clf_output[1][1]
         self.settings = clf_output[1][2]
         self.directory = directory
+        self.instances = []
         self.performance = {}
 
     def save_classifier_output(self):
@@ -118,6 +119,15 @@ class Eval:
             out.write('\n\n')
             results_str = utils.format_table(results, [7, 7, 7])
             out.write('\n'.join(results_str))       
+
+    def write_confusion_matrix(self):
+        pass
+
+    def write_top_fps(self):
+        pass
+
+    def write_top_tps(self):
+        pass
 
     def report(self):
         self.save_classifier_output()
