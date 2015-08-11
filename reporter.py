@@ -126,8 +126,8 @@ class Eval:
             out.write('\n'.join(results_str))       
 
     def write_confusion_matrix(self):
-        pass
-
+        confusion_matrix = self.ce.confusionmatrix()
+        print(confusion_matrix)
     def write_top_fps(self):
         pass
 
