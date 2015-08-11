@@ -1,7 +1,10 @@
 #!/usr/bin/env 
 
-from pynlpl import evaluation
+import os
+import pickle
 from sklearn.metrics import auc
+
+from pynlpl import evaluation
 import utils
 
 class Reporter:
@@ -14,7 +17,7 @@ class Reporter:
     def add_folds(self, classifier_output, directory):
         folds = []
         for fold_index, output in enumerate(classifier_output):
-            fold_directory = directory + 'fold_' + fold_index + '/'
+            fold_directory = directory + 'fold_' + str(fold_index) + '/'
             if not os.path.isdir(fold_directory):
                 os.mkdir(fold_directory)
             fold_evaluation = Eval(output, fold_directory)
@@ -87,13 +90,14 @@ class Eval:
 
         """
         with open(self.directory + 'classifications_document.txt', 'w', encoding = 'utf-8') as out:
-            out.write('\t'.join(['document', 'target', 'prediction', 'prob']) + '\n' + ('=' * 30) + '\n')
+            out.write(' | '.join(['document', 'target', 'prediction', 'prob']) + '\n' + ('=' * 30) + '\n')
             for i, instance in enumerate(self.classifications):
-                out.write('\t'.join([self.documents[i], instance[0], instance[1], instance[2]]) + '\n')
+                out.write(' | '.join([self.documents[i], instance[0], instance[1], instance[2]]) + '\n')
         with open(self.directory + 'classifications.txt', 'w', encoding = 'utf-8') as out:
-            info = [['target', 'prediction', 'prob']]
+            info = [['target', 'prediction', 'probability']]
+            info.append([('-' * 20)] * 3)
             info.extend(self.classifications)
-            info_str = utils.format_table(info, [7, 7, 7])
+            info_str = utils.format_table(info, [20, 20, 20])
             out.write('\n'.join(info_str))
         with open(self.directory + 'classifiermodel.joblib.pkl', 'wb') as model_out:
             pickle.dump(self.model, model_out)
@@ -105,9 +109,10 @@ class Eval:
         labels = sorted(list(set(self.ce.goals)))
         labeldict = {}
         results = \
-        [[
-        "Cat", "Pr", "Re", "F1", "TPR", "FPR", "AUC", "Tot", "Clf", "Cor"
-        ]]
+        [
+        ["Cat", "Pr", "Re", "F1", "TPR", "FPR", "AUC", "Tot", "Clf", "Cor"],
+        [('-' * 6)] * 10
+        ]
         for i, label in enumerate(labels):
             labeldict[i] = label
             results.append([str(i)] + [str(round(val, 2)) for val in self.performance[label]])
@@ -116,8 +121,8 @@ class Eval:
             out.write('legend:\n')
             for index in sorted(labeldict.keys()):
                 out.write(str(index) + ' = ' + labeldict[index] + '\n')
-            out.write('\n\n')
-            results_str = utils.format_table(results, [7, 7, 7])
+            out.write('\n')
+            results_str = utils.format_table(results, [6] * 10)
             out.write('\n'.join(results_str))       
 
     def write_confusion_matrix(self):

@@ -3,6 +3,7 @@
 import time
 import os
 import itertools
+from collections import defaultdict
 import pickle
 
 import featurizer
@@ -64,7 +65,7 @@ class Experiment:
         self.featurizer = False
         self.classifiers = classifiers
         self.directory = directory
-        self.reporter = reporter.Reporter()
+        self.reporter = reporter.Reporter(directory)
     
     def set_features(self):
         """
@@ -161,8 +162,6 @@ class Experiment:
         """
         # Select features
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
-        print("Instance", instances[:5])
-        print("Vocab", vocabulary[:50], vocabulary[-50:])
         # Save vocabulary
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
             v_out.write('\n'.join(vocabulary))
@@ -180,7 +179,7 @@ class Experiment:
             folds = utils.return_folds(instances_full)
             classifier_foldperformance = defaultdict(list)
             for i, fold in enumerate(folds):
-                print(fold, i)
+                print('fold', i)
                 train = [x[0] for x in fold[0]]
                 trainlabels = [x[1] for x in fold[0]]
                 test = [x[0] for x in fold[1]]
@@ -194,9 +193,6 @@ class Experiment:
                 if not os.path.isdir(classifier_directory):
                     os.mkdir(classifier_directory)
                 self.reporter.add_folds(classifier_foldperformance[classifier], classifier_directory)
-
-
-
 
     def run_grid(self):
         """

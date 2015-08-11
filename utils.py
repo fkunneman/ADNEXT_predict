@@ -189,7 +189,7 @@ def format_table(data, widths):
     output = []
     for row in data:
         try:
-            output.append("".join("%*s" % i for i in zip(widths, row)))
+            output.append("".join("%-*s" % i for i in zip(widths, row)))
         except:
             print('Format table: number of width values and row values do not correspond, using tabs instead')
             output.append('\t'.join(row))
