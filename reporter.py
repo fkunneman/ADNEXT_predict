@@ -62,7 +62,7 @@ class Eval:
             self.ce.precision(), self.ce.recall(), self.ce.fscore(),
             self.ce.tp_rate(), self.ce.fp_rate(),
             auc([0, self.ce.fp_rate(), 1], [0, self.ce.tp_rate(), 1]), 
-            len(self.ce.observations), len(self.ce.observations), sum([self.ce.tp[label] for label in labels])
+            len(self.ce.observations), len(self.ce.observations), sum([self.ce.tp[label] for label in self.labels])
             ]
         self.performance["micro"] = micro_results
 
@@ -89,14 +89,17 @@ class Eval:
             the directory to write classification files to
 
         """
+        classifications_str = []
+        for instance in self.classifications:
+            classifications_str.append([instance[0], instance[1], str(round(instance[2], 2))])
         with open(self.directory + 'classifications_document.txt', 'w', encoding = 'utf-8') as out:
             out.write(' | '.join(['document', 'target', 'prediction', 'prob']) + '\n' + ('=' * 30) + '\n')
-            for i, instance in enumerate(self.classifications):
+            for i, instance in enumerate(classifications_str):
                 out.write(' | '.join([self.documents[i], instance[0], instance[1], instance[2]]) + '\n')
         with open(self.directory + 'classifications.txt', 'w', encoding = 'utf-8') as out:
             info = [['target', 'prediction', 'probability']]
             info.append([('-' * 20)] * 3)
-            info.extend(self.classifications)
+            info.extend(classifications_str)
             info_str = utils.format_table(info, [20, 20, 20])
             out.write('\n'.join(info_str))
         with open(self.directory + 'classifiermodel.joblib.pkl', 'wb') as model_out:
@@ -132,18 +135,18 @@ class Eval:
     def write_top_fps(self):
         for label in self.labels:
             ranked_fps = sorted([[self.documents[i], instance[0], instance[1], instance[2]] for i, instance in \
-                self.classifications if instance[1] == label and instance[0] != instance[1]], key = instance[2], 
-                reverse = True)
+                enumerate(self.classifications) if instance[1] == label and instance[0] != instance[1]], 
+                key = lambda k : k[3], reverse = True)
             with open(self.directory + label + '_ranked_fps.txt', 'w', encoding = 'utf-8') as out:
-                out.write('\n'.join(['\t'.join([fp[0], str(fp[3])]) for fp in ranked_fps]))
+                out.write('\n'.join(['\t'.join([fp[0], str(round(fp[3], 2))]) for fp in ranked_fps]))
 
     def write_top_tps(self):
         for label in self.labels:
             ranked_tps = sorted([[self.documents[i], instance[0], instance[1], instance[2]] for i, instance in \
-                self.classifications if instance[1] == label and instance[0] == instance[1]], key = instance[2], 
-                reverse = True)
+                enumerate(self.classifications) if instance[1] == label and instance[0] == instance[1]], 
+                key = lambda k : k[3], reverse = True)
             with open(self.directory + label + '_ranked_tps.txt', 'w', encoding = 'utf-8') as out:
-                out.write('\n'.join(['\t'.join([tp[0], str(tp[3])]) for tp in ranked_tps]))
+                out.write('\n'.join(['\t'.join([tp[0], str(round(tp[3], 2))]) for tp in ranked_tps]))
 
     def report(self):
         self.save_classifier_output()
