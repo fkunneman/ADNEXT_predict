@@ -178,7 +178,7 @@ class Experiment:
             settings = data[2]
             if settings:
                 with open(classifierdir + 'settings.txt', 'w') as settings_out:
-                    settings_out.write(settings)
+                        settings_out.write('\n'.join([parameter + ": " + str(settings[parameter]) for parameter in settings.keys()]))
 
     def run_experiment(self, featuretypes, weight, prune, directory):
         """
@@ -203,8 +203,6 @@ class Experiment:
         """
         # Select features
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
-        print("Instance", instances[:5])
-        print("Vocab", vocabulary[:50], vocabulary[-50:])
         # Save vocabulary
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
             v_out.write('\n'.join(vocabulary))
@@ -222,7 +220,7 @@ class Experiment:
             folds = utils.return_folds(instances_labels)
             fold_predictions = []
             for i, fold in enumerate(folds):
-                print(fold, i)
+                print('fold', i)
                 fold_directory = directory + 'fold' + str(i) + '/'
                 if not os.path.isdir(fold_directory):
                     os.mkdir(fold_directory)
