@@ -2,6 +2,7 @@
 
 import os
 import pickle
+import numpy
 from sklearn.metrics import auc
 
 from pynlpl import evaluation
@@ -15,7 +16,7 @@ class Reporter:
         self.comparison_file = self.directory + 'grid_performance.txt' 
 
     def add_folds(self, classifier_output, directory):
-        folds = []
+        folds = [] 
         for fold_index, output in enumerate(classifier_output):
             fold_directory = directory + 'fold_' + str(fold_index) + '/'
             if not os.path.isdir(fold_directory):
@@ -23,8 +24,45 @@ class Reporter:
             fold_evaluation = Eval(output, fold_directory)
             fold_evaluation.report()
             folds.append(fold_evaluation.performance)
+        performance = self.assess_performance_folds(self, folds, fold_evaluation.labels)
+        self.write_performance_folds(performance, directory)
+        self.comparison.append(directory, performance)
 
-    def add_test(self):
+    def add_test(self, classifier_output, directory):
+        evaluation = Eval(classifier_output, directory)
+        evaluation.report()
+        self.comparison.append(directory, evaluation.performance)
+
+    def assess_performance_folds(self, folds, labels):
+        label_performance = {}
+        for label in labels:
+            combined_lists = [[fold[i] for fold[label] in folds] for i in range(len(fold[0][label]))]
+            label_performance[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists]
+        combined_list_micro = [[fold[i] for fold['micro'] in folds] for i in range(len(fold[0]['micro']))]
+        label_performance['micro'] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists_micro]
+
+    def write_performance_folds(self, performance, labels, directory):
+        labeldict = {}
+        results = \
+        [
+        ["Cat", "Pr", "Re", "F1", "TPR", "FPR", "AUC", "Tot", "Clf", "Cor"],
+        [('-' * 12)] * 10
+        ]
+        for i, label in enumerate(labels):
+            labeldict[i] = label
+            results.append([str(i)] + [" ".join([str(round(val[0], 2)), '(' + str(round(val[1], 2)) + ')']) \
+                for val in performance[label]])
+        results.append(['Mcr'] + [" ".join([str(round(val[0], 2)), '(' + str(round(val[1], 2)) + ')']) \
+            for val in self.performance['micro']])
+        with open(directory + 'performance.txt', 'w', encoding = 'utf-8') as out:
+            out.write('legend:\n')
+            for index in sorted(labeldict.keys()):
+                out.write(str(index) + ' = ' + labeldict[index] + '\n')
+            out.write('\n')
+            results_str = utils.format_table(results, [12] * 10)
+            out.write('\n'.join(results_str))    
+
+    def report_comparison(self):
         pass
 
     def report(self):
