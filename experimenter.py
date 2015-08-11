@@ -64,6 +64,7 @@ class Experiment:
         self.featurizer = False
         self.classifiers = classifiers
         self.directory = directory
+        self.reporter = reporter.Reporter()
     
     def set_features(self):
         """
@@ -137,49 +138,6 @@ class Experiment:
         predictions = skc.fit_transform()
         return predictions
 
-    def save_predictions(self, documents, predictions, directory):
-        """
-        File writer
-        =====
-        Function to document classifier output
-
-        Parameters
-        -----
-        predictions : dict
-            keys : classifiers (str)
-            values : classifier output (tup) 
-                0 - prediction output : zip of lists
-                    list of target labels
-                    list of classifications
-                    list of prediction certainties
-                1 - classifier model : pkl
-                2 - parameter settings : dict
-        directory : str
-            the directory to write classification files to
-
-        """
-        for classifier in predictions.keys():
-            classifierdir = directory + classifier + '/'
-            if not os.path.isdir(classifierdir):
-                os.mkdir(classifierdir)
-            data = predictions[classifier]
-            classifications = data[0]
-            with open(classifierdir + 'classifications_document.txt', 'w', encoding = 'utf-8') as cl_out:
-                cl_out.write('\t'.join(['document', 'target', 'prediction', 'prob']) + '\n')
-                for i, instance in enumerate(classifications):
-                    cl_out.write('\t'.join([documents[i], instance[0], instance[1], instance[2]]) + '\n')
-            with open(classifierdir + 'classifications.txt', 'w', encoding = 'utf-8') as cl_out:
-                cl_out.write('\t'.join(['target', 'prediction', 'prob']) + '\n')
-                for i, instance in enumerate(classifications):
-                    cl_out.write('\t'.join([instance[0], instance[1], instance[2]]) + '\n')
-            model = data[1]
-            with open(classifierdir + classifier + '.joblib.pkl', 'wb') as model_out:
-                pickle.dump(model, model_out)
-            settings = data[2]
-            if settings:
-                with open(classifierdir + 'settings.txt', 'w') as settings_out:
-                    settings_out.write(settings)
-
     def run_experiment(self, featuretypes, weight, prune, directory):
         """
         Experiment interface
@@ -218,21 +176,27 @@ class Experiment:
             predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
             self.save_predictions(self.test_csv['text'], predictions, directory)
         else: #run tenfold
-            instances_labels = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
-            folds = utils.return_folds(instances_labels)
-            fold_predictions = []
+            instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
+            folds = utils.return_folds(instances_full)
+            classifier_foldperformance = defaultdict(list)
             for i, fold in enumerate(folds):
                 print(fold, i)
-                fold_directory = directory + 'fold' + str(i) + '/'
-                if not os.path.isdir(fold_directory):
-                    os.mkdir(fold_directory)
                 train = [x[0] for x in fold[0]]
                 trainlabels = [x[1] for x in fold[0]]
                 test = [x[0] for x in fold[1]]
                 testlabels = [x[1] for x in fold[1]]
                 testdocuments = [x[2] for x in fold[1]]
                 predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
-                self.save_predictions(testdocuments, predictions, fold_directory)
+                for classifier in self.classifiers:
+                    classifier_foldperformance[classifier].append([testdocuments, predictions[classifier]])
+            for classifier in self.classifiers:
+                classifier_directory = directory + classifier + '/'
+                if not os.path.isdir(classifier_directory):
+                    os.mkdir(classifier_directory)
+                self.reporter.add_folds(classifier_foldperformance[classifier], classifier_directory)
+
+
+
 
     def run_grid(self):
         """
