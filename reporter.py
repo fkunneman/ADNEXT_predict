@@ -127,7 +127,9 @@ class Eval:
 
     def write_confusion_matrix(self):
         confusion_matrix = self.ce.confusionmatrix()
-        print(confusion_matrix)
+        with open(self.directory + 'confusion_matrix.txt', 'w', encoding = 'utf-8') as out:
+            out.write(confusion_matrix.__str__())
+            
     def write_top_fps(self):
         pass
 
@@ -139,3 +141,4 @@ class Eval:
         self.assess_performance()
         self.write_classifier_output()
         self.write_performance()
+        self.write_confusion_matrix()
