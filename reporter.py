@@ -24,42 +24,45 @@ class Reporter:
             fold_evaluation = Eval(output, fold_directory)
             fold_evaluation.report()
             folds.append(fold_evaluation.performance)
-        performance = self.assess_performance_folds(self, folds, fold_evaluation.labels)
-        self.write_performance_folds(performance, directory)
-        self.comparison.append(directory, performance)
+        performance = self.assess_performance_folds(folds, fold_evaluation.labels)
+        self.write_performance_folds(performance, fold_evaluation.labels, directory)
+        self.comparison.append((directory, performance))
 
     def add_test(self, classifier_output, directory):
         evaluation = Eval(classifier_output, directory)
         evaluation.report()
-        self.comparison.append(directory, evaluation.performance)
+        self.comparison.append((directory, evaluation.performance))
 
     def assess_performance_folds(self, folds, labels):
         label_performance = {}
         for label in labels:
-            combined_lists = [[fold[i] for fold[label] in folds] for i in range(len(fold[0][label]))]
-            label_performance[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists]
-        combined_list_micro = [[fold[i] for fold['micro'] in folds] for i in range(len(fold[0]['micro']))]
-        label_performance['micro'] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists_micro]
+            combined_lists = [[fold[label][i] for fold in folds] for i in range(9)]
+            label_performance[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists[:6]] + \
+                [sum(l) for l in combined_lists[6:]]
+        combined_lists_micro = [[fold['micro'][i] for fold in folds] for i in range(9)]
+        label_performance['micro'] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists_micro[:6]] + \
+            [sum(l) for l in combined_lists_micro[6:]]
+        return label_performance
 
     def write_performance_folds(self, performance, labels, directory):
         labeldict = {}
         results = \
         [
         ["Cat", "Pr", "Re", "F1", "TPR", "FPR", "AUC", "Tot", "Clf", "Cor"],
-        [('-' * 12)] * 10
+        [('-' * 5)] + [('-' * 13)] * 6 + [('-' * 7)] * 3
         ]
         for i, label in enumerate(labels):
             labeldict[i] = label
             results.append([str(i)] + [" ".join([str(round(val[0], 2)), '(' + str(round(val[1], 2)) + ')']) \
-                for val in performance[label]])
+                for val in performance[label][:6]] + [str(val) for val in performance[label][6:]])
         results.append(['Mcr'] + [" ".join([str(round(val[0], 2)), '(' + str(round(val[1], 2)) + ')']) \
-            for val in self.performance['micro']])
+            for val in performance['micro'][:6]] + [str(val) for val in performance['micro'][6:]])
         with open(directory + 'performance.txt', 'w', encoding = 'utf-8') as out:
             out.write('legend:\n')
             for index in sorted(labeldict.keys()):
                 out.write(str(index) + ' = ' + labeldict[index] + '\n')
             out.write('\n')
-            results_str = utils.format_table(results, [12] * 10)
+            results_str = utils.format_table(results, [5] + [13] * 6 + [7] * 3)
             out.write('\n'.join(results_str))    
 
     def report_comparison(self):
