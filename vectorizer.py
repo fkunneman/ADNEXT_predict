@@ -650,9 +650,9 @@ class InfoGain(Counts):
             value : information gain, float
         """
 
-        self.train_instances = [[self.feature_infogain[i] if i > 0 else 0 for i, v in enumerate(instance)] \
+        self.train_instances = [[self.feature_infogain[i] if instance[i] > 0 else 0 for i, v in enumerate(instance)] \
             for instance in self.train_instances]
-        self.test_instances = [[self.feature_infogain[i] if i > 0 else 0 for i, v in enumerate(instance)] \
+        self.test_instances = [[self.feature_infogain[i] if instance[i] > 0 else 0 for i, v in enumerate(instance)] \
             for instance in self.test_instances]
         return self.train_instances, self.test_instances, self.feature_infogain
 

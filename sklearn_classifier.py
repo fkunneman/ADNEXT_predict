@@ -6,6 +6,8 @@ from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
 from sklearn.multiclass import OutputCodeClassifier
 from scipy import sparse
 
+import utils
+
 class SKlearn_classifier:
     """
     SKlearn classifier
@@ -50,7 +52,7 @@ class SKlearn_classifier:
             'tree':             Tree_classifier,
             'ensemble_clf':     EnsembleClf_classifier
         }
-        self.helpers = [value(le, **clfs[key]) for key, value in self.modules.items() if key in clfs]
+        self.helpers = [value(le, **clfs[key]) for key, value in modules.items() if key in clfs.keys()]
         #self.helpers = [value(le) for key, value in modules.items() if key in clfs]
 
     def fit_transform(self):
@@ -446,30 +448,27 @@ class EnsembleClf_classifier:
     def __init__(self, le, **kwargs):
         self.name = 'ensemble_clf'
         self.le = le
-        self.helpermodules = {
+        self.modules = {
             'nb':               NB_classifier,
             'svm':              SVM_classifier,
             'tree':             Tree_classifier
-        }
-        self.assessormodules = {
-            'nb':               NB_classifier,
-            'svm':              SVM_classifier,
-            'tree':             Tree_classifier            
         }
         self.helpers = kwargs['helpers']
         self.assessor = kwargs['assessor']
         self.approach = kwargs['approach']
 
     def add_classification_features(self, clfs, test):
-        instances = list(test['instances'])
+        instances = test['instances'].copy()
         if self.approach == 'classifications_only':
-            instances = [[] for x in instances]
+            instances = sparse.csr_matrix([[]] * instances.shape[0])
         for clf in clfs:
             output = clf.transform(test)
-            classifications = self.le.transform(output[0][1])
-            print('instances_before', instances)
-            instances = [instance + [classifications[i]] for i, instance in instances]
-            print('instances_after', instances)
+            classifications = self.le.transform([x[1] for x in output])
+            classifications_csr = sparse.csr_matrix([[classifications[i]] for i in range(classifications.size)])
+            if instances.shape[1] == 0:
+                instances = classifications_csr
+            else:
+                instances = sparse.hstack((instances, classifications_csr))
         return instances
 
     def fit(self, train):
@@ -477,7 +476,7 @@ class EnsembleClf_classifier:
 
         """
         # train helper classifiers
-        self.clfs = [value(self.le, **self.helpers[key]) for key, value in self.modules.items() if key in self.helpers]
+        self.clfs = [value(self.le, **self.helpers[key]) for key, value in self.modules.items() if key in self.helpers.keys()]
         for clf in self.clfs:
             clf.fit(train)
         # extend training data with classification features
@@ -485,28 +484,27 @@ class EnsembleClf_classifier:
         indices = range(len(train['labels']))
         folds = utils.return_folds(indices)
         # add classifier features
-        train_list = list(train['instances'])
-        test_list = list(test['instances'])
         new_instances = []
         new_labels = []
         for fold in folds:
             fold_train = {
-                'instances' : sparse.csr_matrix([train_list[i] for i in fold[0]]), 
+                'instances' : sparse.vstack([train['instances'][i] for i in fold[0]]), 
                 'labels' : [train['labels'][i] for i in fold[0]]
             }
             fold_test = {
-                'instances' : sparse.csr_matrix[test_list[i] for i in fold[1]], 
-                'labels' : [test['labels'][i] for i in fold[1]]
+                'instances' : sparse.vstack([train['instances'][i] for i in fold[1]]), 
+                'labels' : [train['labels'][i] for i in fold[1]]
             }
-            clfs = [value(self.le, **self.helpers[key]) for key, value in self.modules.items() if key in self.helpers]
+            clfs = [value(self.le, **self.helpers[key]) for key, value in self.modules.items() if key in self.helpers.keys()]
             for clf in clfs:
                 clf.fit(fold_train)
             test_instances_classifications = self.add_classification_features(clfs, fold_test)
-            new_instances.extend(test_instances_classifications)
-            new_labels.extend(labels_test)           
-        train_classifications = {'instances' : sparse.csr_matrix(new_instances), 'labels' : new_labels}
+            new_instances.append(test_instances_classifications)
+            new_labels.extend(fold_test['labels'])
+        new_instances = sparse.csr_matrix(sparse.vstack(new_instances))
+        train_classifications = {'instances' : new_instances, 'labels' : new_labels}
         # train ensemble classifier
-        self.ensemble_clf = [self.modules[self.assessor](self.le, **self.assessor)
+        self.ensemble_clf = self.modules[self.assessor[0]](self.le, **self.assessor[1])
         self.ensemble_clf.fit(train_classifications)
 
     def transform(self, test):
@@ -514,8 +512,8 @@ class EnsembleClf_classifier:
 
         """
         # extend test data with classification features
-        test_instances_classifications = self.add_classification_features(self.clfs, test)
-        test_classifications = {['instances' : sparse.csr_matrix(test_instances_classifications), 'labels' : test['labels']}
+        test_instances_classifications = sparse.csr_matrix(self.add_classification_features(self.clfs, test))
+        test_classifications = {'instances' : test_instances_classifications, 'labels' : test['labels']}
         # make predictions
         output = self.ensemble_clf.transform(test_classifications)
         return output
