@@ -49,7 +49,7 @@ class Reporter:
         labeldict = {}
         results = \
         [
-        ["Cat", "Pr", "Re", "F1", "TPR", "FPR", "AUC", "Tot", "Clf", "Cor"],
+        ['Cat', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Tot', 'Clf', 'Cor'],
         [('-' * 5)] + [('-' * 13)] * 6 + [('-' * 7)] * 3
         ]
         for i, label in enumerate(self.labels):
@@ -70,11 +70,11 @@ class Reporter:
         value_column = {'precision' : 0, 'recall' : 1, 'f1' : 2, 'fpr' : 4, 'auc' : 5}
         for label in self.labels + ['micro']:
             for value in value_column.keys():
-                overview = ["Pr", "Re", "F1", "TPR", "FPR", "AUC", "Tot", "Clf", "Cor"]
-                overview.append([('-' * 13)] * 6 + [('-' * 7)] * 3)
-                sorted_results = sorted((performance[0], performance[1][label]) for performance in self.comparison,
+                overview = ['set', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Tot', 'Clf', 'Cor']
+                overview.append([('-' * 20)] + [('-' * 13)] * 6 + [('-' * 7)] * 3)
+                sorted_results = sorted([performance[0]] + performance[1][label] for performance in self.comparison,
                     key = lambda k: k[1][value_column[value]], reverse = True)
-                sorted_results_str = utils.format_table(sorted_results, [13] * 6 + [7] * 3)
+                sorted_results_str = utils.format_table(sorted_results, [20] + [13] * 6 + [7] * 3)
                 overview.extend(sorted_results)
                 with open(self.comparison_file + label + '_' + value + '.txt', 'w', encoding = 'utf-8') as out:
                     out.write('\n'.join(overview))
