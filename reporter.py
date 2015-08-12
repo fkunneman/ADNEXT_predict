@@ -25,8 +25,8 @@ class Reporter:
             fold_evaluation = Eval(output, self.labels, fold_directory)
             fold_evaluation.report()
             folds.append(fold_evaluation.performance)
-        performance = self.assess_performance_folds(folds)
-        self.write_performance_folds(performance, directory)
+        performance_std, performance = self.assess_performance_folds(folds)
+        self.write_performance_folds(performance_std, directory)
         self.comparison.append((directory, performance))
 
     def add_test(self, classifier_output, directory):
@@ -35,15 +35,20 @@ class Reporter:
         self.comparison.append((directory, evaluation.performance))
 
     def assess_performance_folds(self, folds):
+        label_performance_std = {}
         label_performance = {}
         for label in self.labels:
             combined_lists = [[fold[label][i] for fold in folds] for i in range(9)]
-            label_performance[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists[:6]] + \
+            label_performance_std[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists[:6]] + \
+                [sum(l) for l in combined_lists[6:]]
+            label_performance = [numpy.mean(l) for l in combined_lists[:6]] + \
                 [sum(l) for l in combined_lists[6:]]
         combined_lists_micro = [[fold['micro'][i] for fold in folds] for i in range(9)]
-        label_performance['micro'] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists_micro[:6]] + \
+        label_performance_std['micro'] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists_micro[:6]] + \
             [sum(l) for l in combined_lists_micro[6:]]
-        return label_performance
+        label_performance['micro'] = [numpy.mean(l) for l in combined_lists_micro[:6]] + \
+            [sum(l) for l in combined_lists_micro[6:]]
+        return label_performance_std, label_performance
 
     def write_performance_folds(self, performance, directory):
         labeldict = {}
