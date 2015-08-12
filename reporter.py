@@ -10,32 +10,33 @@ import utils
 
 class Reporter:
 
-    def __init__(self, grid_directory):
+    def __init__(self, grid_directory, labels):
         self.directory = grid_directory
         self.comparison = []
-        self.comparison_file = self.directory + 'grid_performance.txt' 
+        self.comparison_file = self.directory + 'grid_performance' 
+        self.labels = labels
 
-    def add_folds(self, classifier_output, directory):
+    def add_folds_test(self, classifier_output, directory):
         folds = [] 
         for fold_index, output in enumerate(classifier_output):
             fold_directory = directory + 'fold_' + str(fold_index) + '/'
             if not os.path.isdir(fold_directory):
                 os.mkdir(fold_directory)
-            fold_evaluation = Eval(output, fold_directory)
+            fold_evaluation = Eval(output, self.labels, fold_directory)
             fold_evaluation.report()
             folds.append(fold_evaluation.performance)
-        performance = self.assess_performance_folds(folds, fold_evaluation.labels)
-        self.write_performance_folds(performance, fold_evaluation.labels, directory)
+        performance = self.assess_performance_folds(folds)
+        self.write_performance_folds(performance, directory)
         self.comparison.append((directory, performance))
 
     def add_test(self, classifier_output, directory):
-        evaluation = Eval(classifier_output, directory)
+        evaluation = Eval(classifier_output, self.labels, directory)
         evaluation.report()
         self.comparison.append((directory, evaluation.performance))
 
-    def assess_performance_folds(self, folds, labels):
+    def assess_performance_folds(self, folds):
         label_performance = {}
-        for label in labels:
+        for label in self.labels:
             combined_lists = [[fold[label][i] for fold in folds] for i in range(9)]
             label_performance[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists[:6]] + \
                 [sum(l) for l in combined_lists[6:]]
@@ -44,14 +45,14 @@ class Reporter:
             [sum(l) for l in combined_lists_micro[6:]]
         return label_performance
 
-    def write_performance_folds(self, performance, labels, directory):
+    def write_performance_folds(self, performance, directory):
         labeldict = {}
         results = \
         [
         ["Cat", "Pr", "Re", "F1", "TPR", "FPR", "AUC", "Tot", "Clf", "Cor"],
         [('-' * 5)] + [('-' * 13)] * 6 + [('-' * 7)] * 3
         ]
-        for i, label in enumerate(labels):
+        for i, label in enumerate(self.labels):
             labeldict[i] = label
             results.append([str(i)] + [" ".join([str(round(val[0], 2)), '(' + str(round(val[1], 2)) + ')']) \
                 for val in performance[label][:6]] + [str(val) for val in performance[label][6:]])
@@ -66,19 +67,30 @@ class Reporter:
             out.write('\n'.join(results_str))    
 
     def report_comparison(self):
-        pass
+        value_column = {'precision' : 0, 'recall' : 1, 'f1' : 2, 'fpr' : 4, 'auc' : 5}
+        for label in self.labels + ['micro']:
+            for value in value_column.keys():
+                overview = ["Pr", "Re", "F1", "TPR", "FPR", "AUC", "Tot", "Clf", "Cor"]
+                overview.append([('-' * 13)] * 6 + [('-' * 7)] * 3)
+                sorted_results = sorted((performance[0], performance[1][label]) for performance in self.comparison,
+                    key = lambda k: k[1][value_column[value]], reverse = True)
+                sorted_results_str = utils.format_table(sorted_results, [13] * 6 + [7] * 3)
+                overview.extend(sorted_results)
+                with open(self.comparison_file + label + '_' + value + '.txt', 'w', encoding = 'utf-8') as out:
+                    out.write('\n'.join(overview))
 
     def report(self):
         pass
 
 class Eval:
 
-    def __init__(self, clf_output, directory):
+    def __init__(self, clf_output, labels, directory):
         self.ce = evaluation.ClassEvaluation()
         self.documents = clf_output[0]
         self.classifications = clf_output[1][0]
         self.model = clf_output[1][1]
         self.settings = clf_output[1][2]
+        self.labels = labels
         self.directory = directory
         self.instances = []
         self.performance = {}
@@ -86,7 +98,6 @@ class Eval:
     def save_classifier_output(self):
         for instance in self.classifications:
             self.ce.append(instance[0], instance[1])
-        self.labels = sorted(list(set(self.ce.goals)))
 
     def assess_performance(self):
         for label in self.labels:

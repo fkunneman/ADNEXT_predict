@@ -77,7 +77,7 @@ class Experiment:
         self.featurizer = False
         self.classifiers = classifiers
         self.directory = directory
-        self.reporter = reporter.Reporter(directory)
+        self.reporter = reporter.Reporter(directory, list(set(train['labels'])))
     
     def set_features(self):
         """
@@ -204,7 +204,7 @@ class Experiment:
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
                     os.mkdir(classifier_directory)
-                self.reporter.add_folds(classifier_foldperformance[classifier], classifier_directory)
+                self.reporter.add_folds_test(classifier_foldperformance[classifier], classifier_directory)
 
     def run_grid(self):
         """
