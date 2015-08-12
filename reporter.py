@@ -41,7 +41,7 @@ class Reporter:
             combined_lists = [[fold[label][i] for fold in folds] for i in range(9)]
             label_performance_std[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists[:6]] + \
                 [sum(l) for l in combined_lists[6:]]
-            label_performance = [numpy.mean(l) for l in combined_lists[:6]] + \
+            label_performance[label] = [numpy.mean(l) for l in combined_lists[:6]] + \
                 [sum(l) for l in combined_lists[6:]]
         combined_lists_micro = [[fold['micro'][i] for fold in folds] for i in range(9)]
         label_performance_std['micro'] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists_micro[:6]] + \
@@ -72,19 +72,18 @@ class Reporter:
             out.write('\n'.join(results_str))    
 
     def report_comparison(self):
-        value_column = {'precision' : 0, 'recall' : 1, 'f1' : 2, 'fpr' : 4, 'auc' : 5}
+        value_column = {'precision' : 1, 'recall' : 2, 'f1' : 3, 'fpr' : 5, 'auc' : 6}
         for label in self.labels + ['micro']:
             for value in value_column.keys():
-                overview = ['set', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Tot', 'Clf', 'Cor']
-                overview.append([('-' * 20)] + [('-' * 13)] * 6 + [('-' * 7)] * 3)
-                label_results = [[performance[0]] + performance[1][label] for performance in self.comparison]
-                print(label_results)
-                sorted_results = sorted(label_results, key = lambda k: k[1][value_column[value]], reverse = True)
-                sorted_results_str = utils.format_table(sorted_results, [20] + [13] * 6 + [7] * 3)
+                overview = [['setting', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Tot', 'Clf', 'Cor']]
+                overview.append([('-' * 60)] + [('-' * 5)] * 6 + [('-' * 6)] * 3)
+                label_results = [['_'.join(performance[0].split('/')[-3:-1])] + [round(val, 2) for val in \
+                    performance[1][label]] for performance in self.comparison]
+                sorted_results = sorted(label_results, key = lambda k: k[value_column[value]], reverse = True)
                 overview.extend(sorted_results)
-                print(overview)
-                with open(self.comparison_file + label + '_' + value + '.txt', 'w', encoding = 'utf-8') as out:
-                    out.write('\n'.join(overview))
+                overview_str = utils.format_table(overview, [60] + [5] * 6 + [6] * 3)
+                with open(self.comparison_file + '_' + label + '_' + value + '.txt', 'w', encoding = 'utf-8') as out:
+                    out.write('\n'.join(overview_str))
 
     def report(self):
         pass

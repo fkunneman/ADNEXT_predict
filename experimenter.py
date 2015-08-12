@@ -175,7 +175,7 @@ class Experiment:
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
                     os.mkdir(classifier_directory)
-                self.reporter.add_test([self.test_csv['text'], predictions], classifier_directory)
+                self.reporter.add_test([self.test_csv['text'], predictions[classifier]], classifier_directory)
         else: #run tenfold
             instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             folds = utils.return_folds(instances_full)
