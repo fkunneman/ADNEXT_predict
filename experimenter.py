@@ -1,17 +1,3 @@
-###############################################################
-#  PyNLPl - Evaluation Library
-#       by Maarten van Gompel (proycon)
-#       http://ilk.uvt.nl/~mvgompel
-#       Induction for Linguistic Knowledge Research Group
-#       Universiteit van Tilburg
-#
-#       Licensed under GPLv3
-#
-# This is a Python library with classes and functions for evaluation
-# and experiments .
-#
-###############################################################
-
 import time
 import os
 import itertools
@@ -77,7 +63,7 @@ class Experiment:
         self.featurizer = False
         self.classifiers = classifiers
         self.directory = directory
-        self.reporter = reporter.Reporter(directory, list(set(train['labels'])))
+        self.reporter = reporter.Reporter(directory, list(set(train['label'])))
     
     def set_features(self):
         """
@@ -185,7 +171,11 @@ class Experiment:
             test = instances[len_training:]
             testlabels = self.test_csv['label']
             predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
-            self.save_predictions(self.test_csv['text'], predictions, directory)
+            for classifier in self.classifiers:
+                classifier_directory = directory + classifier + '/'
+                if not os.path.isdir(classifier_directory):
+                    os.mkdir(classifier_directory)
+                self.reporter.add_test([self.test_csv['text'], predictions], classifier_directory)
         else: #run tenfold
             instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             folds = utils.return_folds(instances_full)
@@ -205,7 +195,8 @@ class Experiment:
                 if not os.path.isdir(classifier_directory):
                     os.mkdir(classifier_directory)
                 self.reporter.add_folds_test(classifier_foldperformance[classifier], classifier_directory)
-
+        self.reporter.report_comparison()
+                
     def run_grid(self):
         """
         Grid interface

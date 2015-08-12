@@ -72,10 +72,12 @@ class Reporter:
             for value in value_column.keys():
                 overview = ['set', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Tot', 'Clf', 'Cor']
                 overview.append([('-' * 20)] + [('-' * 13)] * 6 + [('-' * 7)] * 3)
-                sorted_results = sorted([performance[0]] + performance[1][label] for performance in self.comparison,
-                    key = lambda k: k[1][value_column[value]], reverse = True)
+                label_results = [[performance[0]] + performance[1][label] for performance in self.comparison]
+                print(label_results)
+                sorted_results = sorted(label_results, key = lambda k: k[1][value_column[value]], reverse = True)
                 sorted_results_str = utils.format_table(sorted_results, [20] + [13] * 6 + [7] * 3)
                 overview.extend(sorted_results)
+                print(overview)
                 with open(self.comparison_file + label + '_' + value + '.txt', 'w', encoding = 'utf-8') as out:
                     out.write('\n'.join(overview))
 
@@ -157,8 +159,12 @@ class Eval:
         with open(self.directory + 'classifiermodel.joblib.pkl', 'wb') as model_out:
             pickle.dump(self.model, model_out)
         if self.settings:
-            with open(self.directory + 'settings.txt', 'w') as settings_out:
-                settings_out.write(settings)
+            settings_table = []
+            for parameter in self.settings.keys():
+                settings_table.append([parameter, str(self.settings[parameter])])
+            settings_str = utils.format_table(settings_table, [15, 10])
+            with open(self.directory + 'settings.txt', 'w') as settings_out:                
+                settings_out.write('\n'.join(settings_str))
 
     def write_performance(self):
         labeldict = {}
