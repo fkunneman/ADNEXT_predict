@@ -8,7 +8,7 @@ import datetime
 import functools
 from collections import Counter
 
-def write_csv(rows, outfile, header = True):
+def write_csv(rows, outfile):
     """
     CSV writer
     =====
@@ -21,10 +21,8 @@ def write_csv(rows, outfile, header = True):
         The name of the file to write the rows to
     """
     with open(outfile, 'w') as csvfile:
-        if header:
-            writer = csv.writer(csvfile, fieldnames = rows[0])
-        writer.writeheader()
-        for row in rows[1:]:
+        writer = csv.writer(csvfile)
+        for row in rows:
             writer.writerow(row)
 
 def read_json(filename):

@@ -20,7 +20,7 @@ class Docreader:
     def parse_txt(self, doc, delimiter, header):
         with open(doc, encoding = 'utf-8') as fn:
             lines = [x.strip().split(delimiter) for x in fn.readlines()]
-        if args.header:
+        if header:
             lines = lines[1:]
         return lines
 
@@ -137,13 +137,16 @@ class Docreader:
             other_lines = False
 
         new_lines = [fields]
-        for line in self.lines:
+        for i, line in enumerate(self.lines):
             new_line = defaultline[:]
             if other:
                 other_line = []
             for key, value in sorted(columndict.items()):
-                if value in fields:
-                    new_line[fields.index(value)] = line[key]
+                if value in fields: 
+                    try:
+                        new_line[fields.index(value)] = line[key]
+                    except:
+                        print('field error on line', i, ',',key, value, line, new_line)
                 else:
                     other_line.append(line[key])
             new_lines.append(new_line)

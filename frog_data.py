@@ -16,9 +16,9 @@ twitter = int(sys.argv[3])
 #initialize frog
 fo = frog.FrogOptions(parser=False)
 if twitter:
-    frogger = frog.Frog(fo, '/vol/customopt/uvt-ru/etc/frog/frog-twitter.cfg')
+    frogger = frog.Frog(fo, '/vol/customopt/lamachine/etc/frog/frog-twitter.cfg')
 else:
-    frogger = frog.Frog(fo, '/vol/customopt/uvt_ru/etc/frog/frog.cfg')
+    frogger = frog.Frog(fo, '/vol/customopt/lamachine/etc/frog/frog.cfg')
 
 #read in file
 dh = datahandler.Datahandler()

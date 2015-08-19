@@ -74,18 +74,19 @@ class Datahandler:
 
         """
         csv.field_size_limit(sys.maxsize)
-        self.rows = []
+        rows = []
         try:
             with open(filename, 'r') as csvfile:
                 csv_reader = csv.reader(csvfile)
                 for line in csv_reader:
-                    self.rows.append(line)
+                    rows.append(line)
         except:
             csvfile = open(filename, 'r')
             csv_reader = csv.reader(line.replace('\0','') for line in csvfile.readlines())       
             for line in csv_reader:
-                self.rows.append(line)
-
+                rows.append(line)
+        
+        self.rows = rows[1:]
         self.rows_2_dataset()
 
     def write_csv(self, outfile):
