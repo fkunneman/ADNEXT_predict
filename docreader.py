@@ -25,59 +25,59 @@ class Docreader:
         return lines
 
     def parse_xls(self, doc, header, date, time):
-	    """
-	    Excel reader
-	    =====
-	    Function to read in an excel file
+        """
+        Excel reader
+        =====
+        Function to read in an excel file
 
-	    Parameters
-	    -----
-	    doc : str
-	    	Name of the excel file
-	    header : bool
-	    	Indicate if the file contains a header
-	    date : bool / int
-	    	If one of the excel fields is in date format, specify the index of the column, give False otherwise
-	    time : bool / int
-	    	If one of the excel fields is in time format, specify the index of the column, give False otherwise
-	    Returns
-	    -----
-	    lines : list of lists
-	        Each list corresponds to the cell values of a row
-	    """
-	    workbook = xlrd.open_workbook(filename)
-	    wbsheet = workbook.sheets()[0]
-	    rows = []
-	    begin = 0
-	    if header:
-	        begin = 1
-	    for rownum in range(begin, wbsheet.nrows):
-	        values = wbsheet.row_values(rownum)
-	        if date == 0 or date:
-	           try:
-	               datefields = xlrd.xldate_as_tuple(wbsheet.cell_value(rownum, date), workbook.datemode)[:3]
-	               values[date] = datetime.date(*datefields)
-	           except TypeError:
-	               values[date] = values[date]           
-	        if time == 0 or time:
-	           try:
-	               timefields = xlrd.xldate_as_tuple(wbsheet.cell_value(rownum, time), workbook.datemode)[3:]
-	               values[time] = datetime.time(*timefields)
-	           except TypeError:
-	               values[time] = values[time]        
-	        rows.append(values)
-	    return rows
-	    
+        Parameters
+        -----
+        doc : str
+        	Name of the excel file
+        header : bool
+        	Indicate if the file contains a header
+        date : bool / int
+        	If one of the excel fields is in date format, specify the index of the column, give False otherwise
+        time : bool / int
+        	If one of the excel fields is in time format, specify the index of the column, give False otherwise
+        Returns
+        -----
+        lines : list of lists
+            Each list corresponds to the cell values of a row
+        """
+        workbook = xlrd.open_workbook(filename)
+        wbsheet = workbook.sheets()[0]
+        rows = []
+        begin = 0
+        if header:
+            begin = 1
+        for rownum in range(begin, wbsheet.nrows):
+            values = wbsheet.row_values(rownum)
+            if date == 0 or date:
+               try:
+                   datefields = xlrd.xldate_as_tuple(wbsheet.cell_value(rownum, date), workbook.datemode)[:3]
+                   values[date] = datetime.date(*datefields)
+               except TypeError:
+                   values[date] = values[date]           
+            if time == 0 or time:
+               try:
+                   timefields = xlrd.xldate_as_tuple(wbsheet.cell_value(rownum, time), workbook.datemode)[3:]
+                   values[time] = datetime.time(*timefields)
+               except TypeError:
+                   values[time] = values[time]        
+            rows.append(values)
+        return rows
+        
     def parse_csv(self, doc):
-	    """
-	    Csv reader
-	    =====
-	    Function to read in a csv file
-	    
-	    Parameters
-	    -----
-	    doc : str
-	        The name of the csv file
+        """
+        Csv reader
+        =====
+        Function to read in a csv file
+        
+        Parameters
+        -----
+        doc : str
+            The name of the csv file
 
         Returns
         -----
@@ -99,30 +99,30 @@ class Docreader:
         return lines
 
     def set_lines(self, columndict):
-		"""
-		Columnformatter
-		=====
-		Function to set columns in the standard format
+        """
+        Columnformatter
+        =====
+        Function to set columns in the standard format
+        
+        Parameters
+        -----
+        columndict : dict
+            dictionary to specify the column for the present categories
 
-		Parameters
-		-----
-		columndict : dict
-			dictionary to specify the column for the present categories
+        Attributes
+        -----
+        columns : dict
+            Dictionary with the standard column for each category
+        defaultline : list
+            Standard line that is copied for each new line
+            Categories that are not present are left as '-'
 
-		Attributes
-		-----
-		columns : dict
-			Dictionary with the standard column for each category
-		defaultline : list
-			Standard line that is copied for each new line
-			Categories that are not present are left as '-'
+        Returns
+        -----
+        new_lines : list of lists
+            The correctly formatted lines
 
-		Returns
-		-----
-		new_lines : list of lists
-			The correctly formatted lines
-
-		"""
+        """
         fields = ['label', 'tweet_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged'] 
         defaultline = ["-", "-", "-", "-", "-", "-", "-", "-"]
         other_header = []
