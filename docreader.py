@@ -67,22 +67,22 @@ class Docreader:
 	               values[time] = values[time]        
 	        rows.append(values)
 	    return rows
-
+	    
 	def parse_csv(self, doc):
-        """
-        Csv reader
-        =====
-        Function to read in a csv file
-
-        Parameters
-        -----
-        doc : str
-            The name of the csv file
+	    """
+	    Csv reader
+	    =====
+	    Function to read in a csv file
+	    
+	    Parameters
+	    -----
+	    doc : str
+	        The name of the csv file
 
         Returns
         -----
-	    lines : list of lists
-	        Each list corresponds to the cell values of a row
+        lines : list of lists
+            Each list corresponds to the cell values of a row
         """
         csv.field_size_limit(sys.maxsize)
         lines = []
@@ -96,10 +96,9 @@ class Docreader:
             csv_reader = csv.reader(line.replace('\0','') for line in csvfile.readlines())       
             for line in csv_reader:
                 lines.append(line)
-
         return lines
-
-	def set_lines(self, columndict):
+        
+    def set_lines(self, columndict):
 		"""
 		Columnformatter
 		=====
