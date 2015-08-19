@@ -49,11 +49,11 @@ else: # txt file
         if args.header:
             lines = lines[1:]
 
-with open(args.o, 'w') as csvfile:
-    writer = csv.writer(csvfile)
-    for line in lines:
-        writer.writerow(line)
-quit()
+# with open(args.o, 'w') as csvfile:
+#     writer = csv.writer(csvfile)
+#     for line in lines:
+#         writer.writerow(line)
+# quit()
 
 # set columns of lines in right order
 if args.c: 
@@ -67,8 +67,6 @@ if args.c:
             else:
                 csvrow.append(line[i])
         csvrows.append(csvrow)
-
-
 
 # write to csv
 dh = datahandler.Datahandler()

@@ -37,7 +37,7 @@ class Datahandler:
 
     def __init__(self, max_n = False):
         self.max_n = max_n
-        self.headers = "label tweet_id user_id date time username text frogs".split()
+        self.headers = "label tweet_id user_id date time username text tagged".split()
         self.dataset = {}
         self.rows = []
 
@@ -131,28 +131,28 @@ class Datahandler:
                 self.dataset[category].append(val)
         self.decode_frog()
 
-    def decode_frog(self):
+    def decode_tagged(self):
         """
         Frog decoder
         =====
         Function to decode a frog string into a list of lists per document
         """
-        if self.dataset['frogs'][0] != '-':
+        if self.dataset['tagged'][0] != '-':
             new_frogs = []
-            for doc in self.dataset['frogs']:
+            for doc in self.dataset['tagged']:
                 new_frogs.append([token.split("\t") for token in doc.split("\n")])
-            self.dataset['frogs'] = new_frogs
+            self.dataset['tagged'] = new_frogs
 
-    def encode_frog(self):
+    def encode_tagged(self):
         """
         Frog encoder
         =====
         Function to encode a frog list into a string
         """
         frogstrings = []
-        for doc in self.dataset['frogs']:
+        for doc in self.dataset['tagged']:
             frogstrings.append("\n".join(["\t".join(token) for token in doc]))
-        self.dataset['frogs'] = frogstrings
+        self.dataset['tagged'] = frogstrings
 
     def split_dataset(self, shuffle = False):
         """
@@ -243,7 +243,7 @@ class Datahandler:
 
         """
         new_frogs = []
-        for doc in self.dataset['frogs']:
+        for doc in self.dataset['tagged']:
             new_doc = []
             for token in doc:
                 if regex.match(token[0]):
@@ -251,7 +251,7 @@ class Datahandler:
                     token[1] = dummy
                 new_doc.append(token)
             new_frogs.append(new_doc)
-        self.dataset['frogs'] = new_frogs
+        self.dataset['tagged'] = new_frogs
 
     def normalize_urls(self):
         """
@@ -282,7 +282,7 @@ class Datahandler:
 
         """
         new_frogs = []
-        for doc in self.dataset['frogs']:
+        for doc in self.dataset['tagged']:
             new_doc = []
             for token in doc:
                 try:
@@ -291,7 +291,7 @@ class Datahandler:
                 except:
                     continue
             new_frogs.append(new_doc)
-        self.dataset['frogs'] = new_frogs
+        self.dataset['tagged'] = new_frogs
 
     def set_label(self, label):
         """
@@ -308,9 +308,9 @@ class Datahandler:
 
     def to_lower(self):
         new_frogs = []
-        for doc in self.dataset['frogs']:
+        for doc in self.dataset['tagged']:
             new_doc = []
             for token in doc:
                 new_doc.append([token[0].lower(), token[1].lower(), token[2], token[3]])
             new_frogs.append(new_doc)
-        self.dataset['frogs'] = new_frogs
+        self.dataset['tagged'] = new_frogs
