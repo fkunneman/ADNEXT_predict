@@ -5,26 +5,26 @@ import csv
 
 class Docreader:
 
-	def __init__(self):
-		self.lines = []
+    def __init__(self):
+        self.lines = []
 
-	def parse_doc(self, doc, delimiter, header, date, time):
-		form = doc[-4:]
-		if form == '.txt':
-			self.lines = self.parse_txt(doc, delimiter, header)
-		elif form == '.xls':
-			self.lines = self.parse_xls(doc, header, date, time)
-		else:
-			self.lines = self.parse_csv(doc)
+    def parse_doc(self, doc, delimiter, header, date, time):
+        form = doc[-4:]
+        if form == '.txt':
+            self.lines = self.parse_txt(doc, delimiter, header)
+        elif form == '.xls':
+            self.lines = self.parse_xls(doc, header, date, time)
+        else:
+            self.lines = self.parse_csv(doc)
 
-	def parse_txt(self, doc, delimiter, header):
-	    with open(doc, encoding = 'utf-8') as fn:
-	        lines = [x.strip().split(delimiter) for x in fn.readlines()]
-	    if args.header:
-	        lines = lines[1:]
-	    return lines
+    def parse_txt(self, doc, delimiter, header):
+        with open(doc, encoding = 'utf-8') as fn:
+            lines = [x.strip().split(delimiter) for x in fn.readlines()]
+        if args.header:
+            lines = lines[1:]
+        return lines
 
-	def parse_xls(self, doc, header, date, time):
+    def parse_xls(self, doc, header, date, time):
 	    """
 	    Excel reader
 	    =====
@@ -68,7 +68,7 @@ class Docreader:
 	        rows.append(values)
 	    return rows
 	    
-	def parse_csv(self, doc):
+    def parse_csv(self, doc):
 	    """
 	    Csv reader
 	    =====
@@ -97,7 +97,7 @@ class Docreader:
             for line in csv_reader:
                 lines.append(line)
         return lines
-        
+
     def set_lines(self, columndict):
 		"""
 		Columnformatter
@@ -123,30 +123,30 @@ class Docreader:
 			The correctly formatted lines
 
 		"""
-		fields = ['label', 'tweet_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged'] 
-	    defaultline = ["-", "-", "-", "-", "-", "-", "-", "-"]
-		other_header = []
-		for key, value in sorted(columndict.items()):
-			if not value in fields:
-				other_header.append(value)
-		if len(other_header) > 0:
-			other = True
-			other_lines = [other_header]
-		else:
-			other = False
-			other_lines = False
+        fields = ['label', 'tweet_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged'] 
+        defaultline = ["-", "-", "-", "-", "-", "-", "-", "-"]
+        other_header = []
+        for key, value in sorted(columndict.items()):
+            if not value in fields:
+                other_header.append(value)
+        if len(other_header) > 0:
+            other = True
+            other_lines = [other_header]
+        else:
+            other = False
+            other_lines = False
 
-		new_lines = [fields]
-		for line in self.lines:
-			new_line = defaultline[:]
-			if other:
-				other_line = []
-			for key, value in sorted(columndict.items()):
-				if value in fields:
-					new_line[fields.index(value)] = line[key]
-				else:
-					other_line.append(line[key])
-			new_lines.append(new_line)
-			if other:
-				other_lines.append(other_line)
-		return new_lines, other_lines
+        new_lines = [fields]
+        for line in self.lines:
+            new_line = defaultline[:]
+            if other:
+                other_line = []
+            for key, value in sorted(columndict.items()):
+                if value in fields:
+                    new_line[fields.index(value)] = line[key]
+                else:
+                    other_line.append(line[key])
+            new_lines.append(new_line)
+            if other:
+                other_lines.append(other_line)
+        return new_lines, other_lines
