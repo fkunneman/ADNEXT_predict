@@ -39,7 +39,7 @@ class Datahandler:
 
     def __init__(self, max_n = False):
         self.max_n = max_n
-        self.headers = "label tweet_id user_id date time username text tagged".split()
+        self.headers = "label tweet_id author_id date time authorname text tagged".split()
         self.dataset = {}
         self.rows = []
 
@@ -96,7 +96,7 @@ class Datahandler:
 
         """
         self.dataset_2_rows()
-        utils.write_csv(self.rows, outfile)
+        utils.write_csv([self.headers] + self.rows, outfile)
 
     def dataset_2_rows(self):
         """

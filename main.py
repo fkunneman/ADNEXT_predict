@@ -22,10 +22,18 @@ for doc in data:
 		print('Reading', doc)
 		columns = [k for k in keys if re.search(r'\d+', k)]
 		columndict = {}
+		catdict = {}
 		for column in columns:
-			columndict[int(column)] = dp[column]  
+			index = int(column)
+			cat = dp[column]
+			columndict[index] = cat
+			catdict[cat] = index
+		date = catdict['date'] if 'date' in catdict.keys() else False
+		time = catdict['time'] if 'time' in catdict.keys() else False
+		delimiter = dp['separator']
+		header = dp.getboolean('header')
 		reader = docreader.Docreader()
-		reader.parse_doc(doc)
+		reader.parse_doc(doc, delimiter, header, date, time)
 		new_lines, other_lines = reader.set_lines(columndict)
 		csv_doc = doc[:-4] + '_standard.csv'
 		utils.write_csv(new_lines, csv_doc)

@@ -3,28 +3,28 @@ import sys
 import xlrd
 import csv
 
-class Docformatter:
+class Docreader:
 
 	def __init__(self):
 		self.lines = []
 
-	def parse_doc(self, doc):
+	def parse_doc(self, doc, delimiter, header, date, time):
 		form = doc[-4:]
 		if form == '.txt':
-			self.lines = self.parse_txt(doc)
+			self.lines = self.parse_txt(doc, delimiter, header)
 		elif form == '.xls':
-			self.lines = self.parse_xls(doc)
+			self.lines = self.parse_xls(doc, header, date, time)
 		else:
 			self.lines = self.parse_csv(doc)
 
-	def parse_txt(self, doc, delimiter = '\t', header = False):
+	def parse_txt(self, doc, delimiter, header):
 	    with open(doc, encoding = 'utf-8') as fn:
 	        lines = [x.strip().split(delimiter) for x in fn.readlines()]
 	    if args.header:
 	        lines = lines[1:]
 	    return lines
 
-	def parse_xls(self, doc, header = False, date = 0, time = 0):
+	def parse_xls(self, doc, header, date, time):
 	    """
 	    Excel reader
 	    =====
@@ -124,21 +124,11 @@ class Docformatter:
 			The correctly formatted lines
 
 		"""
-	    columns = {
-	       'label' : 0,
-	       'tweet_id' : 1,
-	       'author_id' : 2,
-	       'date' : 3,
-	       'time' : 4,
-	       'authorname' : 5,
-	       'text' 	: 6
-	       'tagged'	: 7
-	    }
-	    standard_cats = columns.keys()
+		fields = ['label', 'tweet_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged'] 
 	    defaultline = ["-", "-", "-", "-", "-", "-", "-", "-"]
 		other_header = []
 		for key, value in sorted(columndict.items()):
-			if not value in standard_cats:
+			if not value in fields:
 				other_header.append(value)
 		if len(other_header) > 0:
 			other = True
@@ -147,14 +137,14 @@ class Docformatter:
 			other = False
 			other_lines = False
 
-		new_lines = []
+		new_lines = [fields]
 		for line in self.lines:
 			new_line = defaultline[:]
 			if other:
 				other_line = []
 			for key, value in sorted(columndict.items()):
-				if value in standard_cats:
-					new_line[columns[value]] = line[key]
+				if value in fields:
+					new_line[fields.index(value)] = line[key]
 				else:
 					other_line.append(line[key])
 			new_lines.append(new_line)
