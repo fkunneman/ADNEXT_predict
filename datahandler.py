@@ -109,9 +109,9 @@ class Datahandler:
         -----
         self.rows : list of lists (rows and columns respectively)
         """
-        self.encode_frog()
+        self.encode_tagged()
         self.rows = list(zip(*[self.dataset[field] for field in self.headers]))
-        self.decode_frog()
+        self.decode_tagged()
 
     def rows_2_dataset(self):
         """
@@ -123,7 +123,7 @@ class Datahandler:
         for row in self.rows:
             for category, val in zip(self.headers, row):
                 self.dataset[category].append(val)
-        self.decode_frog()
+        self.decode_tagged()
 
     def decode_tagged(self):
         """
@@ -132,10 +132,10 @@ class Datahandler:
         Function to decode a frog string into a list of lists per document
         """
         if self.dataset['tagged'][0] != '-':
-            new_frogs = []
+            new_tagged = []
             for doc in self.dataset['tagged']:
-                new_frogs.append([token.split("\t") for token in doc.split("\n")])
-            self.dataset['tagged'] = new_frogs
+                new_tagged.append([token.split("\t") for token in doc.split("\n")])
+            self.dataset['tagged'] = new_tagged
 
     def encode_tagged(self):
         """
@@ -143,10 +143,10 @@ class Datahandler:
         =====
         Function to encode a frog list into a string
         """
-        frogstrings = []
+        tagstrings = []
         for doc in self.dataset['tagged']:
-            frogstrings.append("\n".join(["\t".join(token) for token in doc]))
-        self.dataset['tagged'] = frogstrings
+            tagstrings.append("\n".join(["\t".join(token) for token in doc]))
+        self.dataset['tagged'] = tagstrings
 
     def split_dataset(self, shuffle = False):
         """
@@ -191,7 +191,7 @@ class Datahandler:
         tagdict = {'token' : 0, 'lemma' : 1, 'postag' : 2, 'sentence' : 3}
         tagindex = tagdict[tag]
         sequences = []
-        for instance in self.dataset['frogs']:
+        for instance in self.dataset['tagged']:
             sequences.append([token[tagindex] for token in instance])
         return sequences
 
@@ -236,7 +236,7 @@ class Datahandler:
             the dummy to replace a matching token with
 
         """
-        new_frogs = []
+        new_tagged = []
         for doc in self.dataset['tagged']:
             new_doc = []
             for token in doc:
@@ -244,8 +244,8 @@ class Datahandler:
                     token[0] = dummy
                     token[1] = dummy
                 new_doc.append(token)
-            new_frogs.append(new_doc)
-        self.dataset['tagged'] = new_frogs
+            new_tagged.append(new_doc)
+        self.dataset['tagged'] = new_tagged
 
     def normalize_urls(self):
         """
@@ -275,7 +275,7 @@ class Datahandler:
         Function to remove punctuation from frogged data
 
         """
-        new_frogs = []
+        new_tagged = []
         for doc in self.dataset['tagged']:
             new_doc = []
             for token in doc:
@@ -284,8 +284,8 @@ class Datahandler:
                         new_doc.append(token)
                 except:
                     continue
-            new_frogs.append(new_doc)
-        self.dataset['tagged'] = new_frogs
+            new_tagged.append(new_doc)
+        self.dataset['tagged'] = new_tagged
 
     def set_label(self, label):
         """
@@ -301,10 +301,10 @@ class Datahandler:
         self.dataset['label'] = [label] * len(self.dataset['label'])
 
     def to_lower(self):
-        new_frogs = []
+        new_tagged = []
         for doc in self.dataset['tagged']:
             new_doc = []
             for token in doc:
                 new_doc.append([token[0].lower(), token[1].lower(), token[2], token[3]])
-            new_frogs.append(new_doc)
-        self.dataset['tagged'] = new_frogs
+            new_tagged.append(new_doc)
+        self.dataset['tagged'] = new_tagged
