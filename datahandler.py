@@ -4,6 +4,8 @@ import sys
 import re
 import random
 
+import utils
+
 class Datahandler:
     """
     Datahandler
@@ -92,16 +94,9 @@ class Datahandler:
         =====
         Function to write rows to a file in csv format
 
-        Parameters
-        -----
-        outfile : the name of the file to write the rows to
-
         """
         self.dataset_2_rows()
-        with open(outfile, 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            for row in self.rows:
-                writer.writerow(row)
+        utils.write_csv(self.rows, outfile)
 
     def dataset_2_rows(self):
         """
@@ -114,7 +109,6 @@ class Datahandler:
         -----
         self.rows : list of lists (rows and columns respectively)
         """
-        #format is now {'texts'=[], 'user_id'=[], ...}. Needs to be converted in an instance per line
         self.encode_frog()
         self.rows = list(zip(*[self.dataset[field] for field in self.headers]))
         self.decode_frog()
