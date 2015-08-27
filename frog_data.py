@@ -45,7 +45,7 @@ for i, text in enumerate(texts):
     #write intermediate output to a file
     if i in shows:
         dh.dataset['tagged'] = frogged_texts
-        dh.dataset = dataset_2_rows()
+        dh.dataset_2_rows()
         dh.write_csv(outfile)
 
 dh.dataset['tagged'] = frogged_texts

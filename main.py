@@ -14,9 +14,10 @@ cp = configparser.ConfigParser()
 cp.read(configfile)
 
 # Reading in data
-fileformats = ['.txt', '.xls', '.txt']
+fileformats = ['.txt', '.xls', '.csv']
 data = [doc for doc in cp.sections() if doc[-4:] in fileformats]
 for doc in data:
+    print(doc)
 	dp = cp[doc]
 	keys = [k for k in dp.keys()]
 	if dp.getboolean('tocsv'):

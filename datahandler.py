@@ -76,12 +76,12 @@ class Datahandler:
         csv.field_size_limit(sys.maxsize)
         rows = []
         try:
-            with open(filename, 'r') as csvfile:
+            with open(filename, 'r', encoding = 'utf-8') as csvfile:
                 csv_reader = csv.reader(csvfile)
                 for line in csv_reader:
                     rows.append(line)
         except:
-            csvfile = open(filename, 'r')
+            csvfile = open(filename, 'r', encoding = 'utf-8')
             csv_reader = csv.reader(line.replace('\0','') for line in csvfile.readlines())       
             for line in csv_reader:
                 rows.append(line)

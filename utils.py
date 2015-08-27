@@ -20,7 +20,7 @@ def write_csv(rows, outfile):
     outfile : str
         The name of the file to write the rows to
     """
-    with open(outfile, 'w') as csvfile:
+    with open(outfile, 'w', encoding = 'utf-8') as csvfile:
         writer = csv.writer(csvfile)
         for row in rows:
             writer.writerow(row)
