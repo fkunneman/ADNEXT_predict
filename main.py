@@ -6,6 +6,7 @@ import os
 import re
 
 import docreader
+import datahandler
 import utils
 
 configfile = sys.argv[1]
@@ -13,12 +14,15 @@ configfile = sys.argv[1]
 cp = configparser.ConfigParser()
 cp.read(configfile)
 
-# Reading in data
+########################### Formatting data ###########################
 fileformats = ['.txt', '.xls', '.txt']
 data = [doc for doc in cp.sections() if doc[-4:] in fileformats]
+train = []
+test = []
 for doc in data:
 	dp = cp[doc]
 	keys = [k for k in dp.keys()]
+	##### Reading in data #####
 	if dp.getboolean('tocsv'):
 		print('Reading', doc)
 		columns = [k for k in keys if re.search(r'\d+', k)]
@@ -44,16 +48,44 @@ for doc in data:
 		    if len(other_lines) > 0:
 			    meta_doc = doc[:-4] + '_meta.csv'
 			    utils.write_csv(other_lines, meta_doc)
+	##### Tagging data #####
 	if dp.getboolean('tag'):
 		tagged_csv = doc[:-4] + '_tagged.csv'
 		if dp['tagger'] == 'frog':
 			os_string = 'python3 frog_data.py ' + doc + ' ' + tagged_csv + ' '
 			if dp.getboolean('tweets'):
-#				os_string = os_string + '1'
 				os_string += '1'
 			else:
-				os_string = os_string + '0'
+				os_string += '0'
 			os.system(os_string)
+		doc = tagged_csv
+	##### Pre-processing data #####
+	dh = datahandler.Datahandler()
+	dh.set(doc)
+	if dp['add_label'] != 'no':
+		dh.set_label(dp['add_label'])
+	if dp.getboolean('filter_punctuation'):
+		dh.filter_punctuation()
+	if dp.getboolean('normalize_usernames'):
+		dh.normalize_usernames()
+	if dp.getboolean('normalize_urls'):
+		dh.normalize_urls()
+	if dp.getboolean('lower'):
+		dh.to_lower()
+	if dp['remove_instances'] != 'no':
+		remove = dp['remove_instances'].split(' ')
+		dh.filter_instances(remove)
+	processed_csv = doc[:4] + '_preprocessed.csv'
+	dh.write_csv(processed_csv)
+	if dp['train_test'] == 'train':
+		train.append(dh)
+
+##### Bundling data #####
+if len(train) > 1:
+	dh_train = datahandler.Datahandler()
+	dh.set_rows()
+
+########################### Experiments ###########################
 
 
 

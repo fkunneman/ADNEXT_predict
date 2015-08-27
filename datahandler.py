@@ -37,8 +37,7 @@ class Datahandler:
 
     """
 
-    def __init__(self, max_n = False):
-        self.max_n = max_n
+    def __init__(self):
         self.headers = "label tweet_id author_id date time authorname text tagged".split()
         self.dataset = {}
         self.rows = []
