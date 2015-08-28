@@ -77,8 +77,8 @@ for doc in data:
     if dp['remove_instances'] != 'no':
         remove = dp['remove_instances'].split(' ')
         dh.filter_instances(remove)
-    processed_csv = doc[:4] + '_preprocessed.csv'
-    dh.write_csv(processed_csv)
+    preprocessed_csv = doc[:-4] + '_preprocessed.csv'
+    dh.write_csv(preprocessed_csv)
     if dp['train_test'] == 'train':
         train.append(dh)
     elif dp['train_test'] == 'test':
