@@ -31,10 +31,10 @@ for doc in data:
     columndict = {}
     catdict = {}
     for column in columns:
-    index = int(column)
-    cat = dp[column]
-    columndict[index] = cat
-    catdict[cat] = index
+        index = int(column)
+        cat = dp[column]
+        columndict[index] = cat
+        catdict[cat] = index
     date = catdict['date'] if 'date' in catdict.keys() else False
     time = catdict['time'] if 'time' in catdict.keys() else False
     sepdict = {'tab' : '\t', 'space' : ' '}
@@ -48,42 +48,41 @@ for doc in data:
     doc = csv_doc
     if other_lines:
         if len(other_lines) > 0:
-        meta_doc = doc[:-4] + '_meta.csv'
-        utils.write_csv(other_lines, meta_doc)
+            meta_doc = doc[:-4] + '_meta.csv'
+            utils.write_csv(other_lines, meta_doc)
     ##### Tagging data #####
     if dp.getboolean('tag'):
-    tagged_csv = doc[:-4] + '_tagged.csv'
-    if dp['tagger'] == 'frog':
-    os_string = 'python3 frog_data.py ' + doc + ' ' + tagged_csv + ' '
-    if dp.getboolean('tweets'):
-    os_string += '1'
-    else:
-    os_string += '0'
-    os.system(os_string)
-    doc = tagged_csv
+        tagged_csv = doc[:-4] + '_tagged.csv'
+        if dp['tagger'] == 'frog':
+            os_string = 'python3 frog_data.py ' + doc + ' ' + tagged_csv + ' '
+            if dp.getboolean('tweets'):
+                os_string += '1'
+            else:
+                os_string += '0'
+            os.system(os_string)
+        doc = tagged_csv
     ##### Pre-processing data #####
     dh = datahandler.Datahandler()
     dh.set(doc)
     if dp['add_label'] != 'no':
-    dh.set_label(dp['add_label'])
+        dh.set_label(dp['add_label'])
     if dp.getboolean('filter_punctuation'):
-    dh.filter_punctuation()
+        dh.filter_punctuation()
     if dp.getboolean('normalize_usernames'):
-    dh.normalize_usernames()
+        dh.normalize_usernames()
     if dp.getboolean('normalize_urls'):
-    dh.normalize_urls()
+        dh.normalize_urls()
     if dp.getboolean('lower'):
-    dh.to_lower()
+        dh.to_lower()
     if dp['remove_instances'] != 'no':
-    remove = dp['remove_instances'].split(' ')
-    dh.filter_instances(remove)
+        remove = dp['remove_instances'].split(' ')
+        dh.filter_instances(remove)
     processed_csv = doc[:4] + '_preprocessed.csv'
     dh.write_csv(processed_csv)
     if dp['train_test'] == 'train':
-    train.append(dh)
+        train.append(dh)
     elif dp['train_test'] == 'test':
-    test.append(dh)
->>>>>>> be1293401f7067fe77836ea30aad9e2f74ba62ab
+        test.append(dh)
 
 ##### Bundling data #####
 trainfile = expdir + 'traindata.csv'
