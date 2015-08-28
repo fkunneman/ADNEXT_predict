@@ -8,6 +8,7 @@ import re
 import docreader
 import datahandler
 import utils
+import experimenter
 
 configfile = sys.argv[1]
 
@@ -92,6 +93,8 @@ utils.bundle_data(train, trainfile)
 testfile = expdir + 'testdata.csv'
 if len(test) > 0:
     utils.bundle_data(test, testfile)
+else:
+    testfile = False
 
 ########################### Experiments ###########################
 featuretypes = [featuretype for featuretype in cp.sections() if featuretype[:8] == 'Features']
@@ -103,18 +106,25 @@ for featuretype in featuretypes:
     for key in keys:
         values = fp[key].split()
         feature_dict[key] = values
-        features[featuretype] = feature_dict
-
-print(features)
+    features[featuretype] = feature_dict
 
 vp = cp['Vector']
 weight = vp['weight'].split()
 select = int(vp['select'])
 
-print(weight)
-print(select)
-
 classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
 clfs = {}
+for classifier in classifiers:
+    clp = cp[classifier]
+    keys = [k for k in clp.keys()]
+    clf = {}
+    for key in keys:
+        value = clp[key]
+        if re.search(' ', value):
+            value = value.split()
+        clf[key] = value
+    clfs[classifier] = clf
 
-
+grid = experimenter.Experiment(trainfile, testfile, features, weight, select, clfs, expdir)
+grid.set_features()
+grid.run_grid()
