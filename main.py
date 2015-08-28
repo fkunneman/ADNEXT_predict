@@ -23,7 +23,7 @@ train = []
 test = []
 for doc in data:
     print(doc)
-	dp = cp[doc]
+    dp = cp[doc]
 	keys = [k for k in dp.keys()]
 	##### Reading in data #####
 	if dp.getboolean('tocsv'):
