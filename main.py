@@ -11,6 +11,8 @@ import utils
 
 configfile = sys.argv[1]
 
+expdir = '/'.join(configfile.split('/')[:-1]) + '/'
+
 cp = configparser.ConfigParser()
 cp.read(configfile)
 
@@ -25,8 +27,7 @@ for doc in data:
 	keys = [k for k in dp.keys()]
 	##### Reading in data #####
 	if dp.getboolean('tocsv'):
-		print('Reading', doc)
-		columns = [k for k in keys if re.search(r'\d+', k)]
+    	columns = [k for k in keys if re.search(r'\d+', k)]
 		columndict = {}
 		catdict = {}
 		for column in columns:
@@ -80,15 +81,27 @@ for doc in data:
 	dh.write_csv(processed_csv)
 	if dp['train_test'] == 'train':
 		train.append(dh)
+	elif dp['train_test'] == 'test':
+		test.append(dh)
 
 ##### Bundling data #####
-if len(train) > 1:
-	dh_train = datahandler.Datahandler()
-	dh.set_rows()
+trainfile = expdir + 'traindata.csv'
+utils.bundle_data(train, trainfile)
+
+testfile = expdir + 'testdata.csv'
+if len(test) > 0:
+	utils.bundle_data(test, testfile)
 
 ########################### Experiments ###########################
+featuretypes = [featuretype for featuretype in cp.sections() if featuretype[:9] == 'Features_']
+features = {}
+for featuretype in featuretypes:
+	fp = cp[featuretype]
+	keys = [k for k in fp.keys()]
+	feature_dict = {}
+	for key in keys:
+		values = fp[key].split()
+		feature_dict[key] = values
+	features[featuretype] = feature_dict
 
-
-
-
-
+print(features)

@@ -8,6 +8,8 @@ import datetime
 import functools
 from collections import Counter
 
+import datahandler
+
 def write_csv(rows, outfile):
     """
     CSV writer
@@ -114,3 +116,18 @@ def format_table(data, widths):
             print('Format table: number of width values and row values do not correspond, using tabs instead')
             output.append('\t'.join(row))
     return output
+
+def bundle_data(docs, outfile):
+    if len(docs) > 1:
+        dh_bundle = datahandler.Datahandler()
+        rows_bundle = []
+        for doc in docs:
+            dh = datahandler.Datahandler()
+            dh.set(doc)
+            rows_bundle.extend(dh.rows)
+        dh_bundle.set_rows(rows_bundle)
+        dh_bundle.write_csv(outfile)
+    elif len(docs) == 1:
+        dh = datahandler.Datahandler()
+        dh.set(docs[0])
+        dh.write_csv(outfile)
