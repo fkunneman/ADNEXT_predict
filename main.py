@@ -113,7 +113,7 @@ weight = vp['weight'].split()
 select = int(vp['select'])
 
 classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
-clfs = {}
+clfs = []
 for classifier in classifiers:
     clp = cp[classifier]
     keys = [k for k in clp.keys()]
@@ -123,8 +123,15 @@ for classifier in classifiers:
         if re.search(' ', value):
             value = value.split()
         clf[key] = value
-    clfs[classifier] = clf
+    clfs.append(clf)
 
-grid = experimenter.Experiment(trainfile, testfile, features, weight, select, clfs, expdir)
+dh_train = datahandler.Datahandler()
+dh_train.set(trainfile)
+if testfile:
+    dh_test = datahandler.Datahandler()
+    dh_test.set(testfile)
+else:
+    dh_test = False
+grid = experimenter.Experiment(dh_train, dh_test, features, weight, select, clfs, expdir)
 grid.set_features()
 grid.run_grid()
