@@ -64,21 +64,22 @@ for doc in data:
     ##### Pre-processing data #####
     dh = datahandler.Datahandler()
     dh.set(doc)
-    if dp['add_label'] != 'no':
-        dh.set_label(dp['add_label'])
-    if dp.getboolean('filter_punctuation'):
-        dh.filter_punctuation()
-    if dp.getboolean('normalize_usernames'):
-        dh.normalize_usernames()
-    if dp.getboolean('normalize_urls'):
-        dh.normalize_urls()
-    if dp.getboolean('lower'):
-        dh.to_lower()
-    if dp['remove_instances'] != 'no':
-        remove = dp['remove_instances'].split(' ')
-        dh.filter_instances(remove)
-    preprocessed_csv = doc[:-4] + '_preprocessed.csv'
-    dh.write_csv(preprocessed_csv)
+    if dp.getboolean('preprocess'):
+        if dp['add_label'] != 'no':
+            dh.set_label(dp['add_label'])
+        if dp.getboolean('filter_punctuation'):
+            dh.filter_punctuation()
+        if dp.getboolean('normalize_usernames'):
+            dh.normalize_usernames()
+        if dp.getboolean('normalize_urls'):
+            dh.normalize_urls()
+        if dp.getboolean('lower'):
+            dh.to_lower()
+        if dp['remove_instances'] != 'no':
+            remove = dp['remove_instances'].split(' ')
+            dh.filter_instances(remove)
+        preprocessed_csv = doc[:-4] + '_preprocessed.csv'
+        dh.write_csv(preprocessed_csv)
     if dp['train_test'] == 'train':
         train.append(dh)
     elif dp['train_test'] == 'test':
@@ -109,6 +110,9 @@ print(features)
 vp = cp['Vector']
 weight = vp['weight'].split()
 select = int(vp['select'])
+
+print(weight)
+print(select)
 
 classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
 clfs = {}
