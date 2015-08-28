@@ -93,7 +93,7 @@ if len(test) > 0:
     utils.bundle_data(test, testfile)
 
 ########################### Experiments ###########################
-featuretypes = [featuretype for featuretype in cp.sections() if featuretype[:9] == 'Features_']
+featuretypes = [featuretype for featuretype in cp.sections() if featuretype[:8] == 'Features']
 features = {}
 for featuretype in featuretypes:
     fp = cp[featuretype]
@@ -105,3 +105,12 @@ for featuretype in featuretypes:
         features[featuretype] = feature_dict
 
 print(features)
+
+vp = cp['Vector']
+weight = vp['weight'].split()
+select = int(vp['select'])
+
+classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
+clfs = {}
+
+
