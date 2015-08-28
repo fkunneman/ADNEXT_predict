@@ -100,8 +100,8 @@ for featuretype in featuretypes:
     keys = [k for k in fp.keys()]
     feature_dict = {}
     for key in keys:
-    values = fp[key].split()
-    feature_dict[key] = values
-    features[featuretype] = feature_dict
+        values = fp[key].split()
+        feature_dict[key] = values
+        features[featuretype] = feature_dict
 
 print(features)
