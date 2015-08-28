@@ -122,12 +122,8 @@ def bundle_data(docs, outfile):
         dh_bundle = datahandler.Datahandler()
         rows_bundle = []
         for doc in docs:
-            dh = datahandler.Datahandler()
-            dh.set(doc)
-            rows_bundle.extend(dh.rows)
+            rows_bundle.extend(doc.rows)
         dh_bundle.set_rows(rows_bundle)
         dh_bundle.write_csv(outfile)
     elif len(docs) == 1:
-        dh = datahandler.Datahandler()
-        dh.set(docs[0])
-        dh.write_csv(outfile)
+        docs[0].write_csv(outfile)
