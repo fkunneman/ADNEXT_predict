@@ -87,30 +87,32 @@ for doc in data:
         test.append(dh)
 
 ##### Bundling data #####
+print('bundling data')
 trainfile = expdir + 'traindata.csv'
-utils.bundle_data(train, trainfile)
+train_dataset = utils.bundle_data(train, trainfile)
 
 testfile = expdir + 'testdata.csv'
 if len(test) > 0:
-    utils.bundle_data(test, testfile)
+    test_dataset = utils.bundle_data(test, testfile)
 else:
-    testfile = False
+    test_dataset = False
 
 ########################### Experiments ###########################
 featuretypes = [featuretype for featuretype in cp.sections() if featuretype[:8] == 'Features']
 features = {}
 for featuretype in featuretypes:
+    featurename = featuretype[9:]
     fp = cp[featuretype]
     keys = [k for k in fp.keys()]
     feature_dict = {}
     for key in keys:
         values = fp[key].split()
         feature_dict[key] = values
-    features[featuretype] = feature_dict
+    features[featurename] = feature_dict
 
 vp = cp['Vector']
 weight = vp['weight'].split()
-select = int(vp['select'])
+select = [int(x) for x in vp['select'].split()]
 
 classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
 clfs = []
@@ -125,13 +127,8 @@ for classifier in classifiers:
         clf[key] = value
     clfs.append(clf)
 
-dh_train = datahandler.Datahandler()
-dh_train.set(trainfile)
-if testfile:
-    dh_test = datahandler.Datahandler()
-    dh_test.set(testfile)
-else:
-    dh_test = False
-grid = experimenter.Experiment(dh_train, dh_test, features, weight, select, clfs, expdir)
+grid = experimenter.Experiment(train_dataset, test_dataset, features, weight, select, clfs, expdir)
+print('featurizing data')
 grid.set_features()
+print('running experiment grid')
 grid.run_grid()

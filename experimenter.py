@@ -77,11 +77,11 @@ class Experiment:
             container of the feature values for different feature types, with an accompanying feature vocabulary
         """
         text = self.train_csv['text'][:] 
-        frogs = self.train_csv['frogs'][:]
+        tags = self.train_csv['tagged'][:]
         if self.test_csv:
             text += self.test_csv['text']
-            frogs += self.test_csv['frogs']
-        self.featurizer = featurizer.Featurizer(text, frogs, self.features)
+            tags += self.test_csv['tagged']
+        self.featurizer = featurizer.Featurizer(text, tags, self.features)
         self.featurizer.fit_transform()
 
     def run_predictions(self, train, trainlabels, test, testlabels, weight, prune):

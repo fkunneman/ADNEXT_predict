@@ -145,8 +145,11 @@ class TokenNgrams: # note: to be Colibrized in the future?
     """
     def __init__(self, **kwargs):
         self.name = 'token_ngrams'
-        self.n_list = kwargs['n_list']
-        self.blackfeats = kwargs['blackfeats']
+        self.n_list = [int(x) for x in kwargs['n_list']]
+        if 'blackfeats' in kwargs.keys():
+            self.blackfeats = kwargs['blackfeats']
+        else:
+            self.blackfeats = []
         self.feats = []
 
     # retrieve indices of features
@@ -256,7 +259,10 @@ class LemmaNgrams:
     def __init__(self, **kwargs):
         self.name = 'lemma_ngrams'
         self.n_list = kwargs['n_list']
-        self.blackfeats = kwargs['blackfeats']
+        if 'blackfeats' in kwargs.keys():
+            self.blackfeats = kwargs['blackfeats']
+        else:
+            self.blackfeats = []
         self.feats = []
 
     def fit(self, frog_data):
@@ -364,8 +370,11 @@ class PosNgrams:
     """
     def __init__(self, **kwargs):
         self.name = 'pos_ngrams'
-        self.n_list = kwargs['n_list']
-        self.blackfeats = kwargs['blackfeats']
+        self.n_list = [int(x) for x in kwargs['n_list']]
+        if 'blackfeats' in kwargs.keys():
+            self.blackfeats = kwargs['blackfeats']
+        else:
+            self.blackfeats = []
         self.feats = []
 
     def fit(self, frog_data):
@@ -473,8 +482,11 @@ class CharNgrams:
     """
     def __init__(self, **kwargs):
         self.name = 'char_ngrams'
-        self.n_list = kwargs['n_list']
-        self.blackfeats = kwargs['blackfeats']
+        self.n_list = [int(x) for x in kwargs['n_list']]
+        if 'blackfeats' in kwargs.keys():
+            self.blackfeats = kwargs['blackfeats']
+        else:
+            self.blackfeats = []
         self.feats = []
 
     def fit(self, raw_data):

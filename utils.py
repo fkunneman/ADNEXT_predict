@@ -124,6 +124,7 @@ def bundle_data(docs, outfile):
         for doc in docs:
             rows_bundle.extend(doc.rows)
         dh_bundle.set_rows(rows_bundle)
-        dh_bundle.write_csv(outfile)
     elif len(docs) == 1:
-        docs[0].write_csv(outfile)
+        dh_bundle = docs[0]
+    dh_bundle.write_csv(outfile)
+    return dh_bundle.dataset
