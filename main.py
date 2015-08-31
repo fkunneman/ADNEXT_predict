@@ -19,6 +19,7 @@ cp.read(configfile)
 
 ########################### Formatting data ###########################
 fileformats = ['.txt', '.xls', '.csv']
+fields = ['label', 'tweet_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged']
 data = [doc for doc in cp.sections() if doc[-4:] in fileformats]
 train = []
 test = []
@@ -43,7 +44,7 @@ for doc in data:
         header = dp.getboolean('header')
         reader = docreader.Docreader()
         reader.parse_doc(doc, delimiter, header, date, time)
-        new_lines, other_lines = reader.set_lines(columndict)
+        new_lines, other_lines = reader.set_lines(fields, columndict)
         csv_doc = doc[:-4] + '_standard.csv'
         utils.write_csv(new_lines, csv_doc)
         doc = csv_doc

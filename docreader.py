@@ -2,6 +2,8 @@
 import sys
 import xlrd
 import csv
+import json
+import copy
 
 class Docreader:
 
@@ -98,7 +100,30 @@ class Docreader:
                 lines.append(line)
         return lines
 
-    def set_lines(self, columndict):
+    def parse_json_object(self, obj, keys):
+        if keys[0] in obj.keys():
+            value = obj[keys.pop(0)]
+        else:
+            value = ''
+            return value
+        if len(keys) == 0:
+            return value
+        else:
+            return self.parse_json_object(value, keys)
+
+    def parse_json(self, doc, parse_keys):
+        lines = []       
+        with open(doc, encoding = 'utf-8') as fn:
+            for obj in fn.readlines():
+                line = []
+                pks = copy.deepcopy(parse_keys)
+                decoded = json.loads(obj)
+                for keys in pks:
+                    line.append(self.parse_json_object(decoded, keys))
+                lines.append(line)
+        return lines
+
+    def set_lines(self, fields, columndict):
         """
         Columnformatter
         =====
@@ -124,7 +149,7 @@ class Docreader:
 
         """
         fields = ['label', 'tweet_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged'] 
-        defaultline = ["-", "-", "-", "-", "-", "-", "-", "-"]
+        defaultline = ["-"] * len(fields)
         other_header = []
         for key, value in sorted(columndict.items()):
             if not value in fields:
