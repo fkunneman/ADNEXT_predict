@@ -148,7 +148,7 @@ class CocoNgrams:
         self.classdecoder = colibricore.classdecoder(classfile) 
 
         # Train model
-        options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max_ngrams)
+        options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max_ngrams, doreverseindex=True)
         self.model = colibricore.UnindexedPatternModel()
         self.model.train(corpusfile, options)
 
@@ -157,7 +157,8 @@ class CocoNgrams:
             self.vocabulary.append('_'.join(pattern.tostring(self.classdecoder)), count)
         print(self.vocabulary)
 
-    def transform(self, lines, ngrams):
+    def transform(self, ngrams):
+        for line in self.model.
         pass
 
         # for line in lines:
