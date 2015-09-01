@@ -50,7 +50,7 @@ class Featurizer:
     self.vocabularies : dict
         Container of the name of each feature index for the different feature types
     """
-    def __init__(self, raws, tagged, features):
+    def __init__(self, raws, tagged, features, directory):
         self.tagged = tagged
         self.raw = raws
         self.modules = {
@@ -60,8 +60,8 @@ class Featurizer:
             'pos_ngrams':           PosNgrams,
             'char_ngrams':          CharNgrams,
         }
-        self.helpers = [v(**features[k]) for k, v in self.modules.items() if k in features.keys()]
-        self.features = {}
+        self.helpers = [v(**features[k], directory) for k, v in self.modules.items() if k in features.keys()]
+        self.feats = {}
         self.vocabularies = {}
 
     def fit_transform(self):
@@ -79,7 +79,7 @@ class Featurizer:
         """
         for helper in self.helpers:
             feats, vocabulary = helper.fit_transform(self.raw, self.tagged)
-            self.features[helper.name] = feats
+            self.feats[helper.name] = feats
             self.vocabularies[helper.name] = vocabulary
 
     def return_instances(self, helpernames):
@@ -101,7 +101,7 @@ class Featurizer:
         Vocabulary : list
             List with the feature name per index
         """
-        submatrices = [self.features[name] for name in helpernames]
+        submatrices = [self.feats[name] for name in helpernames]
         instances = np.hstack(submatrices)
         vocabulary = np.hstack([self.vocabularies[name] for name in helpernames])
         return instances, vocabulary
@@ -123,82 +123,54 @@ class SimpleStats:
 
 class CocoNgrams:
 
-    def __init__(self, tmpdir, blackfeats):
+    def __init__(self, tmpdir, lines, ngrams, blackfeats):
         self.tmpdir = tmpdir
+        self.lines = lines
+        self.ngrams = ngrams
         self.blackfeats = set(blackfeats)
-        self.vocabulary = []
-        self.indexer = {}
-        self.classencoder = False
-        self.classdecoder = False
-        self.model = False
         
-    def fit(self, lines, minimum, ngrams):
+    def fit(self):
         ngram_file = self.tmpdir + 'ngrams.txt'
         with open(ngram_file, 'w', encoding = 'utf-8') as txt:
-            for line in lines:
+            for line in self.lines:
                 txt.write(line)
         classfile = self.tmpdir + 'ngrams.colibri.cls'
         # Build class encoder
-        self.classencoder = colibricore.ClassEncoder()
-        self.classencoder.build(ngram_file)
-        self.classencoder.save(classfile)
+        classencoder = colibricore.ClassEncoder()
+        classencoder.build(ngram_file)
+        classencoder.save(classfile)
 
         # Encode corpus data
         corpusfile = self.tmpdir + 'ngrams.colibri.dat'
-        self.classencoder.encodefile(ngram_file, corpusfile)
+        classencoder.encodefile(ngram_file, corpusfile)
 
         # Load class decoder
         self.classdecoder = colibricore.ClassDecoder(classfile) 
 
         # Train model
-        options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max(ngrams), doreverseindex=True)
+        options = colibricore.PatternModelOptions(mintokens = 5, maxlength = max(self.ngrams), doreverseindex=True)
         self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
-    def transform(self, lines, ngrams):
-        instances = defaultdict(list)
-        for i, (pattern, indices) in enumerate(self.model.items()):
+    def transform(self):
+        instances_dict = defaultdict(Counter())
+        instance_template = [0] * len(self.lines)
+        vocabulary = []
+        i = 0
+        for pattern, indices in self.model.items():
             ngram = pattern.tostring(self.classdecoder)
-            print(i, ngram)
-            if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in ngrams:
+            if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in self.ngrams:
                 for index in indices:
-                    instances[index[0] - 1].append(i)
+                    instances[index[0] - 1][i] += 1
+                i += 1
                 self.vocabulary.append(ngram)    
-        print(instances, self.vocabulary)
-#        instances = [{}] * num_lines
-#        for pattern in self.model.getreverseindex( (1,0) ):
-#            print(pattern.tostring(self.classdecoder))
-#        for pattern, count in self.model.items():
-#            print(pattern.tostring(self.classdecoder), count)
-            #for index in indices:
-            #    print(index,end=" ") #(sentence,token) tuple, sentences start with 1, tokens with 0
-            #print()
-        #for ngram in self.vocabulary:
-        #    querypattern = self.classencoder.buildpattern(ngram)
-#            for (sentence, token) in self.model.reverseindex(querypattern):
-#                print(sentence, token)
-#        self.model.getreverseindex((1,3))
-#        self.model.getreverseindex_bysentence(1)
-#        for (sentence, token), pattern in self.model.getreverseindex_bysentence(2):
-#            print(sentence, token)
-            #instances
-        quit()
-            #print(sentence,token, " -- ", pattern.tostring(classdecoder))
-        
-
-        # for line in lines:
-        #     ngrams = []
-        #     pattern = self.classencoder.build(line)
-        #     for n in ngrams:
-                
-    #         for ngram in surface:
-    #             if ngram:
-    #                 pattern = classencoder.buildpattern(ngram)
-    #                 if pattern.unknown():
-    #                     print("WARNING: Anchor has unknown part " +  ngram + ", skipping... (" + pattern.tostring(classdecoder) + ")",file=sys.stderr)
-    #                 else:
-    #                     if len(pattern) <= 5:
-    #                         anchormodel.add(pattern) #(will count +1  if already exists)
+        for key in sorted(instances_dict.keys()):
+            instance = instance_template.copy()
+            print(instance)
+            for feature in instances_dict[key].keys():
+                instance[feature] = instances_dict[key][feature]
+            instances.append(instance)
+        return instances, vocabulary
 
 class TokenNgrams(CocoNgrams): 
     """
@@ -225,18 +197,18 @@ class TokenNgrams(CocoNgrams):
     self.feats : list
         List of feature names, to keep track of the values of feature indices
     """
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs, directory):
         self.name = 'token_ngrams'
+        self.tmpdir = directory + 'tmp/'
+        tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
         self.n_list = [int(x) for x in kwargs['n_list']]
-        self.tmpdir = kwargs['tmp']
         if 'blackfeats' in kwargs.keys():
             self.blackfeats = kwargs['blackfeats']
         else:
             self.blackfeats = []
+        CocoNgrams.__init__(self, self.tmpdir, tokenized, self.n_list, self.blackfeats)
         self.feats = []        
-        CocoNgrams.__init__(self, self.tmpdir, self.blackfeats)
-
-    # retrieve indices of features
+        
     def fit(self, tagged_data):
         """
         Model fitter
@@ -254,17 +226,7 @@ class TokenNgrams(CocoNgrams):
         feats : dict
             dictionary of features and their count
         """        
-        tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
-        CocoNgrams.fit(self, tokenized, 3, self.n_list)
-        # feats = {}
-        # for inst in tagged_data:
-        #     for n in self.n_list:
-        #         tokens = [t[0] for t in inst]
-        #         feats.update(utils.freq_dict(["_".join(item) for item in \
-        #             utils.find_ngrams(tokens, n)]))
-        # self.feats = [i for i, j in sorted(feats.items(), reverse = True, 
-        #     key = operator.itemgetter(1)) if not bool(set(i.split("_")) & 
-        #     set(self.blackfeats))]
+        CocoNgrams.fit(self)
 
     def transform(self, tagged_data):
         """
@@ -283,17 +245,9 @@ class TokenNgrams(CocoNgrams):
         instances : list
             The documents represented as feature vectors
         """
-        tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
-        CocoNgrams.transform(self, tokenized, self.n_list)
-        # instances = []
-        # for inst in tagged_data:
-        #     tok_dict = {}
-        #     for n in self.n_list:
-        #         tokens = [t[0] for t in inst]
-        #         tok_dict.update(utils.freq_dict(["_".join(item) for item in \
-        #             utils.find_ngrams(tokens, n)]))
-        #     instances.append([tok_dict.get(f, 0) for f in self.feats])
-        # return np.array(instances)
+        instances, feats = CocoNgrams.transform(self)
+        quit()
+        return(np.array(instances), feats)
 
     def fit_transform(self, raw_data, tagged_data):
         """
@@ -317,7 +271,7 @@ class TokenNgrams(CocoNgrams):
             The vocabulary
         """  
         self.fit(tagged_data)
-        return self.transform(tagged_data), self.feats
+        return self.transform(tagged_data)
 
 class LemmaNgrams:
     """
