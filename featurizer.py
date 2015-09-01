@@ -124,7 +124,7 @@ class CocoNgrams:
 
     def __init__(self, tmpdir, blackfeats):
         self.tmpdir = tmpdir
-        self.blackfeats = blackfeats
+        self.blackfeats = set(blackfeats)
         self.vocabulary = []
         self.indexer = {}
         self.classencoder = False
@@ -154,16 +154,15 @@ class CocoNgrams:
         self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
-        # Extract vocabulary
-#        for pattern, count in sorted(self.model.items(), key = lambda x : x[1], reverse = True):
-#            ngram = pattern.tostring(self.classdecoder)
-#            if ngram not in self.blackfeats and pattern.__len__() in ngrams:
-#                self.vocabulary.append(ngram)
-#        for i, ngram in enumerate(self.vocabulary):
-#            self.indexer[ngram] = i
-
     def transform(self, lines):
-        num_lines = len(lines)
+        instances = [[]] * len(lines)
+        for i, (pattern, indices) in enumerate(self.model.items()):
+            ngram = pattern.tostring(self.classdecoder)
+            if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in ngrams:
+                for index in indices:
+                    instances[index[0] - 1].append(i)
+                self.vocabulary.append(ngram)
+        print(vocabulary)
 #        instances = [{}] * num_lines
 #        for pattern in self.model.getreverseindex( (1,0) ):
 #            print(pattern.tostring(self.classdecoder))
@@ -178,11 +177,6 @@ class CocoNgrams:
 #                print(sentence, token)
 #        self.model.getreverseindex((1,3))
 #        self.model.getreverseindex_bysentence(1)
-        for pattern, indices in self.model.items():
-            print(pattern.tostring(self.classdecoder),end=" ")
-            for index in indices:
-                print(index,end=" ") #(sentence,token) tuple, sentences start with 1, tokens with 0
-            print()
 #        for (sentence, token), pattern in self.model.getreverseindex_bysentence(2):
 #            print(sentence, token)
             #instances
