@@ -168,7 +168,7 @@ class CocoNgrams:
         for (sentence, token), pattern in self.model.getreverseindex_bysentence():
             print(sentence, token)
             #instances
-
+        quit()
             #print(sentence,token, " -- ", pattern.tostring(classdecoder))
         
 
@@ -268,16 +268,18 @@ class TokenNgrams(CocoNgrams):
         -----
         instances : list
             The documents represented as feature vectors
-        """       
-        instances = []
-        for inst in tagged_data:
-            tok_dict = {}
-            for n in self.n_list:
-                tokens = [t[0] for t in inst]
-                tok_dict.update(utils.freq_dict(["_".join(item) for item in \
-                    utils.find_ngrams(tokens, n)]))
-            instances.append([tok_dict.get(f, 0) for f in self.feats])
-        return np.array(instances)
+        """
+        tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
+        CocoNgrams.transform(tokenized)
+        # instances = []
+        # for inst in tagged_data:
+        #     tok_dict = {}
+        #     for n in self.n_list:
+        #         tokens = [t[0] for t in inst]
+        #         tok_dict.update(utils.freq_dict(["_".join(item) for item in \
+        #             utils.find_ngrams(tokens, n)]))
+        #     instances.append([tok_dict.get(f, 0) for f in self.feats])
+        # return np.array(instances)
 
     def fit_transform(self, raw_data, tagged_data):
         """
