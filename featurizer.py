@@ -155,15 +155,16 @@ class CocoNgrams:
 
         # Extract vocabulary
         for pattern, count in sorted(self.model.items(), key = lambda x : x[1], reverse = True):
-            dir(pattern)
+            print(dir(pattern))
             ngram = pattern.tostring(self.classdecoder)
+            print(ngram, pattern.tolist(), count, pattern.__len__())
             if ngram not in self.blackfeats :
                 self.vocabulary.append((ngram, count))
-        print(self.vocabulary)
+#        print(self.vocabulary)
         quit()
 
     def transform(self, ngrams):
-        for line in self.model.
+        #for line in self.model.
         pass
 
         # for line in lines:
@@ -235,7 +236,7 @@ class TokenNgrams(CocoNgrams):
             dictionary of features and their count
         """        
         tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
-        CocoNgrams.fit(self, tokenized, 3, max(self.n_list))
+        CocoNgrams.fit(self, tokenized, 3, self.n_list)
         # feats = {}
         # for inst in tagged_data:
         #     for n in self.n_list:
