@@ -151,22 +151,40 @@ class CocoNgrams:
 
         # Train model
         options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max(ngrams), doreverseindex=True)
-        self.model = colibricore.UnindexedPatternModel()
+        self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
         # Extract vocabulary
-        for pattern, count in sorted(self.model.items(), key = lambda x : x[1], reverse = True):
-            ngram = pattern.tostring(self.classdecoder)
-            if ngram not in self.blackfeats and pattern.__len__() in ngrams:
-                self.vocabulary.append(ngram)
-        for i, ngram in enumerate(self.vocabulary):
-            self.indexer[ngram] = i
+#        for pattern, count in sorted(self.model.items(), key = lambda x : x[1], reverse = True):
+#            ngram = pattern.tostring(self.classdecoder)
+#            if ngram not in self.blackfeats and pattern.__len__() in ngrams:
+#                self.vocabulary.append(ngram)
+#        for i, ngram in enumerate(self.vocabulary):
+#            self.indexer[ngram] = i
 
     def transform(self, lines):
         num_lines = len(lines)
-        instances = [{}] * num_lines
-        for (sentence, token), pattern in self.model.getreverseindex_bysentence():
-            print(sentence, token)
+#        instances = [{}] * num_lines
+#        for pattern in self.model.getreverseindex( (1,0) ):
+#            print(pattern.tostring(self.classdecoder))
+#        for pattern, count in self.model.items():
+#            print(pattern.tostring(self.classdecoder), count)
+            #for index in indices:
+            #    print(index,end=" ") #(sentence,token) tuple, sentences start with 1, tokens with 0
+            #print()
+        #for ngram in self.vocabulary:
+        #    querypattern = self.classencoder.buildpattern(ngram)
+#            for (sentence, token) in self.model.reverseindex(querypattern):
+#                print(sentence, token)
+#        self.model.getreverseindex((1,3))
+#        self.model.getreverseindex_bysentence(1)
+        for pattern, indices in self.model.items():
+            print(pattern.tostring(self.classdecoder),end=" ")
+            for index in indices:
+                print(index,end=" ") #(sentence,token) tuple, sentences start with 1, tokens with 0
+            print()
+#        for (sentence, token), pattern in self.model.getreverseindex_bysentence(2):
+#            print(sentence, token)
             #instances
         quit()
             #print(sentence,token, " -- ", pattern.tostring(classdecoder))
@@ -270,7 +288,7 @@ class TokenNgrams(CocoNgrams):
             The documents represented as feature vectors
         """
         tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
-        CocoNgrams.transform(tokenized)
+        CocoNgrams.transform(self, tokenized)
         # instances = []
         # for inst in tagged_data:
         #     tok_dict = {}
