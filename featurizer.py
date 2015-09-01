@@ -126,6 +126,7 @@ class CocoNgrams:
         self.tmpdir = tmpdir
         self.blackfeats = blackfeats
         self.vocabulary = []
+        self.indexer = {}
         self.classencoder = False
         self.classdecoder = False
         self.model = False
@@ -155,17 +156,21 @@ class CocoNgrams:
 
         # Extract vocabulary
         for pattern, count in sorted(self.model.items(), key = lambda x : x[1], reverse = True):
-            print(dir(pattern))
             ngram = pattern.tostring(self.classdecoder)
-            print(ngram, pattern.tolist(), count, pattern.__len__())
-            if ngram not in self.blackfeats :
-                self.vocabulary.append((ngram, count))
-#        print(self.vocabulary)
-        quit()
+            if ngram not in self.blackfeats and pattern.__len__() in ngrams:
+                self.vocabulary.append(ngram)
+        for i, ngram in enumerate(self.vocabulary):
+            self.indexer[ngram] = i
 
-    def transform(self, ngrams):
-        #for line in self.model.
-        pass
+    def transform(self, lines):
+        num_lines = len(lines)
+        instances = [{}] * num_lines
+        for (sentence, token), pattern in self.model.getreverseindex_bysentence():
+            print(sentence, token)
+            #instances
+
+            #print(sentence,token, " -- ", pattern.tostring(classdecoder))
+        
 
         # for line in lines:
         #     ngrams = []
