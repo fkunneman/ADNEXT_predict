@@ -1,10 +1,9 @@
 #!/usr/bin/env 
 
-import numpy as np
-import operator
-from collections import defaultdict
 import os
-from collections import Counter
+import numpy as np
+from scipy import sparse
+import operator
 
 import colibricore
 
@@ -154,23 +153,26 @@ class CocoNgrams:
         self.model.train(corpusfile, options)
 
     def transform(self):
-        instances_dict = defaultdict(lambda : Counter())
-        instance_template = [0] * len(self.lines)
-        instances = []
+        rows = []
+        cols = []
+        data = []
         vocabulary = []
         i = 0
         for pattern, indices in self.model.items():
             ngram = pattern.tostring(self.classdecoder)
             if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in self.ngrams:
-                for index in indices:
-                    instances_dict[index[0] - 1][i] += 1
+                docs = [index[0] - 1 for index in indices]
+                j = 0
+                while j < len(docs):
+                    doc = docs[j]
+                    count = docs.count(doc)
+                    rows.append(doc)
+                    cols.append(i)
+                    data.append(count)
+                    j += count
                 i += 1
                 vocabulary.append(ngram)    
-        for key in sorted(instances_dict.keys()):
-            instance = instance_template.copy()
-            for feature in instances_dict[key].keys():
-                instance[feature] = instances_dict[key][feature]
-            instances.append(instance)
+        instances = sparse.csr_matrix(data, (rows, cols)), shape = (len(self.lines), i - 1))
         return instances, vocabulary
 
 class TokenNgrams(CocoNgrams): 
@@ -249,7 +251,7 @@ class TokenNgrams(CocoNgrams):
         instances, feats = CocoNgrams.transform(self)
         print(instances)
         quit()
-        return(np.array(instances), feats)
+        return(instances, feats)
 
     def fit_transform(self, raw_data, tagged_data, directory):
         """
