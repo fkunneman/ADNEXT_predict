@@ -4,6 +4,7 @@ import numpy as np
 import operator
 from collections import defaultdict
 import os
+from collections import Counter
 
 import colibricore
 
@@ -124,25 +125,24 @@ class SimpleStats:
 
 class CocoNgrams:
 
-    def __init__(self, tmpdir, lines, ngrams, blackfeats):
-        self.tmpdir = tmpdir
-        self.lines = lines
+    def __init__(self, ngrams, blackfeats):
         self.ngrams = ngrams
         self.blackfeats = set(blackfeats)
         
-    def fit(self):
-        ngram_file = self.tmpdir + 'ngrams.txt'
+    def fit(self, tmpdir, lines):
+        self.lines = lines
+        ngram_file = tmpdir + 'ngrams.txt'
         with open(ngram_file, 'w', encoding = 'utf-8') as txt:
-            for line in self.lines:
+            for line in lines:
                 txt.write(line)
-        classfile = self.tmpdir + 'ngrams.colibri.cls'
+        classfile = tmpdir + 'ngrams.colibri.cls'
         # Build class encoder
         classencoder = colibricore.ClassEncoder()
         classencoder.build(ngram_file)
         classencoder.save(classfile)
 
         # Encode corpus data
-        corpusfile = self.tmpdir + 'ngrams.colibri.dat'
+        corpusfile = tmpdir + 'ngrams.colibri.dat'
         classencoder.encodefile(ngram_file, corpusfile)
 
         # Load class decoder
@@ -154,20 +154,20 @@ class CocoNgrams:
         self.model.train(corpusfile, options)
 
     def transform(self):
-        instances_dict = defaultdict(Counter())
+        instances_dict = defaultdict(lambda : Counter())
         instance_template = [0] * len(self.lines)
+        instances = []
         vocabulary = []
         i = 0
         for pattern, indices in self.model.items():
             ngram = pattern.tostring(self.classdecoder)
             if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in self.ngrams:
                 for index in indices:
-                    instances[index[0] - 1][i] += 1
+                    instances_dict[index[0] - 1][i] += 1
                 i += 1
-                self.vocabulary.append(ngram)    
+                vocabulary.append(ngram)    
         for key in sorted(instances_dict.keys()):
             instance = instance_template.copy()
-            print(instance)
             for feature in instances_dict[key].keys():
                 instance[feature] = instances_dict[key][feature]
             instances.append(instance)
@@ -198,7 +198,7 @@ class TokenNgrams(CocoNgrams):
     self.feats : list
         List of feature names, to keep track of the values of feature indices
     """
-    def __init__(self, **kwargs, directory):
+    def __init__(self, **kwargs):
         self.name = 'token_ngrams'
         self.n_list = [int(x) for x in kwargs['n_list']]
         if 'blackfeats' in kwargs.keys():
@@ -247,6 +247,7 @@ class TokenNgrams(CocoNgrams):
             The documents represented as feature vectors
         """
         instances, feats = CocoNgrams.transform(self)
+        print(instances)
         quit()
         return(np.array(instances), feats)
 
@@ -271,7 +272,7 @@ class TokenNgrams(CocoNgrams):
         self.feats : list
             The vocabulary
         """  
-        self.fit(tagged_data)
+        self.fit(tagged_data, directory)
         return self.transform()
 
 class LemmaNgrams:
