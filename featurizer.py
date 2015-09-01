@@ -172,7 +172,7 @@ class CocoNgrams:
                     j += count
                 i += 1
                 vocabulary.append(ngram)    
-        instances = sparse.csr_matrix(data, (rows, cols)), shape = (len(self.lines), i - 1))
+        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), i))
         return instances, vocabulary
 
 class TokenNgrams(CocoNgrams): 
