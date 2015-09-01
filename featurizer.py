@@ -140,7 +140,7 @@ class CocoNgrams:
 
         # Encode corpus data
         corpusfile = self.tmpdir + 'ngrams.colibri.dat'
-        classencoder.encodefile(ngram_file, corpusfile)
+        self.classencoder.encodefile(ngram_file, corpusfile)
 
         # train model
         options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max_ngrams)
