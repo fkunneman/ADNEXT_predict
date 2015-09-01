@@ -2,6 +2,7 @@
 
 import numpy as np
 import operator
+from collections import defaultdict
 import os
 
 import colibricore
@@ -155,14 +156,15 @@ class CocoNgrams:
         self.model.train(corpusfile, options)
 
     def transform(self, lines, ngrams):
-        instances = [[]] * len(lines)
+        instances = defaultdict(list)
         for i, (pattern, indices) in enumerate(self.model.items()):
             ngram = pattern.tostring(self.classdecoder)
+            print(i, ngram)
             if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in ngrams:
                 for index in indices:
                     instances[index[0] - 1].append(i)
-                self.vocabulary.append(ngram)
-        print(vocabulary)
+                self.vocabulary.append(ngram)    
+        print(instances)
 #        instances = [{}] * num_lines
 #        for pattern in self.model.getreverseindex( (1,0) ):
 #            print(pattern.tostring(self.classdecoder))
