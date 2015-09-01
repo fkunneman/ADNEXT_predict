@@ -164,7 +164,7 @@ class CocoNgrams:
                 for index in indices:
                     instances[index[0] - 1].append(i)
                 self.vocabulary.append(ngram)    
-        print(instances)
+        print(instances, self.vocabulary)
 #        instances = [{}] * num_lines
 #        for pattern in self.model.getreverseindex( (1,0) ):
 #            print(pattern.tostring(self.classdecoder))
