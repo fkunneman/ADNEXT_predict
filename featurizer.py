@@ -122,8 +122,9 @@ class SimpleStats:
 
 class CocoNgrams:
 
-    def __init__(self, tmpdir):
+    def __init__(self, tmpdir, blackfeats):
         self.tmpdir = tmpdir
+        self.blackfeats = blackfeats
         self.vocabulary = []
         self.classencoder = False
         self.classdecoder = False
@@ -145,7 +146,7 @@ class CocoNgrams:
         self.classencoder.encodefile(ngram_file, corpusfile)
 
         # Load class decoder
-        self.classdecoder = colibricore.classdecoder(classfile) 
+        self.classdecoder = colibricore.ClassDecoder(classfile) 
 
         # Train model
         options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max_ngrams)
@@ -154,8 +155,11 @@ class CocoNgrams:
 
         # Extract vocabulary
         for pattern, count in sorted(self.model.items(), key = lambda x : x[1], reverse = True):
-            self.vocabulary.append('_'.join(pattern.tostring(self.classdecoder)), count)
+            ngram = pattern.tostring(self.classdecoder)
+            if ngram not in self.blackfeats:
+                self.vocabulary.append((ngram, count))
         print(self.vocabulary)
+        quit()
 
     def transform(self, lines, ngrams):
         pass
@@ -208,7 +212,7 @@ class TokenNgrams(CocoNgrams):
         else:
             self.blackfeats = []
         self.feats = []        
-        CocoNgrams.__init__(self, self.tmpdir)
+        CocoNgrams.__init__(self, self.tmpdir, self.blackfeats)
 
     # retrieve indices of features
     def fit(self, tagged_data):
