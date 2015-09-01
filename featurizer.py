@@ -12,15 +12,15 @@ class Featurizer:
     """
     Featurizer
     =====
-    Class to extract features from raw and frogged text files
+    Class to extract features from raw and tagged text files
 
     Parameters
     -----
     raw : list
         The raw data comes in an array where each entry represents a text
         instance in the data file.
-    frogs : list
-        The frog data comes in a list of lists, where each row represents a 
+    tagged : list
+        The tagged data comes in a list of lists, where each row represents a 
         text instance and the columns represent word - lemma - pos - 
         sentence number respectively
     features : dict
@@ -36,8 +36,8 @@ class Featurizer:
 
     Attributes
     -----
-    self.frog : list
-        The frog parameter
+    self.tagged : list
+        The tagged parameter
     self.raw : list
         The raw parameter
     self.modules : dict
@@ -49,8 +49,8 @@ class Featurizer:
     self.vocabularies : dict
         Container of the name of each feature index for the different feature types
     """
-    def __init__(self, raws, frogs, features):
-        self.frog = frogs
+    def __init__(self, raws, tagged, features):
+        self.tagged = tagged
         self.raw = raws
         self.modules = {
             'simple_stats':         SimpleStats,
@@ -77,7 +77,7 @@ class Featurizer:
             The name of each feature index for every feature type is written to this dict
         """
         for helper in self.helpers:
-            feats, vocabulary = helper.fit_transform(self.raw, self.frog)
+            feats, vocabulary = helper.fit_transform(self.raw, self.tagged)
             self.features[helper.name] = feats
             self.vocabularies[helper.name] = vocabulary
 
@@ -124,8 +124,10 @@ class CocoNgrams:
 
     def __init__(self, tmpdir):
         self.tmpdir = tmpdir
-        if not os.path.isdir(tmpdir):
-            os.mkdir(tmpdir)
+        self.vocabulary = []
+        self.classencoder = False
+        self.classdecoder = False
+        self.model = False
         
     def fit(self, lines, minimum, max_ngrams):
         ngram_file = self.tmpdir + 'ngrams.txt'
@@ -142,18 +144,26 @@ class CocoNgrams:
         corpusfile = self.tmpdir + 'ngrams.colibri.dat'
         self.classencoder.encodefile(ngram_file, corpusfile)
 
-        # train model
+        # Load class decoder
+        self.classdecoder = colibricore.classdecoder(classfile) 
+
+        # Train model
         options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max_ngrams)
-        model = colibricore.UnindexedPatternModel()
-        model.train(corpusfile, options)
-        print(dir(model))
-        quit()
+        self.model = colibricore.UnindexedPatternModel()
+        self.model.train(corpusfile, options)
+
+        # Extract vocabulary
+        for pattern, count in sorted(self.model.items(), key = lambda x : x[1], reverse = True):
+            self.vocabulary.append('_'.join(pattern.tostring(self.classdecoder)), count)
+        print(self.vocabulary)
 
     def transform(self, lines, ngrams):
-        for line in lines:
-            ngrams = []
-            pattern = self.classencoder.build(line)
-            for n in ngrams:
+        pass
+
+        # for line in lines:
+        #     ngrams = []
+        #     pattern = self.classencoder.build(line)
+        #     for n in ngrams:
                 
     #         for ngram in surface:
     #             if ngram:

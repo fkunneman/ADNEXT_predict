@@ -7,6 +7,7 @@ import re
 import datetime
 import functools
 from collections import Counter
+import numpy as np
 
 import datahandler
 
@@ -128,3 +129,12 @@ def bundle_data(docs, outfile):
         dh_bundle = docs[0]
     dh_bundle.write_csv(outfile)
     return dh_bundle.dataset
+
+def save_sparse_csr(filename, array):
+    np.savez(filename, data = array.data, indices = array.indices,
+             indptr = array.indptr, shape = array.shape)
+
+def load_sparse_csr(filename):
+    loader = np.load(filename)
+    return csr_matrix((loader['data'], loader['indices'], loader['indptr']),
+                         shape = loader['shape'])
