@@ -2,6 +2,8 @@
 
 import numpy as np
 import operator
+import os
+
 import colibricore
 
 import utils
