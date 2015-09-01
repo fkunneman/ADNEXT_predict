@@ -149,8 +149,12 @@ class CocoNgrams:
         print(dir(model))
         quit()
 
-    # def transform(self, lines):
-    #     for line in lines:
+    def transform(self, lines, ngrams):
+        for line in lines:
+            ngrams = []
+            pattern = self.classencoder.build(line)
+            for n in ngrams:
+                
     #         for ngram in surface:
     #             if ngram:
     #                 pattern = classencoder.buildpattern(ngram)
@@ -214,7 +218,7 @@ class TokenNgrams(CocoNgrams):
         feats : dict
             dictionary of features and their count
         """        
-        tokenized = [' '.join([t[0] for t in instance]) for instance in tagged_data]
+        tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
         CocoNgrams.fit(self, tokenized, 3, max(self.n_list))
         # feats = {}
         # for inst in tagged_data:
