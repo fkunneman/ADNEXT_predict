@@ -154,7 +154,7 @@ class CocoNgrams:
         self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
-    def transform(self, lines):
+    def transform(self, lines, ngrams):
         instances = [[]] * len(lines)
         for i, (pattern, indices) in enumerate(self.model.items()):
             ngram = pattern.tostring(self.classdecoder)
@@ -282,7 +282,7 @@ class TokenNgrams(CocoNgrams):
             The documents represented as feature vectors
         """
         tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
-        CocoNgrams.transform(self, tokenized)
+        CocoNgrams.transform(self, tokenized, self.n_list)
         # instances = []
         # for inst in tagged_data:
         #     tok_dict = {}
