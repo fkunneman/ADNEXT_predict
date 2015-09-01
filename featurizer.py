@@ -124,6 +124,8 @@ class CocoNgrams:
 
     def __init__(self, tmpdir):
         self.tmpdir = tmpdir
+        if not os.path.isdir(tmpdir):
+            os.mkdir(tmpdir)
         
     def fit(self, lines, minimum, max_ngrams):
         ngram_file = self.tmpdir + 'ngrams.txt'
