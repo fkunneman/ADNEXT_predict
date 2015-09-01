@@ -130,7 +130,7 @@ class CocoNgrams:
         self.classdecoder = False
         self.model = False
         
-    def fit(self, lines, minimum, max_ngrams):
+    def fit(self, lines, minimum, ngrams):
         ngram_file = self.tmpdir + 'ngrams.txt'
         with open(ngram_file, 'w', encoding = 'utf-8') as txt:
             for line in lines:
@@ -149,14 +149,15 @@ class CocoNgrams:
         self.classdecoder = colibricore.ClassDecoder(classfile) 
 
         # Train model
-        options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max_ngrams, doreverseindex=True)
+        options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max(ngrams), doreverseindex=True)
         self.model = colibricore.UnindexedPatternModel()
         self.model.train(corpusfile, options)
 
         # Extract vocabulary
         for pattern, count in sorted(self.model.items(), key = lambda x : x[1], reverse = True):
+            dir(pattern)
             ngram = pattern.tostring(self.classdecoder)
-            if ngram not in self.blackfeats:
+            if ngram not in self.blackfeats :
                 self.vocabulary.append((ngram, count))
         print(self.vocabulary)
         quit()
