@@ -50,9 +50,10 @@ class Featurizer:
     self.vocabularies : dict
         Container of the name of each feature index for the different feature types
     """
-    def __init__(self, raws, tagged, features, directory):
+    def __init__(self, raws, tagged, directory, features):
         self.tagged = tagged
         self.raw = raws
+        self.directory = directory
         self.modules = {
             'simple_stats':         SimpleStats,
             'token_ngrams':         TokenNgrams,
@@ -60,7 +61,7 @@ class Featurizer:
             'pos_ngrams':           PosNgrams,
             'char_ngrams':          CharNgrams,
         }
-        self.helpers = [v(**features[k], directory) for k, v in self.modules.items() if k in features.keys()]
+        self.helpers = [v(**features[k]) for k, v in self.modules.items() if k in features.keys()]
         self.feats = {}
         self.vocabularies = {}
 
@@ -78,7 +79,7 @@ class Featurizer:
             The name of each feature index for every feature type is written to this dict
         """
         for helper in self.helpers:
-            feats, vocabulary = helper.fit_transform(self.raw, self.tagged)
+            feats, vocabulary = helper.fit_transform(self.raw, self.tagged, self.directory)
             self.feats[helper.name] = feats
             self.vocabularies[helper.name] = vocabulary
 
@@ -199,17 +200,15 @@ class TokenNgrams(CocoNgrams):
     """
     def __init__(self, **kwargs, directory):
         self.name = 'token_ngrams'
-        self.tmpdir = directory + 'tmp/'
-        tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
         self.n_list = [int(x) for x in kwargs['n_list']]
         if 'blackfeats' in kwargs.keys():
             self.blackfeats = kwargs['blackfeats']
         else:
             self.blackfeats = []
-        CocoNgrams.__init__(self, self.tmpdir, tokenized, self.n_list, self.blackfeats)
+        CocoNgrams.__init__(self, self.n_list, self.blackfeats)
         self.feats = []        
         
-    def fit(self, tagged_data):
+    def fit(self, tagged_data, directory):
         """
         Model fitter
         =====
@@ -226,9 +225,11 @@ class TokenNgrams(CocoNgrams):
         feats : dict
             dictionary of features and their count
         """        
-        CocoNgrams.fit(self)
+        tmpdir = directory + 'tmp/'
+        tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
+        CocoNgrams.fit(self, tmpdir, tokenized)
 
-    def transform(self, tagged_data):
+    def transform(self):
         """
         Model transformer
         =====
@@ -249,7 +250,7 @@ class TokenNgrams(CocoNgrams):
         quit()
         return(np.array(instances), feats)
 
-    def fit_transform(self, raw_data, tagged_data):
+    def fit_transform(self, raw_data, tagged_data, directory):
         """
         Fit transform
         =====
@@ -271,7 +272,7 @@ class TokenNgrams(CocoNgrams):
             The vocabulary
         """  
         self.fit(tagged_data)
-        return self.transform(tagged_data)
+        return self.transform()
 
 class LemmaNgrams:
     """
@@ -361,7 +362,7 @@ class LemmaNgrams:
             instances.append([tok_dict.get(f, 0) for f in self.feats])
         return np.array(instances)
 
-    def fit_transform(self, raw_data, tagged_data):
+    def fit_transform(self, raw_data, tagged_data, directory):
         """
         Fit transform
         =====
@@ -473,7 +474,7 @@ class PosNgrams:
             instances.append([tok_dict.get(f, 0) for f in self.feats])
         return np.array(instances)
 
-    def fit_transform(self, raw_data, tagged_data):
+    def fit_transform(self, raw_data, tagged_data, directory):
         """
         Fit transform
         =====
@@ -581,7 +582,7 @@ class CharNgrams:
             instances.append([char_dict.get(f,0) for f in self.feats])
         return np.array(instances)
 
-    def fit_transform(self, raw_data, tagged_data):
+    def fit_transform(self, raw_data, tagged_data, directory):
         """
         Fit transform
         =====

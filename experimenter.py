@@ -81,7 +81,7 @@ class Experiment:
         if self.test_csv:
             text += self.test_csv['text']
             tags += self.test_csv['tagged']
-        self.featurizer = featurizer.Featurizer(text, tags, self.features, self.directory)
+        self.featurizer = featurizer.Featurizer(text, tags, self.directory, self.features)
         self.featurizer.fit_transform()
 
     def run_predictions(self, train, trainlabels, test, testlabels, weight, prune):
