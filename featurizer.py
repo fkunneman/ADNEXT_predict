@@ -2,6 +2,7 @@
 
 import numpy as np
 import operator
+import colibricore
 
 import utils
 
@@ -117,8 +118,45 @@ class SimpleStats:
         self.fit()
         self.transform()
 
+class CocoNgrams:
 
-class TokenNgrams: # note: to be Colibrized in the future? 
+    def __init__(self, tmpdir):
+        self.tmpdir = tmpdir
+        
+    def fit(self, lines, minimum, max_ngrams):
+        ngram_file = self.tmpdir + 'ngrams.txt'
+        with open(ngram_file, 'w', encoding = 'utf-8') as txt:
+            for line in lines:
+                txt.write(line)
+        classfile = self.tmpdir + 'ngrams.colibri.cls'
+        # Build class encoder
+        self.classencoder = colibricore.ClassEncoder()
+        self.classencoder.build(ngram_file)
+        self.classencoder.save(classfile)
+
+        # Encode corpus data
+        corpusfile = self.tmpdir + 'ngrams.colibri.dat'
+        classencoder.encodefile(ngram_file, corpusfile)
+
+        # train model
+        options = colibricore.PatternModelOptions(mintokens = minimum, maxlength = max_ngrams)
+        model = colibricore.UnindexedPatternModel()
+        model.train(corpusfile, options)
+        print(dir(model))
+        quit()
+
+    # def transform(self, lines):
+    #     for line in lines:
+    #         for ngram in surface:
+    #             if ngram:
+    #                 pattern = classencoder.buildpattern(ngram)
+    #                 if pattern.unknown():
+    #                     print("WARNING: Anchor has unknown part " +  ngram + ", skipping... (" + pattern.tostring(classdecoder) + ")",file=sys.stderr)
+    #                 else:
+    #                     if len(pattern) <= 5:
+    #                         anchormodel.add(pattern) #(will count +1  if already exists)
+
+class TokenNgrams(CocoNgrams): 
     """
     Token ngram extractor
     =====
@@ -146,14 +184,16 @@ class TokenNgrams: # note: to be Colibrized in the future?
     def __init__(self, **kwargs):
         self.name = 'token_ngrams'
         self.n_list = [int(x) for x in kwargs['n_list']]
+        self.tmpdir = kwargs['tmp']
         if 'blackfeats' in kwargs.keys():
             self.blackfeats = kwargs['blackfeats']
         else:
             self.blackfeats = []
-        self.feats = []
+        self.feats = []        
+        CocoNgrams.__init__(self, self.tmpdir)
 
     # retrieve indices of features
-    def fit(self, frog_data):
+    def fit(self, tagged_data):
         """
         Model fitter
         =====
@@ -161,7 +201,7 @@ class TokenNgrams: # note: to be Colibrized in the future?
 
         Parameters
         -----
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
@@ -170,17 +210,19 @@ class TokenNgrams: # note: to be Colibrized in the future?
         feats : dict
             dictionary of features and their count
         """        
-        feats = {}
-        for inst in frog_data:
-            for n in self.n_list:
-                tokens = [t[0] for t in inst]
-                feats.update(utils.freq_dict(["_".join(item) for item in \
-                    utils.find_ngrams(tokens, n)]))
-        self.feats = [i for i, j in sorted(feats.items(), reverse = True, 
-            key = operator.itemgetter(1)) if not bool(set(i.split("_")) & 
-            set(self.blackfeats))]
+        tokenized = [' '.join([t[0] for t in instance]) for instance in tagged_data]
+        CocoNgrams.fit(self, tokenized, 3, max(self.n_list))
+        # feats = {}
+        # for inst in tagged_data:
+        #     for n in self.n_list:
+        #         tokens = [t[0] for t in inst]
+        #         feats.update(utils.freq_dict(["_".join(item) for item in \
+        #             utils.find_ngrams(tokens, n)]))
+        # self.feats = [i for i, j in sorted(feats.items(), reverse = True, 
+        #     key = operator.itemgetter(1)) if not bool(set(i.split("_")) & 
+        #     set(self.blackfeats))]
 
-    def transform(self, frog_data):
+    def transform(self, tagged_data):
         """
         Model transformer
         =====
@@ -188,7 +230,7 @@ class TokenNgrams: # note: to be Colibrized in the future?
 
         Parameters
         -----
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
@@ -198,7 +240,7 @@ class TokenNgrams: # note: to be Colibrized in the future?
             The documents represented as feature vectors
         """       
         instances = []
-        for inst in frog_data:
+        for inst in tagged_data:
             tok_dict = {}
             for n in self.n_list:
                 tokens = [t[0] for t in inst]
@@ -207,7 +249,7 @@ class TokenNgrams: # note: to be Colibrized in the future?
             instances.append([tok_dict.get(f, 0) for f in self.feats])
         return np.array(instances)
 
-    def fit_transform(self, raw_data, frog_data):
+    def fit_transform(self, raw_data, tagged_data):
         """
         Fit transform
         =====
@@ -217,19 +259,19 @@ class TokenNgrams: # note: to be Colibrized in the future?
         -----
         raw_data : list
             Each entry represents a text instance in the data file
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
         Returns
         -----
-        self.transform(frog_data) : list
+        self.transform(tagged_data) : list
             The featurized instances
         self.feats : list
             The vocabulary
         """  
-        self.fit(frog_data)
-        return self.transform(frog_data), self.feats
+        self.fit(tagged_data)
+        return self.transform(tagged_data), self.feats
 
 class LemmaNgrams:
     """
@@ -265,7 +307,7 @@ class LemmaNgrams:
             self.blackfeats = []
         self.feats = []
 
-    def fit(self, frog_data):
+    def fit(self, tagged_data):
         """
         Model fitter
         =====
@@ -273,7 +315,7 @@ class LemmaNgrams:
 
         Parameters
         -----
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
@@ -283,7 +325,7 @@ class LemmaNgrams:
             dictionary of features and their count
         """
         feats = {}
-        for inst in frog_data:
+        for inst in tagged_data:
             for n in self.n_list:
                 tokens = [t[1] for t in inst]
                 feats.update(utils.freq_dict(["_".join(item) for item in \
@@ -292,7 +334,7 @@ class LemmaNgrams:
             key = operator.itemgetter(1)) if not bool(set(i.split("_")) & 
             set(self.blackfeats))]
 
-    def transform(self, frog_data):
+    def transform(self, tagged_data):
         """
         Model transformer
         =====
@@ -300,7 +342,7 @@ class LemmaNgrams:
 
         Parameters
         -----
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
@@ -310,7 +352,7 @@ class LemmaNgrams:
             The documents represented as feature vectors
         """       
         instances = []
-        for inst in frog_data:
+        for inst in tagged_data:
             tok_dict = {}
             for n in self.n_list:
                 tokens = [t[1] for t in inst]
@@ -319,7 +361,7 @@ class LemmaNgrams:
             instances.append([tok_dict.get(f, 0) for f in self.feats])
         return np.array(instances)
 
-    def fit_transform(self, raw_data, frog_data):
+    def fit_transform(self, raw_data, tagged_data):
         """
         Fit transform
         =====
@@ -329,19 +371,19 @@ class LemmaNgrams:
         -----
         raw_data : list
             Each entry represents a text instance in the data file
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
         Returns
         -----
-        self.transform(frog_data) : list
+        self.transform(tagged_data) : list
             The featurized instances
         self.feats : list
             The vocabulary
         """  
-        self.fit(frog_data)
-        return self.transform(frog_data), self.feats
+        self.fit(tagged_data)
+        return self.transform(tagged_data), self.feats
 
 class PosNgrams:
     """
@@ -377,7 +419,7 @@ class PosNgrams:
             self.blackfeats = []
         self.feats = []
 
-    def fit(self, frog_data):
+    def fit(self, tagged_data):
         """
         Model fitter
         =====
@@ -385,7 +427,7 @@ class PosNgrams:
 
         Parameters
         -----
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
@@ -395,7 +437,7 @@ class PosNgrams:
             dictionary of features and their count
         """
         feats = {}
-        for inst in frog_data:
+        for inst in tagged_data:
             for n in self.n_list:
                 tokens = [t[2] for t in inst]
                 feats.update(utils.freq_dict(["_".join(item) for item in \
@@ -404,7 +446,7 @@ class PosNgrams:
             key = operator.itemgetter(1)) if not bool(set(i.split("_")) & 
             set(self.blackfeats))]
 
-    def transform(self, frog_data):
+    def transform(self, tagged_data):
         """
         Model transformer
         =====
@@ -412,7 +454,7 @@ class PosNgrams:
 
         Parameters
         -----
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
@@ -422,7 +464,7 @@ class PosNgrams:
             The documents represented as feature vectors
         """       
         instances = []
-        for inst in frog_data:
+        for inst in tagged_data:
             tok_dict = {}
             for n in self.n_list:
                 tokens = [t[2] for t in inst]
@@ -431,7 +473,7 @@ class PosNgrams:
             instances.append([tok_dict.get(f, 0) for f in self.feats])
         return np.array(instances)
 
-    def fit_transform(self, raw_data, frog_data):
+    def fit_transform(self, raw_data, tagged_data):
         """
         Fit transform
         =====
@@ -441,19 +483,19 @@ class PosNgrams:
         -----
         raw_data : list
             Each entry represents a text instance in the data file
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
         Returns
         -----
-        self.transform(frog_data) : list
+        self.transform(tagged_data) : list
             The featurized instances
         self.feats : list
             The vocabulary
         """  
-        self.fit(frog_data)
-        return self.transform(frog_data), self.feats
+        self.fit(tagged_data)
+        return self.transform(tagged_data), self.feats
 
 class CharNgrams:
     """
@@ -539,7 +581,7 @@ class CharNgrams:
             instances.append([char_dict.get(f,0) for f in self.feats])
         return np.array(instances)
 
-    def fit_transform(self, raw_data, frog_data):
+    def fit_transform(self, raw_data, tagged_data):
         """
         Fit transform
         =====
@@ -549,13 +591,13 @@ class CharNgrams:
         -----
         raw_data : list
             Each entry represents a text instance in the data file
-        frog_data : list
+        tagged_data : list
             List of lists, where each row represents a text instance and the columns 
             represent word - lemma - pos - sentence number respectively
 
         Returns
         -----
-        self.transform(frog_data) : list
+        self.transform(tagged_data) : list
             The featurized instances
         self.feats : list
             The vocabulary
