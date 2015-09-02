@@ -251,8 +251,6 @@ class TokenNgrams(CocoNgrams):
             The documents represented as feature vectors
         """
         instances, feats = CocoNgrams.transform(self)
-        print(instances)
-        quit()
         return(instances, feats)
 
     def fit_transform(self, raw_data, tagged_data, directory):

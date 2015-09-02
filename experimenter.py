@@ -163,9 +163,9 @@ class Experiment:
         # Save vocabulary
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
             v_out.write('\n'.join(vocabulary))
+        len_training = len(self.train_csv['text'])
         # if test, run experiment
         if self.test_csv:
-            len_training = len(self.train_csv['text'])
             train = instances[:len_training]
             trainlabels = self.train_csv['label']
             test = instances[len_training:]
@@ -177,16 +177,16 @@ class Experiment:
                     os.mkdir(classifier_directory)
                 self.reporter.add_test([self.test_csv['text'], predictions[classifier]], classifier_directory)
         else: #run tenfold
-            instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
-            folds = utils.return_folds(instances_full)
+            folds = utils.return_folds(len_training)
+            #instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             classifier_foldperformance = defaultdict(list)
             for i, fold in enumerate(folds):
                 print('fold', i)
-                train = [x[0] for x in fold[0]]
-                trainlabels = [x[1] for x in fold[0]]
-                test = [x[0] for x in fold[1]]
-                testlabels = [x[1] for x in fold[1]]
-                testdocuments = [x[2] for x in fold[1]]
+                train = instances[fold[0]]
+                trainlabels = [self.train_csv['label'][x] for x in fold[0]]
+                test = instances[fold[1]]
+                testlabels = [self.train_csv['label'][x] for x in fold[1]]
+                testdocuments = [self.train_csv['text'][x] for x in fold[1]]
                 predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
                 for classifier in self.classifiers:
                     classifier_foldperformance[classifier].append([testdocuments, predictions[classifier]])

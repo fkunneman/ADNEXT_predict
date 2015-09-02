@@ -15,9 +15,9 @@ class Vectorizer:
     Parameters
     -----
     train_instances : list
-        list of featurized train instances, as list with feature frequencies
+        list of featurized train instances, as sparse.csr_matrix with feature frequencies
     test_instances : list 
-        list of featurized test instances, as list with feature frequencies
+        list of featurized test instances, as sparse.csr_matrix with feature frequencies
     train_labels : list
         list of labels (str) of the train instances,
         each index of a label corresponds to the index of the train instance
@@ -135,13 +135,12 @@ class Counts:
             key : The feature index (int)
             value : The document / label count of the feature index (int)
         """
-        document_frequency = Counter()
         if label:
-            for i, instance in enumerate(self.instances):
-                document_frequency.update([j for j, v in enumerate(instance) if v > 0 and self.labels[i] == label])
+            instances_index = list(numpy.where(numpy.array(self.labels) == label)[0])
         else:
-            for instance in self.instances:
-                document_frequency.update([i for i, v in enumerate(instance) if v > 0]) #document count 
+            instances_index = range(self.instances.shape[0])
+        feature_counts = [sum(self.instances.getcol(i).toarray()) for i in instances_index]
+        document_frequency = dict(zip(instances_index, feature_counts))
         return document_frequency
 
     def count_label_frequency(self):
@@ -175,8 +174,8 @@ class Counts:
             key : The feature index
             value : The idf of the feature index
         """
-        idf = dict.fromkeys(range(len(self.instances[0])), 0) # initialize for all features
-        num_docs = len(self.instances)
+        idf = dict.fromkeys(range(self.instances.shape[1]), 0) # initialize for all features
+        num_docs = self.instances.shape[0]
         feature_counts = self.count_document_frequency()
         for feature in feature_counts.keys():
             idf[feature] = math.log((num_docs / feature_counts[feature]), 10)
@@ -326,8 +325,10 @@ class Binary(Counts):
             key : feature index (int)
             value : feature document frequency (int)
         """
-        self.train_instances = [[1 if i > 0 else 0 for i in instance] for instance in self.train_instances]
-        self.test_instances = [[1 if i > 0 else 0 for i in instance] for instance in self.test_instances]
+        binary_values_train = [1 for cell in self.train_instances.data]
+        binary_values_test = [1 for cell in self.test_instances.data]
+        self.train_instances.data = binary_values_train
+        self.test_instances.data = binary_values_test
         return self.train_instances, self.test_instances, self.feature_frequency
 
     def fit_transform(self):
@@ -415,8 +416,8 @@ class TfIdf(Counts):
             value : feature idf (float)
         """
         feature_idf_ordered = numpy.array([self.idf[feature] for feature in sorted(self.idf.keys())])
-        self.train_instances = feature_idf_ordered * numpy.array(self.train_instances)
-        self.test_instances = feature_idf_ordered * numpy.array(self.test_instances)
+        self.train_instances = feature_idf_ordered * self.train_instances.toarray()
+        self.test_instances = feature_idf_ordered * self.test_instances.toarray()
         return self.train_instances, self.test_instances, self.idf
 
     def fit_transform(self):
@@ -465,7 +466,7 @@ class InfoGain(Counts):
         self.train_instances = train_instances
         self.labels = labels
         self.test_instances = test_instances
-        self.feature_infogain = dict.fromkeys(range(len(self.train_instances[0])), 0) # initialize for all features
+        self.feature_infogain = dict.fromkeys(range(self.instances.shape[1]), 0) # initialize for all features
     
     def calculate_label_feature_frequency(self, labels):
         """
@@ -607,7 +608,7 @@ class InfoGain(Counts):
             value : information gain, float
         """
         # some initial calculations
-        len_instances = len(self.instances)
+        len_instances = self.instances.shape[0]
         feature_frequency = Counts.count_document_frequency(self)
         label_frequency = Counts.count_label_frequency(self)
         label_feature_frequency = self.calculate_label_feature_frequency(label_frequency.keys())
@@ -649,11 +650,11 @@ class InfoGain(Counts):
             key : feature index, int
             value : information gain, float
         """
-
-        self.train_instances = [[self.feature_infogain[i] if instance[i] > 0 else 0 for i, v in enumerate(instance)] \
-            for instance in self.train_instances]
-        self.test_instances = [[self.feature_infogain[i] if instance[i] > 0 else 0 for i, v in enumerate(instance)] \
-            for instance in self.test_instances]
+        binary_vectorizer = Binary(self.train_instances, self.labels, self.test_instances)
+        train_instances_binary, test_instances_binary, feature_frequency = binary_vectorizer.fit_transform()
+        feature_infogain_ordered = numpy.array([self.feature_infogain[feature] for feature in sorted(self.feature_infogain.keys())])        
+        self.train_instances = feature_infogain_ordered * self.train_instances_binary.toarray()
+        self.test_instances = feature_infogain_ordered * self.test_instances_binary.toarray()
         return self.train_instances, self.test_instances, self.feature_infogain
 
     def fit_transform(self):

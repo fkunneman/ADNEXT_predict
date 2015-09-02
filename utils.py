@@ -68,13 +68,13 @@ def read_json(filename):
     return rows
 
 
-def return_folds(instances, n = 10):
+def return_folds(num_instances, n = 10):
     folds = []
     for i in range(n):
         j = i
         fold = []
-        while j < len(instances):
-            fold.append(instances[j])
+        while j < num_instances:
+            fold.append(j)
             j += n
         folds.append(fold)
     runs = []
