@@ -175,9 +175,10 @@ class CocoNgrams:
         q.put((rows, cols, data, vocabulary))
 
     def transform(self):
-        print "Featurizing instances"
+        print("Featurizing instances")
         q = multiprocessing.Queue()
-        itemchunks = gen_functions.make_chunks(enumerate(self.model.items()), nc = 12)
+        print(self.model.items()[2])
+        itemchunks = gen_functions.make_chunks(zip(range(self.model.__len__()), self.model.items()), nc = 12)
         for chunk in itemchunks:
             p = multiprocessing.Process(target = self.featurize_items, args = [chunk, q])
             p.start()
@@ -194,8 +195,8 @@ class CocoNgrams:
             cols += l[1]
             data += l[2]
             vocabulary += l[3]
-            completed_chunks += 1=
-            if completed_chunks == 12
+            completed_chunks += 1
+            if completed_chunks == 12:
                 break
 
         instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), len(self.model.items())))
