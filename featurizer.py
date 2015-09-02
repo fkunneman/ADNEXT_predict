@@ -157,7 +157,6 @@ class CocoNgrams:
         self.model.train(corpusfile, options)
 
     def transform(self):
-        print("Featurizing instances")
         rows = []
         cols = []
         data = []

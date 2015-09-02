@@ -77,8 +77,8 @@ class Vectorizer:
         # select top features
         top_features = sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold]
         # transform instances
-        self.train = [[instance[index] for index in top_features] for instance in self.train]
-        self.test = [[instance[index] for index in top_features] for instance in self.test] 
+        self.train = self.train[:, top_features]
+        self.test = self.test[:, top_features]
 
     def vectorize(self):
         """
@@ -93,7 +93,6 @@ class Vectorizer:
         self.test : list
             scipy csr_matrix of weighted test vectors
         """        
-        print('weighting features')
         self.weight_features()
         print('pruning features')
         self.prune_features()    
@@ -328,15 +327,10 @@ class Binary(Counts):
             key : feature index (int)
             value : feature document frequency (int)
         """
-        print("binary values train")
         binary_values_train = [1 for cell in self.train_instances.data]
-        print("binary values test")
         binary_values_test = [1 for cell in self.test_instances.data]
-        print("set data train")
         self.train_instances.data = binary_values_train
-        print("set data test")
         self.test_instances.data = binary_values_test
-        print("return")
         return self.train_instances, self.test_instances, self.feature_frequency
 
     def fit_transform(self):
@@ -356,9 +350,7 @@ class Binary(Counts):
             key : feature index (int)
             value : feature document frequency (int)
         """
-        print("Fitting")
         self.fit()
-        print("Transforming")
         return self.transform()
 
 class TfIdf(Counts):
