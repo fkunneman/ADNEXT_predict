@@ -90,13 +90,23 @@ for doc in data:
 ##### Bundling data #####
 print('bundling data')
 trainfile = expdir + 'traindata.csv'
-train_dataset = utils.bundle_data(train, trainfile)
+if len(train) > 0:
+    train_dataset = utils.bundle_data(train, trainfile)
+else:
+    dh_train = datahandler.Datahandler()
+    dh_train.set(trainfile)
+    train_dataset = dh_train.dataset
 
 testfile = expdir + 'testdata.csv'
 if len(test) > 0:
     test_dataset = utils.bundle_data(test, testfile)
 else:
-    test_dataset = False
+    try:
+        dh_test = datahandler.Datahandler()
+        dh_test.set(testfile)
+        test_dataset = dh_test.dataset
+    except:
+        test_dataset = False
 
 ########################### Experiments ###########################
 featuretypes = [featuretype for featuretype in cp.sections() if featuretype[:8] == 'Features']

@@ -228,6 +228,8 @@ class TokenNgrams(CocoNgrams):
             dictionary of features and their count
         """        
         tmpdir = directory + 'tmp/'
+        if not os.path.isdir(tmpdir):
+            os.mkdir(tmpdir)
         tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
         CocoNgrams.fit(self, tmpdir, tokenized)
 
@@ -249,6 +251,8 @@ class TokenNgrams(CocoNgrams):
             The documents represented as feature vectors
         """
         instances, feats = CocoNgrams.transform(self)
+        print(instances)
+        quit()
         return(instances, feats)
 
     def fit_transform(self, raw_data, tagged_data, directory):
