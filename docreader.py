@@ -89,7 +89,7 @@ class Docreader:
         csv.field_size_limit(sys.maxsize)
         lines = []
         try:
-            with open(doc, 'r') as csvfile:
+            with open(doc, 'r', encoding = 'utf-8') as csvfile:
                 csv_reader = csv.reader(csvfile)
                 for line in csv_reader:
                     lines.append(line)

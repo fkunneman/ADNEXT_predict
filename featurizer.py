@@ -159,7 +159,7 @@ class CocoNgrams:
         cols = []
         data = []
         vocabulary = []
-        empty = []
+        to_keep = []
         for i, (pattern, indices) in items:
             ngram = pattern.tostring(self.classdecoder)
             if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in self.ngrams:
@@ -173,14 +173,13 @@ class CocoNgrams:
                     data.append(count)
                     j += count
                     vocabulary.append(ngram)
-            else:   #empty column
-                empty.append(i)
-        q.put((rows, cols, data, vocabulary, empty))
+                to_keep.append(i)
+        q.put((rows, cols, data, vocabulary, to_keep))
 
     def transform(self):
         print("Featurizing instances")
         q = multiprocessing.Queue()
-        itemchunks = gen_functions.make_chunks(list(zip(range(self.model.__len__()), self.model.items())), nc = 12)
+        itemchunks = gen_functions.make_chunks(list(zip(range(self.model.__len__()), self.model.items())), nc = 6)
         for chunk in itemchunks:
             p = multiprocessing.Process(target = self.featurize_items, args = [chunk, q])
             p.start()
@@ -189,7 +188,7 @@ class CocoNgrams:
         cols = []
         data = []
         vocabulary = []
-        empty = []
+        to_keep = []
         completed_chunks = 0
         while True:
             l = q.get()
@@ -197,12 +196,13 @@ class CocoNgrams:
             cols += l[1]
             data += l[2]
             vocabulary += l[3]
-            empty += l[4]
+            to_keep += l[4]
             completed_chunks += 1
-            if completed_chunks == 12:
+            if completed_chunks == 6:
                 break
-        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))[:, empty]
-        return instances, vocabulary
+        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))
+        instances_pruned = instances[:, to_keep]
+        return instances_pruned, vocabulary
 
 class TokenNgrams(CocoNgrams): 
     """

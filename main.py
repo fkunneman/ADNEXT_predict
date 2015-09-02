@@ -40,7 +40,7 @@ for doc in data:
         date = catdict['date'] if 'date' in catdict.keys() else False
         time = catdict['time'] if 'time' in catdict.keys() else False
         sepdict = {'tab' : '\t', 'space' : ' '}
-        delimiter = sepdict[dp['separator']]
+        delimiter = sepdict[dp['separator']] if 'separator' in catdict.keys() else False
         header = dp.getboolean('header')
         reader = docreader.Docreader()
         reader.parse_doc(doc, delimiter, header, date, time)
