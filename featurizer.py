@@ -4,6 +4,7 @@ import os
 import numpy as np
 from scipy import sparse
 import operator
+import re
 import multiprocessing
 
 import colibricore
@@ -159,22 +160,19 @@ class CocoNgrams:
         cols = []
         data = []
         vocabulary = []
-        to_keep = []
         for i, (pattern, indices) in items:
             ngram = pattern.tostring(self.classdecoder)
-            if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in self.ngrams:
-                docs = [index[0] - 1 for index in indices]
-                j = 0
-                while j < len(docs):
-                    doc = docs[j]
-                    count = docs.count(doc)
-                    rows.append(doc)
-                    cols.append(i)
-                    data.append(count)
-                    j += count
-                    vocabulary.append(ngram)
-                to_keep.append(i)
-        q.put((rows, cols, data, vocabulary, to_keep))
+            vocabulary.append(ngram)
+            docs = [index[0] - 1 for index in indices]
+            j = 0
+            while j < len(docs):
+                doc = docs[j]
+                count = docs.count(doc)
+                rows.append(doc)
+                cols.append(i)
+                data.append(count)
+                j += count
+        q.put((rows, cols, data, vocabulary))
 
     def transform(self):
         print("Featurizing instances")
@@ -188,7 +186,6 @@ class CocoNgrams:
         cols = []
         data = []
         vocabulary = []
-        to_keep = []
         completed_chunks = 0
         while True:
             l = q.get()
@@ -196,13 +193,26 @@ class CocoNgrams:
             cols += l[1]
             data += l[2]
             vocabulary += l[3]
-            to_keep += l[4]
             completed_chunks += 1
             if completed_chunks == 6:
                 break
         instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))
-        instances_pruned = instances[:, to_keep]
-        return instances_pruned, vocabulary
+        if len(self.blackfeats) > 0:
+            blackfeats_indices = []
+            for bf in self.blackfeats:
+                regex = re.compile(bf)
+                matches = [i for i, f in enumerate(vocabulary) if regex.match(f)]
+                regex_left = re.compile(' ' + bf + r'$')
+                matches += [i for i, f in enumerate(vocabulary) if regex_left.match(f)]
+                regex_right = re.compile(r'^' + bf + ' ')
+                matches += [i for i, f in enumerate(vocabulary) if regex_right.match(f)]
+                regex_middle = re.compile(' ' + bf + ' ')
+                matches += [i for i, f in enumerate(vocabulary) if regex_middle.match(f)]
+                blackfeats_indices.extend(matches)
+            to_keep = list(set(range(len(vocabulary))) - set(blackfeats_indices))
+            instances = instances[:, to_keep]
+            vocabulary = vocabulary[to_keep]
+        return instances, vocabulary
 
 class TokenNgrams(CocoNgrams): 
     """
