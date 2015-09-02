@@ -75,7 +75,7 @@ class Vectorizer:
             Each test instance is stripped of the feature indices not in the top N weighted features
         """
         # select top features
-        top_features = sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold]
+        top_features = sorted(sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold])
         # transform instances
         self.train = self.train[:, top_features]
         self.test = self.test[:, top_features]
@@ -141,7 +141,7 @@ class Counts:
         else:
             target_instances = self.instances
         feature_indices = range(self.instances.shape[1])
-        feature_counts = target_instances.sum(axis = 0)
+        feature_counts = target_instances.sum(axis = 0).tolist()[0]
         document_frequency = dict(zip(feature_indices, feature_counts))
         return document_frequency
 
@@ -327,10 +327,10 @@ class Binary(Counts):
             key : feature index (int)
             value : feature document frequency (int)
         """
-        binary_values_train = [1 for cell in self.train_instances.data]
-        binary_values_test = [1 for cell in self.test_instances.data]
-        self.train_instances.data = binary_values_train
-        self.test_instances.data = binary_values_test
+        binary_values_train = numpy.array([1 for cell in self.train_instances.data])
+        binary_values_test = numpy.array([1 for cell in self.test_instances.data])
+        self.train_instances = sparse.csr_matrix((binary_values_train, self.train_instances.indices, self.train_instances.indptr), shape = self.train_instances.shape)
+        self.test_instances = sparse.csr_matrix((binary_values_test, self.test_instances.indices, self.test_instances.indptr), shape = self.test_instances.shape)
         return self.train_instances, self.test_instances, self.feature_frequency
 
     def fit_transform(self):
@@ -418,8 +418,8 @@ class TfIdf(Counts):
             value : feature idf (float)
         """
         feature_idf_ordered = numpy.array([self.idf[feature] for feature in sorted(self.idf.keys())])
-        self.train_instances = feature_idf_ordered * self.train_instances.toarray()
-        self.test_instances = feature_idf_ordered * self.test_instances.toarray()
+        self.train_instances = sparse.csr_matrix(feature_idf_ordered * self.train_instances.toarray())
+        self.test_instances = sparse.csr_matrix(feature_idf_ordered * self.test_instances.toarray())
         return self.train_instances, self.test_instances, self.idf
 
     def fit_transform(self):

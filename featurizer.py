@@ -185,7 +185,7 @@ class CocoNgrams:
                 blackfeats_indices.extend(matches)
             to_keep = list(set(range(len(vocabulary))) - set(blackfeats_indices))
             instances = instances[:, to_keep]
-            vocabulary = vocabulary[to_keep]
+            vocabulary = list(np.array(vocabulary)[to_keep])
         return instances, vocabulary
 
 class TokenNgrams(CocoNgrams): 
