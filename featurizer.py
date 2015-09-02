@@ -4,10 +4,12 @@ import os
 import numpy as np
 from scipy import sparse
 import operator
+import multiprocessing
 
 import colibricore
 
 import utils
+import gen_functions
 
 class Featurizer:
     """
@@ -152,13 +154,12 @@ class CocoNgrams:
         self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
-    def transform(self):
+    def featurize_items(items, q):
         rows = []
         cols = []
         data = []
         vocabulary = []
-        i = 0
-        for pattern, indices in self.model.items():
+        for i, (pattern, indices) in items:
             ngram = pattern.tostring(self.classdecoder)
             if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in self.ngrams:
                 docs = [index[0] - 1 for index in indices]
@@ -170,9 +171,34 @@ class CocoNgrams:
                     cols.append(i)
                     data.append(count)
                     j += count
-                i += 1
-                vocabulary.append(ngram)    
-        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), i))
+                vocabulary.append(ngram)
+        q.put((rows, cols, data, vocabulary))
+
+    def transform(self):
+        print "Featurizing instances"
+        q = multiprocessing.Queue()
+        itemchunks = gen_functions.make_chunks(enumerate(self.model.items()), nc = 12)
+        for chunk in itemchunks:
+            p = multiprocessing.Process(target = self.featurize_items, args = [chunk, q])
+            p.start()
+
+        rows = []
+        cols = []
+        data = []
+        vocabulary = []
+        completed_chunks = 0
+
+        while True:
+            l = q.get()
+            rows += l[0]
+            cols += l[1]
+            data += l[2]
+            vocabulary += l[3]
+            completed_chunks += 1=
+            if completed_chunks == 12
+                break
+
+        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), len(self.model.items())))
         return instances, vocabulary
 
 class TokenNgrams(CocoNgrams): 
