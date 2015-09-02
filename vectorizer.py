@@ -136,12 +136,12 @@ class Counts:
             value : The document / label count of the feature index (int)
         """
         if label:
-            instances_index = list(numpy.where(numpy.array(self.labels) == label)[0])
+            target_instances = self.instances[list(numpy.where(numpy.array(self.labels) == label)[0])]
         else:
-            instances_index = range(self.instances.shape[0])
-        print(instances_index)
-        feature_counts = [sum(self.instances.getcol(i).toarray()) for i in instances_index]
-        document_frequency = dict(zip(instances_index, feature_counts))
+            target_instances = self.instances
+        feature_indices = range(self.instances.shape[1])
+        feature_counts = [sum(target_instances.getcol(i).toarray()) for i in feature_indices]
+        document_frequency = dict(zip(feature_indices, feature_counts))
         return document_frequency
 
     def count_label_frequency(self):
