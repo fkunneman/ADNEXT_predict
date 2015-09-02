@@ -156,20 +156,15 @@ class CocoNgrams:
         self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
-
-
     def transform(self):
         print("Featurizing instances")
         rows = []
         cols = []
         data = []
         vocabulary = []
-        c = 0
-        num_items = len(items)
+        items = list(zip(range(self.model.__len__()), self.model.items()))
         for i, (pattern, indices) in items:
-            c += 1
-            ngram = pattern.tostring(self.classdecoder)
-            vocabulary.append(ngram)
+            vocabulary.append(pattern.tostring(self.classdecoder))
             docs = [index[0] - 1 for index in indices]
             counts = Counter(docs)
             unique = counts.keys()
