@@ -159,6 +159,7 @@ class CocoNgrams:
         cols = []
         data = []
         vocabulary = []
+        empty = []
         for i, (pattern, indices) in items:
             ngram = pattern.tostring(self.classdecoder)
             if len(set(ngram.split(' ')) & self.blackfeats) == 0 and pattern.__len__() in self.ngrams:
@@ -171,12 +172,10 @@ class CocoNgrams:
                     cols.append(i)
                     data.append(count)
                     j += count
+                    vocabulary.append(ngram)
             else:   #empty column
-                rows.append(0)
-                cols.append(i)
-                data.append(0)
-            vocabulary.append(ngram)
-        q.put((rows, cols, data, vocabulary))
+                empty.append(i)
+        q.put((rows, cols, data, vocabulary, empty))
 
     def transform(self):
         print("Featurizing instances")
@@ -190,19 +189,19 @@ class CocoNgrams:
         cols = []
         data = []
         vocabulary = []
+        empty = []
         completed_chunks = 0
-
         while True:
             l = q.get()
             rows += l[0]
             cols += l[1]
             data += l[2]
             vocabulary += l[3]
+            empty += l[4]
             completed_chunks += 1
             if completed_chunks == 12:
                 break
-
-        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))
+        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))[:, empty]
         return instances, vocabulary
 
 class TokenNgrams(CocoNgrams): 
