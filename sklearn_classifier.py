@@ -481,8 +481,7 @@ class EnsembleClf_classifier:
             clf.fit(train)
         # extend training data with classification features
         # make folds
-        indices = range(len(train['labels']))
-        folds = utils.return_folds(indices)
+        folds = utils.return_folds(len(train['labels']))
         # add classifier features
         new_instances = []
         new_labels = []
@@ -575,7 +574,7 @@ class LCS_classifier:
         self.targets = {}
         self.classifications = []
 
-    
+
 
     def experiment(self):
         if self.test:
