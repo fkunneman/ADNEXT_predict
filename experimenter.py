@@ -169,6 +169,7 @@ class Experiment:
             train = instances[:len_training]
             trainlabels = self.train_csv['label']
             test = instances[len_training:]
+            print(test, test.shape)
             testlabels = self.test_csv['label']
             predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
             for classifier in self.classifiers:

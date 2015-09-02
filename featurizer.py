@@ -103,7 +103,7 @@ class Featurizer:
             List with the feature name per index
         """
         submatrices = [self.feats[name] for name in helpernames]
-        instances = np.hstack(submatrices)
+        instances = sparse.hstack(submatrices)
         vocabulary = np.hstack([self.vocabularies[name] for name in helpernames])
         return instances, vocabulary
 

@@ -139,6 +139,7 @@ class Counts:
             instances_index = list(numpy.where(numpy.array(self.labels) == label)[0])
         else:
             instances_index = range(self.instances.shape[0])
+        print(instances_index)
         feature_counts = [sum(self.instances.getcol(i).toarray()) for i in instances_index]
         document_frequency = dict(zip(instances_index, feature_counts))
         return document_frequency
