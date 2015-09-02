@@ -154,7 +154,7 @@ class CocoNgrams:
         self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
-    def featurize_items(self, items, q):
+    def featurize_items(items, q):
         rows = []
         cols = []
         data = []
@@ -171,13 +171,18 @@ class CocoNgrams:
                     cols.append(i)
                     data.append(count)
                     j += count
-                vocabulary.append(ngram)
+            else:   #empty column
+                rows.append(0)
+                cols.append(i)
+                data.append(0)
+            vocabulary.append(ngram)
         q.put((rows, cols, data, vocabulary))
 
     def transform(self):
         print("Featurizing instances")
         q = multiprocessing.Queue()
-        itemchunks = gen_functions.make_chunks(list(zip(range(self.model.__len__()), self.model.items())), nc = 12)
+        print(self.model.items()[2])
+        itemchunks = gen_functions.make_chunks(zip(range(self.model.__len__()), self.model.items()), nc = 12)
         for chunk in itemchunks:
             p = multiprocessing.Process(target = self.featurize_items, args = [chunk, q])
             p.start()
@@ -197,9 +202,8 @@ class CocoNgrams:
             completed_chunks += 1
             if completed_chunks == 12:
                 break
-        
-        print(len(rows), len(cols), len(data), len(vocabulary), max(rows), max(cols), max(data), self.model.__len__())
-        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), max(cols)))
+
+        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))
         return instances, vocabulary
 
 class TokenNgrams(CocoNgrams): 
