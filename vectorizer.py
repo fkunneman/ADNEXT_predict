@@ -142,7 +142,7 @@ class Counts:
         else:
             target_instances = self.instances
         feature_indices = range(self.instances.shape[1])
-        feature_counts = [sum(target_instances.getcol(i).toarray()) for i in feature_indices]
+        feature_counts = target_instances.sum(axis = 0)
         document_frequency = dict(zip(feature_indices, feature_counts))
         return document_frequency
 
