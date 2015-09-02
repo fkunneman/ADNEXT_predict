@@ -6,6 +6,7 @@ from scipy import sparse
 import operator
 import re
 import multiprocessing
+from collections import Counter
 
 import colibricore
 
@@ -155,47 +156,62 @@ class CocoNgrams:
         self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
-    def featurize_items(self, items, q):
+    def featurize_items(self, items):
         rows = []
         cols = []
         data = []
         vocabulary = []
+        c = 0
+        num_items = len(items)
         for i, (pattern, indices) in items:
+            print(c, 'of', num_items, ',', len(indices), 'hits')
+            c += 1
             ngram = pattern.tostring(self.classdecoder)
             vocabulary.append(ngram)
             docs = [index[0] - 1 for index in indices]
-            j = 0
-            while j < len(docs):
-                doc = docs[j]
-                count = docs.count(doc)
-                rows.append(doc)
-                cols.append(i)
-                data.append(count)
-                j += count
-        q.put((rows, cols, data, vocabulary))
+            counts = Counter(docs)
+            unique = counts.keys()
+            rows.extend(unique)
+            cols.extend([i] * len(unique))
+            data.extend(counts.values())
+#            unique_docs = list(set(docs))
+#            rows.extend(unique_docs)
+#            cols.extend([i] * len(unique_docs))
+#            data.extend([docs.count(d) for d in unique_docs])
+#            j = 0
+#            while j < len(docs):
+#                doc = docs[j]
+#                count = docs.count(doc)
+#                rows.append(doc)
+#                cols.append(i)
+#                data.append(count)
+#                j += count
+#        q.put((rows, cols, data, vocabulary))
+        return (rows, cols, data, vocabulary)
 
     def transform(self):
         print("Featurizing instances")
-        q = multiprocessing.Queue()
-        itemchunks = gen_functions.make_chunks(list(zip(range(self.model.__len__()), self.model.items())), nc = 6)
-        for chunk in itemchunks:
-            p = multiprocessing.Process(target = self.featurize_items, args = [chunk, q])
-            p.start()
+#        q = multiprocessing.Queue()
+#        itemchunks = gen_functions.make_chunks(list(zip(range(self.model.__len__()), self.model.items())), nc = 6)
+#        for chunk in itemchunks:
+#            p = multiprocessing.Process(target = self.featurize_items, args = [chunk, q])
+#            p.start()
 
-        rows = []
-        cols = []
-        data = []
-        vocabulary = []
-        completed_chunks = 0
-        while True:
-            l = q.get()
-            rows += l[0]
-            cols += l[1]
-            data += l[2]
-            vocabulary += l[3]
-            completed_chunks += 1
-            if completed_chunks == 6:
-                break
+#        rows = []
+#        cols = []
+#        data = []
+#        vocabulary = []
+#        completed_chunks = 0
+#        while True:
+#            l = q.get()
+#            rows += l[0]
+#            cols += l[1]
+#            data += l[2]
+#            vocabulary += l[3]
+#            completed_chunks += 1
+#            if completed_chunks == 6:
+#                break
+        rows, cols, data, vocabulary = self.featurize_items(list(zip(range(self.model.__len__()), self.model.items())))
         instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))
         if len(self.blackfeats) > 0:
             blackfeats_indices = []
