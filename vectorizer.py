@@ -41,6 +41,7 @@ class Vectorizer:
         self.train = train_instances
         self.test = test_instances
         self.feature_weight = {}
+        self.top_features = []
         self.prune_threshold = prune
 
     def weight_features(self):
@@ -75,10 +76,10 @@ class Vectorizer:
             Each test instance is stripped of the feature indices not in the top N weighted features
         """
         # select top features
-        top_features = sorted(sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold])
+        self.top_features = sorted(sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold])
         # transform instances
-        self.train = self.train[:, top_features]
-        self.test = self.test[:, top_features]
+        self.train = self.train[:, self.top_features]
+        self.test = self.test[:, self.top_features]
 
     def vectorize(self):
         """
@@ -96,7 +97,7 @@ class Vectorizer:
         self.weight_features()
         print('pruning features')
         self.prune_features()    
-        return sparse.csr_matrix(self.train), sparse.csr_matrix(self.test), top_features
+        return sparse.csr_matrix(self.train), sparse.csr_matrix(self.test), self.top_features
 
 class Counts:
     """

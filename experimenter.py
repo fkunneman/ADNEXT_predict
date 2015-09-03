@@ -125,9 +125,10 @@ class Experiment:
         vr = vectorizer.Vectorizer(train, test, trainlabels, weight, prune)
         train_vectors, test_vectors, top_features =  vr.vectorize()
         # save vocabulary
-        vocabulary_topfeatures = [v[i] for i in top_features]
+        vocabulary_topfeatures = [vocabulary[i] for i in top_features]
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
             v_out.write('\n'.join(vocabulary_topfeatures))
+
         train = {
             'instances' : train_vectors,
             'labels'    : trainlabels
@@ -192,7 +193,7 @@ class Experiment:
                 test = instances[fold[1]]
                 testlabels = [self.train_csv['label'][x] for x in fold[1]]
                 testdocuments = [self.train_csv['text'][x] for x in fold[1]]
-                predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
+                predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
                 for classifier in self.classifiers:
                     classifier_foldperformance[classifier].append([testdocuments, predictions[classifier]])
             for classifier in self.classifiers:

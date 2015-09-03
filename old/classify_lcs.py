@@ -79,7 +79,7 @@ else:
         testout = open(args.d + "/test","w")
         testout.write("\n".join(fold))
         testout.close()
-        config_out = codecs.open(args.d + "lcs3.conf","w","utf-8")
+        config_out = open(args.d + "lcs3.conf","w",encoding = "utf-8")
         for key in config_order:
             config_out.write(key + "=" + config[key] + "\n")
         expdir_fold = expdir + "fold_" + str(j)
