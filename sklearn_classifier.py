@@ -78,6 +78,7 @@ class SKlearn_classifier:
         """
         output = {}
         for helper in self.helpers:
+            print(helper, 'classification')
             output[helper.name] = helper.fit_transform(self.train, self.test)
         return output
 
@@ -183,7 +184,9 @@ class NB_classifier:
             self.settings : dict
                 parameter settings
         """
+        print('Fitting')
         self.fit(train)
+        print('Transforming')
         output = (self.transform(test), self.clf, self.settings)
         return output
 
@@ -290,7 +293,9 @@ class Tree_classifier:
             self.settings : dict
                 parameter settings
         """
+        print('Fitting')
         self.fit(train)
+        print('Transforming')
         output = (self.transform(test), self.clf, self.settings)
         return output
 
@@ -434,7 +439,9 @@ class SVM_classifier:
                     estimator__gamma
                     estimator__degree
         """
+        print('Fitting')
         self.fit(train)
+        print('Transforming')
         output = (self.transform(test), self.clf, self.settings)
         return output
 
@@ -521,7 +528,9 @@ class EnsembleClf_classifier:
         """
 
         """
+        print('Fitting')
         self.fit(train)
+        print('Transforming')
         output = (self.transform(test), self.ensemble_clf.clf, self.ensemble_clf.settings)
         return output
 
