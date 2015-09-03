@@ -84,7 +84,7 @@ class Experiment:
         self.featurizer = featurizer.Featurizer(text, tags, self.directory, self.features)
         self.featurizer.fit_transform()
 
-    def run_predictions(self, train, trainlabels, test, testlabels, weight, prune):
+    def run_predictions(self, train, trainlabels, test, testlabels, weight, prune, vocabulary):
         """
         Classification nterface
         =====
@@ -123,7 +123,11 @@ class Experiment:
         """
         print('running vectorizer', weight, prune)
         vr = vectorizer.Vectorizer(train, test, trainlabels, weight, prune)
-        train_vectors, test_vectors =  vr.vectorize()
+        train_vectors, test_vectors, top_features =  vr.vectorize()
+        # save vocabulary
+        vocabulary_topfeatures = [v[i] for i in top_features]
+        with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
+            v_out.write('\n'.join(vocabulary_topfeatures))
         train = {
             'instances' : train_vectors,
             'labels'    : trainlabels
@@ -161,8 +165,8 @@ class Experiment:
         # Select features
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
         # Save vocabulary
-        with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
-            v_out.write('\n'.join(vocabulary))
+        #with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
+        #    v_out.write('\n'.join(vocabulary))
         len_training = len(self.train_csv['text'])
         # if test, run experiment
         if self.test_csv:
@@ -171,7 +175,7 @@ class Experiment:
             test = instances[len_training:]
             print(test, test.shape)
             testlabels = self.test_csv['label']
-            predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune)
+            predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
             for classifier in self.classifiers:
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
