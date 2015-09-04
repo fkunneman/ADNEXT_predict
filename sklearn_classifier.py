@@ -461,21 +461,21 @@ class EnsembleClf_classifier:
         }
         self.helpers = kwargs['helpers']
         self.assessor = kwargs['assessor']
-        self.approach = kwargs['approach']
+        # self.approach = kwargs['approach']
 
     def add_classification_features(self, clfs, test):
-        instances = test['instances'].copy()
-        if self.approach == 'classifications_only':
-            instances = sparse.csr_matrix([[]] * instances.shape[0])
+        instances_all = test['instances'].copy()
+        instances_clf = sparse.csr_matrix([[]] * instances_all.shape[0])
         for clf in clfs:
             output = clf.transform(test)
             classifications = self.le.transform([x[1] for x in output])
             classifications_csr = sparse.csr_matrix([[classifications[i]] for i in range(classifications.size)])
-            if instances.shape[1] == 0:
-                instances = classifications_csr
+            instances_all = sparse.hstack((instances_all, classifications_csr))
+            if instances_clf.shape[1] == 0:
+                instances_clf = classifications_csr
             else:
-                instances = sparse.hstack((instances, classifications_csr))
-        return instances
+                instances_clf = sparse.hstack((instances_clf, classifications_csr))
+        return (instances_all, instances_clf)
 
     def fit(self, train):
         """
@@ -489,7 +489,8 @@ class EnsembleClf_classifier:
         # make folds
         folds = utils.return_folds(len(train['labels']))
         # add classifier features
-        new_instances = []
+        new_instances_all = []
+        new_instances_clf = []
         new_labels = []
         for fold in folds:
             fold_train = {
@@ -503,25 +504,32 @@ class EnsembleClf_classifier:
             clfs = [value(self.le, **self.helpers[key]) for key, value in self.modules.items() if key in self.helpers.keys()]
             for clf in clfs:
                 clf.fit(fold_train)
-            test_instances_classifications = self.add_classification_features(clfs, fold_test)
-            new_instances.append(test_instances_classifications)
+            test_instances_inclusive, test_instances_classifications_only = self.add_classification_features(clfs, fold_test)
+            new_instances_all.append(test_instances_inclusive)
+            new_instances_clf.append(test_instances_classifications_only)
             new_labels.extend(fold_test['labels'])
-        new_instances = sparse.csr_matrix(sparse.vstack(new_instances))
-        train_classifications = {'instances' : new_instances, 'labels' : new_labels}
+        new_instances_all_folds = sparse.csr_matrix(sparse.vstack(new_instances_all))
+        new_instances_clf_folds = sparse.csr_matrix(sparse.vstack(new_instances_clf))
+        train_classifications_all = {'instances' : new_instances_all_folds, 'labels' : new_labels}
+        train_classifications_clf = {'instances' : new_instances_clf_folds, 'labels' : new_labels}
         # train ensemble classifier
-        self.ensemble_clf = self.modules[self.assessor[0]](self.le, **self.assessor[1])
-        self.ensemble_clf.fit(train_classifications)
+        self.ensemble_all = self.modules[self.assessor](self.le, **self.assessor)        
+        self.ensemble_clf = self.modules[self.assessor](self.le, **self.assessor)
+        self.ensemble_all.fit(train_classifications_all)
+        self.ensemble_clf.fit(train_classifications_clf)
 
     def transform(self, test):
         """
 
         """
         # extend test data with classification features
-        test_instances_classifications = sparse.csr_matrix(self.add_classification_features(self.clfs, test))
-        test_classifications = {'instances' : test_instances_classifications, 'labels' : test['labels']}
+        test_instances_inclusive, test_instances_classifications_only = sparse.csr_matrix(self.add_classification_features(self.clfs, test))
+        test_all = {'instances' : test_instances_inclusive, 'labels' : test['labels']}
+        test_clf = {'instances' : test_instances_classifications_only, 'labels' : test['labels']}
         # make predictions
-        output = self.ensemble_clf.transform(test_classifications)
-        return output
+        output_all = self.ensemble_all.transform(test_all)
+        output_clf = self.ensemble_clf.transform(test_clf)
+        return (output_all, output_clf)
 
     def fit_transform(self, train, test):
         """

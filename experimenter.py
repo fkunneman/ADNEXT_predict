@@ -196,7 +196,11 @@ class Experiment:
                 testdocuments = [self.train_csv['text'][x] for x in fold[1]]
                 predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
                 for classifier in self.classifiers:
-                    classifier_foldperformance[classifier].append([testdocuments, predictions[classifier]])
+                    if classifier == 'ensemble_clf':
+                        classifier_foldperformance['ensemble_inclusive'].append([testdocuments, predictions[classifier][0]])
+                        classifier_foldperformance['ensemble_clf_only'].append([testdocuments, predictions[classifier][1]])
+                    else:
+                        classifier_foldperformance[classifier].append([testdocuments, predictions[classifier]])
             for classifier in self.classifiers:
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
