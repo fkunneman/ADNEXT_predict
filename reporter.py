@@ -16,7 +16,7 @@ class Reporter:
         self.comparison_file = self.directory + 'grid_performance' 
         self.labels = labels
 
-    def add_folds_test(self, classifier_output, directory):
+    def add_folds_test(self, classifier_output, vocabulary, vocabulary_weights, directory):
         folds = [] 
         for fold_index, output in enumerate(classifier_output):
             fold_directory = directory + 'fold_' + str(fold_index) + '/'
@@ -25,6 +25,10 @@ class Reporter:
             fold_evaluation = Eval(output, self.labels, fold_directory)
             fold_evaluation.report()
             folds.append(fold_evaluation.performance)
+        with open(directory + 'vocabulary.txt') as vocab:
+            vocab.write('\n'.join(vocabulary))
+        with open(directory + 'feature_weights.txt') as weights:
+            weights.write('\n'.join(vocabulary_weights))
         performance_std, performance = self.assess_performance_folds(folds)
         self.write_performance_folds(performance_std, directory)
         self.comparison.append((directory, performance))

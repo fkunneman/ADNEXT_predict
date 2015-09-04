@@ -52,8 +52,7 @@ class SKlearn_classifier:
             'tree':             Tree_classifier,
             'ensemble_clf':     EnsembleClf_classifier
         }
-        self.helpers = [value(le, **clfs[key]) for key, value in modules.items() if key in clfs.keys()]
-        #self.helpers = [value(le) for key, value in modules.items() if key in clfs]
+        self.helpers = [modules[key](le, **clfs[key]) for key in clfs.keys()]
 
     def fit_transform(self):
         """

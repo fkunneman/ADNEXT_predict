@@ -123,7 +123,7 @@ class Experiment:
         """
         print('running vectorizer', weight, prune)
         vr = vectorizer.Vectorizer(train, test, trainlabels, weight, prune)
-        train_vectors, test_vectors, top_features =  vr.vectorize()
+        train_vectors, test_vectors, top_features, top_features_values =  vr.vectorize()
         # save vocabulary
         vocabulary_topfeatures = [vocabulary[i] for i in top_features]
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
@@ -140,6 +140,8 @@ class Experiment:
         print("Performing classification")
         skc = sklearn_classifier.SKlearn_classifier(train, test, self.classifiers)
         predictions = skc.fit_transform()
+        predictions['features'] = vocabulary_topfeatures
+        predictions['feature_weights'] = top_features_values
         return predictions
 
     def run_experiment(self, featuretypes, weight, prune, directory):
@@ -174,7 +176,6 @@ class Experiment:
             train = instances[:len_training]
             trainlabels = self.train_csv['label']
             test = instances[len_training:]
-            print(test, test.shape)
             testlabels = self.test_csv['label']
             predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
             for classifier in self.classifiers:
@@ -200,7 +201,7 @@ class Experiment:
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
                     os.mkdir(classifier_directory)
-                self.reporter.add_folds_test(classifier_foldperformance[classifier], classifier_directory)
+                self.reporter.add_folds_test(classifier_foldperformance[classifier], predictions['features'], predictions['feature_weights'], classifier_directory)
         self.reporter.report_comparison()
                 
     def run_grid(self):

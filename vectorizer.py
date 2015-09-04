@@ -97,7 +97,7 @@ class Vectorizer:
         self.weight_features()
         print('pruning features')
         self.prune_features()    
-        return sparse.csr_matrix(self.train), sparse.csr_matrix(self.test), self.top_features
+        return sparse.csr_matrix(self.train), sparse.csr_matrix(self.test), self.top_features, [str(self.feature_weight[i]) for i in self.top_features]
 
 class Counts:
     """
