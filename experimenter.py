@@ -126,9 +126,6 @@ class Experiment:
         train_vectors, test_vectors, top_features, top_features_values =  vr.vectorize()
         # save vocabulary
         vocabulary_topfeatures = [vocabulary[i] for i in top_features]
-        with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
-            v_out.write('\n'.join(vocabulary_topfeatures))
-
         train = {
             'instances' : train_vectors,
             'labels'    : trainlabels
@@ -179,10 +176,18 @@ class Experiment:
             testlabels = self.test_csv['label']
             predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
             for classifier in self.classifiers:
-                classifier_directory = directory + classifier + '/'
-                if not os.path.isdir(classifier_directory):
-                    os.mkdir(classifier_directory)
-                self.reporter.add_test([self.test_csv['text'], predictions[classifier]], classifier_directory)
+                if classifier == 'ensemble_clf':
+                    e_clfs = ['ensemble_inclusive', 'ensemble_clf_only']
+                    for i, ec in enumerate(e_clfs):
+                        classifier_directory = directory + ec + '/'
+                        if not os.path.isdir(classifier_directory):
+                            os.mkdir(classifier_directory)
+                        self.reporter.add_test([self.test_csv['text'], predictions[classifier][i]], predictions['features'], predictions['feature_weights'], classifier_directory)
+                else:
+                    classifier_directory = directory + classifier + '/'
+                    if not os.path.isdir(classifier_directory):
+                        os.mkdir(classifier_directory)
+                    self.reporter.add_test([self.test_csv['text'], predictions[classifier]], predictions['features'], predictions['feature_weights'], classifier_directory)
         else: #run tenfold
             folds = utils.return_folds(len_training)
             #instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
@@ -202,10 +207,18 @@ class Experiment:
                     else:
                         classifier_foldperformance[classifier].append([testdocuments, predictions[classifier]])
             for classifier in self.classifiers:
-                classifier_directory = directory + classifier + '/'
-                if not os.path.isdir(classifier_directory):
-                    os.mkdir(classifier_directory)
-                self.reporter.add_folds_test(classifier_foldperformance[classifier], predictions['features'], predictions['feature_weights'], classifier_directory)
+                if classifier == 'ensemble_clf':
+                    e_clfs = ['ensemble_inclusive', 'ensemble_clf_only']
+                    for i, ec in enumerate(e_clfs):
+                        classifier_directory = directory + ec + '/'
+                        if not os.path.isdir(classifier_directory):
+                            os.mkdir(classifier_directory)
+                        self.reporter.add_folds_test(classifier_foldperformance[ec], predictions['features'], predictions['feature_weights'], classifier_directory)
+                else:
+                    classifier_directory = directory + classifier + '/'
+                    if not os.path.isdir(classifier_directory):
+                        os.mkdir(classifier_directory)
+                    self.reporter.add_folds_test(classifier_foldperformance[classifier], predictions['features'], predictions['feature_weights'], classifier_directory)
         self.reporter.report_comparison()
                 
     def run_grid(self):

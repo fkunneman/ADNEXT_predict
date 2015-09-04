@@ -25,9 +25,9 @@ class Reporter:
             fold_evaluation = Eval(output, self.labels, fold_directory)
             fold_evaluation.report()
             folds.append(fold_evaluation.performance)
-        with open(directory + 'vocabulary.txt') as vocab:
+        with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as vocab:
             vocab.write('\n'.join(vocabulary))
-        with open(directory + 'feature_weights.txt') as weights:
+        with open(directory + 'feature_weights.txt', 'w', encoding = 'utf-8') as weights:
             weights.write('\n'.join(vocabulary_weights))
         performance_std, performance = self.assess_performance_folds(folds)
         self.write_performance_folds(performance_std, directory)

@@ -30,25 +30,25 @@ args = parser.parse_args()
 expdir = "/".join(args.p.split("/")[:-1]) + "/"
 
 #set config
-config_file = open(args.c,"r",encoding = "utf-8")
-config = {}
-config_order = []
-for line in config_file.readlines():
-    tokens = line.strip().split("=")
-    config[tokens[0]] = tokens[1]
-    config_order.append(tokens[0])
-config_file.close()
-files_split = args.f.split("/")
-filewrite = "/".join(files_split[:-2]) + "/./" + files_split[-2]
-config["general.files"] = filewrite
-config["general.data"] = args.d + "./data"
-config["general.index"] = args.d + "./data/index"
+#config_file = open(args.c,"r",encoding = "utf-8")
+#config = {}
+#config_order = []
+#for line in config_file.readlines():
+#    tokens = line.strip().split("=")
+#    config[tokens[0]] = tokens[1]
+#    config_order.append(tokens[0])
+#config_file.close()
+#files_split = args.f.split("/")
+#filewrite = "/".join(files_split[:-2]) + "/./" + files_split[-2]
+#config["general.files"] = filewrite
+#config["general.data"] = args.d + "./data"
+#config["general.index"] = args.d + "./data/index"
 #optional parametersettings
 
 #write configfile
-config_out = open(args.d + "lcs3.conf","w",encoding = "utf-8")
-for key in config_order:
-    config_out.write(key + "=" + config[key] + "\n")
+#config_out = open(args.d + "lcs3.conf","w",encoding = "utf-8")
+#for key in config_order:
+#    config_out.write(key + "=" + config[key] + "\n")
 
 #prepare train and test
 if args.t:

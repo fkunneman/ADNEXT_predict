@@ -114,7 +114,7 @@ class Evalset():
         for i,instance in enumerate(self.instances):
             if instance.label == "during" or instance.label == "after":
                 try:
-                    print "calc",round((correct/i),2)
+                    print("calc",round((correct/i),2))
                     return round((correct/i),2)
                 except:
                     return 0.0

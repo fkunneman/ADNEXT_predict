@@ -2,7 +2,7 @@
 
 import argparse
 import re
-import codecs
+#import codecs
 from collections import defaultdict
 
 from evalset import Evalset
@@ -66,10 +66,10 @@ for label in evaluation.calculate_outcome():
 outfile.close()
 
 if args.f:
-    outfile = codecs.open("/".join(args.w.split("/")[:-1]) + "/stand_output.txt","w","utf-8")
+    outfile = open("/".join(args.w.split("/")[:-1]) + "/stand_output.txt","w",encoding="utf-8")
     for filename in sorted(filename_instance.keys()):
         instance = filename_instance[filename]
-        fileopen = codecs.open(args.f+filename,"r","utf-8")
+        fileopen = open(args.f+filename,"r",encoding="utf-8")
         text = " ".join([x for x in fileopen.read().split("\n") if not re.search("_",x)])
         label = instance[0]
         classification = instance[1]
@@ -79,16 +79,16 @@ if args.f:
 
 if args.n:
     #make filename - meta dict:
-    print "making meta-dict"
-    metafile = codecs.open("/".join(args.c[0].split("/")[:-1]) + "/meta.txt","r","utf-8")
+    print("making meta-dict")
+    metafile = open("/".join(args.c[0].split("/")[:-1]) + "/meta.txt","r",encoding = "utf-8")
     file_meta = defaultdict(list)
     for line in metafile.readlines():
         tokens = line.strip().split("\t")
         file_meta[tokens[0]] = tokens[1:]
     metafile.close()
-    print "writing ranked file"
+    print("writing ranked file")
     #write tweets
-    rankfile = codecs.open("/".join(args.w.split("/")[:-1]) + "/ranked_tweets.txt" ,"w","utf-8")
+    rankfile = open("/".join(args.w.split("/")[:-1]) + "/ranked_tweets.txt" ,"w",encoding = "utf-8")
     for tweet in sorted(instances,key=lambda x: x[2],reverse = True)[:args.n]:
         # fileopen = codecs.open(args.f + tweet[3],"r","utf-8")
         # feats =  fileopen.read().split("\n")

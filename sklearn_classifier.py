@@ -523,9 +523,9 @@ class EnsembleClf_classifier:
 
         """
         # extend test data with classification features
-        test_instances_inclusive, test_instances_classifications_only = sparse.csr_matrix(self.add_classification_features(self.clfs, test))
-        test_all = {'instances' : test_instances_inclusive, 'labels' : test['labels']}
-        test_clf = {'instances' : test_instances_classifications_only, 'labels' : test['labels']}
+        test_instances_inclusive, test_instances_classifications_only = self.add_classification_features(self.clfs, test)
+        test_all = {'instances' : sparse.csr_matrix(test_instances_inclusive), 'labels' : test['labels']}
+        test_clf = {'instances' : sparse.csr_matrix(test_instances_classifications_only), 'labels' : test['labels']}
         # make predictions
         output_all = self.ensemble_all.transform(test_all)
         output_clf = self.ensemble_clf.transform(test_clf)
@@ -538,7 +538,8 @@ class EnsembleClf_classifier:
         print('Fitting')
         self.fit(train)
         print('Transforming')
-        output = (self.transform(test), self.ensemble_clf.clf, self.ensemble_clf.settings)
+        tf = self.transform(test)
+        output = ((tf[0], self.ensemble_all.clf, self.ensemble_all.settings), (tf[1], self.ensemble_clf.clf, self.ensemble_clf.settings))
         return output
 
 class LCS_classifier:
