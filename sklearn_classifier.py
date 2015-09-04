@@ -513,8 +513,8 @@ class EnsembleClf_classifier:
         train_classifications_all = {'instances' : new_instances_all_folds, 'labels' : new_labels}
         train_classifications_clf = {'instances' : new_instances_clf_folds, 'labels' : new_labels}
         # train ensemble classifier
-        self.ensemble_all = self.modules[self.assessor](self.le, **self.assessor)        
-        self.ensemble_clf = self.modules[self.assessor](self.le, **self.assessor)
+        self.ensemble_all = self.modules[self.assessor[0]](self.le, **self.assessor[1])        
+        self.ensemble_clf = self.modules[self.assessor[0]](self.le, **self.assessor[1])
         self.ensemble_all.fit(train_classifications_all)
         self.ensemble_clf.fit(train_classifications_clf)
 
