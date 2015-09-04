@@ -59,6 +59,9 @@ if args.t:
         config_out.write(key + "=" + config[key] + "\n")
     #classify
     os.chdir(args.d)
+    os.system('rm -r data')
+    os.system('head test')
+    os.system('head train')
     os.system("lcs --verbose ")
     os.system("mv * " + expdir)
 
@@ -79,11 +82,16 @@ else:
         testout = open(args.d + "/test","w")
         testout.write("\n".join(fold))
         testout.close()
-        config_out = open(args.d + "lcs3.conf","w",encoding = "utf-8")
-        for key in config_order:
-            config_out.write(key + "=" + config[key] + "\n")
-        expdir_fold = expdir + "fold_" + str(j)
+        #config_out = open(args.d + "lcs3.conf","w",encoding = "utf-8")
+        #for key in config_order:
+        #    config_out.write(key + "=" + config[key] + "\n")
+        #if j == 1:
+        #    quit()
+        expdir_fold = expdir + "fold_" + str(j) + '/'
         os.system("mkdir " + expdir_fold)
         os.chdir(args.d)
+        os.system('rm -r data')
         os.system("lcs --verbose ")
-        os.system("mv * " + expdir_fold)
+        os.system("mv data " + expdir_fold)
+        os.system("mv t* " + expdir_fold)
+        os.system("cp lcs* " + expdir_fold)
