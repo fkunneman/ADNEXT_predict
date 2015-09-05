@@ -101,11 +101,6 @@ class Eval:
     def __init__(self, clf_output, labels, directory):
         self.ce = evaluation.ClassEvaluation()
         self.documents = clf_output[0]
-        for d in self.documents:
-            try:
-                print(d)
-            except:
-                continue
         self.classifications = clf_output[1][0]
         print(self.classifications)
         self.model = clf_output[1][1]

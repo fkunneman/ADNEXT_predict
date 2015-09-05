@@ -205,7 +205,7 @@ class Experiment:
                         classifier_foldperformance['ensemble_inclusive'].append([testdocuments, predictions[classifier][0], predictions['features'], predictions['feature_weights']])
                         classifier_foldperformance['ensemble_clf_only'].append([testdocuments, predictions[classifier][1], predictions['features'], predictions['feature_weights']])
                     else:
-                        classifier_foldperformance[classifier].append([testdocuments, predictions[classifier], predictions['features'], predictions['feature_weights']]])
+                        classifier_foldperformance[classifier].append([testdocuments, predictions[classifier], predictions['features'], predictions['feature_weights']])
             for classifier in self.classifiers:
                 print(classifier)
                 if classifier == 'ensemble_clf':

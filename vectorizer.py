@@ -76,7 +76,7 @@ class Vectorizer:
             Each test instance is stripped of the feature indices not in the top N weighted features
         """
         # select top features
-        self.top_features = sorted(sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold])
+        self.top_features = sorted(self.feature_weight, key = self.feature_weight.get, reverse = True)[:self.prune_threshold]
         # transform instances
         self.train = self.train[:, self.top_features]
         self.test = self.test[:, self.top_features]
