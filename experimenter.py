@@ -193,7 +193,8 @@ class Experiment:
             #instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             classifier_foldperformance = defaultdict(list)
             for i, fold in enumerate(folds):
-                print('fold', i)
+                f = i + 1
+                print('fold', f)
                 train = instances[fold[0]]
                 trainlabels = [self.train_csv['label'][x] for x in fold[0]]
                 test = instances[fold[1]]
@@ -207,7 +208,6 @@ class Experiment:
                     else:
                         classifier_foldperformance[classifier].append([testdocuments, predictions[classifier], predictions['features'], predictions['feature_weights']])
             for classifier in self.classifiers:
-                print(classifier)
                 if classifier == 'ensemble_clf':
                     e_clfs = ['ensemble_inclusive', 'ensemble_clf_only']
                     for i, ec in enumerate(e_clfs):

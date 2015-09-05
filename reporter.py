@@ -19,7 +19,8 @@ class Reporter:
     def add_folds_test(self, classifier_output, directory):
         folds = [] 
         for fold_index, output in enumerate(classifier_output):
-            fold_directory = directory + 'fold_' + str(fold_index) + '/'
+            f = fold_index + 1
+            fold_directory = directory + 'fold_' + str(fold_index + 1) + '/'
             if not os.path.isdir(fold_directory):
                 os.mkdir(fold_directory)
             fold_evaluation = Eval(output[:2], self.labels, fold_directory)
@@ -102,7 +103,6 @@ class Eval:
         self.ce = evaluation.ClassEvaluation()
         self.documents = clf_output[0]
         self.classifications = clf_output[1][0]
-        print(self.classifications)
         self.model = clf_output[1][1]
         self.settings = clf_output[1][2]
         self.labels = labels
