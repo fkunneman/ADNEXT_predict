@@ -266,7 +266,7 @@ class Tree_classifier:
             predictions.append(prediction)
             predictions.append(self.clf.predict(instance))
             predictions_prob.append(self.clf.predict_proba(instance)[0][prediction])
-        output = zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob)
+        output = list(zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob))
         return output
 
     def fit_transform(self, train, test):
@@ -408,7 +408,7 @@ class SVM_classifier:
                 predictions_prob.append(0)
             else:
                 predictions_prob.append(self.clf.predict_proba(instance)[0][prediction])
-        output = zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob)
+        output = list(zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob))
         return output
 
     def fit_transform(self, train, test):
