@@ -539,6 +539,7 @@ class EnsembleClf_classifier:
         self.fit(train)
         print('Transforming')
         tf = self.transform(test)
+#        print(tf[1][0])
         output = ((tf[0], self.ensemble_all.clf, self.ensemble_all.settings), (tf[1], self.ensemble_clf.clf, self.ensemble_clf.settings))
         return output
 

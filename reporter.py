@@ -33,7 +33,11 @@ class Reporter:
         self.write_performance_folds(performance_std, directory)
         self.comparison.append((directory, performance))
 
-    def add_test(self, classifier_output, directory):
+    def add_test(self, classifier_output, vocabulary, vocabulary_weights, directory):
+        with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as vocab:
+            vocab.write('\n'.join(vocabulary))
+        with open(directory + 'feature_weights.txt', 'w', encoding = 'utf-8') as weights:
+            weights.write('\n'.join(vocabulary_weights))
         evaluation = Eval(classifier_output, self.labels, directory)
         evaluation.report()
         self.comparison.append((directory, evaluation.performance))
@@ -97,6 +101,11 @@ class Eval:
     def __init__(self, clf_output, labels, directory):
         self.ce = evaluation.ClassEvaluation()
         self.documents = clf_output[0]
+        for d in self.documents:
+            try:
+                print(d)
+            except:
+                continue
         self.classifications = clf_output[1][0]
         self.model = clf_output[1][1]
         self.settings = clf_output[1][2]
