@@ -16,19 +16,19 @@ class Reporter:
         self.comparison_file = self.directory + 'grid_performance' 
         self.labels = labels
 
-    def add_folds_test(self, classifier_output, vocabulary, vocabulary_weights, directory):
+    def add_folds_test(self, classifier_output, directory):
         folds = [] 
         for fold_index, output in enumerate(classifier_output):
             fold_directory = directory + 'fold_' + str(fold_index) + '/'
             if not os.path.isdir(fold_directory):
                 os.mkdir(fold_directory)
-            fold_evaluation = Eval(output, self.labels, fold_directory)
+            fold_evaluation = Eval(output[:2], self.labels, fold_directory)
             fold_evaluation.report()
             folds.append(fold_evaluation.performance)
-        with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as vocab:
-            vocab.write('\n'.join(vocabulary))
-        with open(directory + 'feature_weights.txt', 'w', encoding = 'utf-8') as weights:
-            weights.write('\n'.join(vocabulary_weights))
+            with open(fold_directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as vocab:
+                vocab.write('\n'.join(output[2]))
+            with open(fold_directory + 'feature_weights.txt', 'w', encoding = 'utf-8') as weights:
+                weights.write('\n'.join(output[3]))
         performance_std, performance = self.assess_performance_folds(folds)
         self.write_performance_folds(performance_std, directory)
         self.comparison.append((directory, performance))
@@ -107,6 +107,7 @@ class Eval:
             except:
                 continue
         self.classifications = clf_output[1][0]
+        print(self.classifications)
         self.model = clf_output[1][1]
         self.settings = clf_output[1][2]
         self.labels = labels

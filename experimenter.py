@@ -202,23 +202,24 @@ class Experiment:
                 predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
                 for classifier in self.classifiers:
                     if classifier == 'ensemble_clf':
-                        classifier_foldperformance['ensemble_inclusive'].append([testdocuments, predictions[classifier][0]])
-                        classifier_foldperformance['ensemble_clf_only'].append([testdocuments, predictions[classifier][1]])
+                        classifier_foldperformance['ensemble_inclusive'].append([testdocuments, predictions[classifier][0], predictions['features'], predictions['feature_weights']])
+                        classifier_foldperformance['ensemble_clf_only'].append([testdocuments, predictions[classifier][1], predictions['features'], predictions['feature_weights']])
                     else:
-                        classifier_foldperformance[classifier].append([testdocuments, predictions[classifier]])
+                        classifier_foldperformance[classifier].append([testdocuments, predictions[classifier], predictions['features'], predictions['feature_weights']]])
             for classifier in self.classifiers:
+                print(classifier)
                 if classifier == 'ensemble_clf':
                     e_clfs = ['ensemble_inclusive', 'ensemble_clf_only']
                     for i, ec in enumerate(e_clfs):
                         classifier_directory = directory + ec + '/'
                         if not os.path.isdir(classifier_directory):
                             os.mkdir(classifier_directory)
-                        self.reporter.add_folds_test(classifier_foldperformance[ec], predictions['features'], predictions['feature_weights'], classifier_directory)
+                        self.reporter.add_folds_test(classifier_foldperformance[ec], classifier_directory)
                 else:
                     classifier_directory = directory + classifier + '/'
                     if not os.path.isdir(classifier_directory):
                         os.mkdir(classifier_directory)
-                    self.reporter.add_folds_test(classifier_foldperformance[classifier], predictions['features'], predictions['feature_weights'], classifier_directory)
+                    self.reporter.add_folds_test(classifier_foldperformance[classifier], classifier_directory)
         self.reporter.report_comparison()
                 
     def run_grid(self):
