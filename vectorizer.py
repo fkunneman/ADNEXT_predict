@@ -561,7 +561,8 @@ class InfoGain(Counts):
         """
         frequency = feature_frequency[feature]
         feature_probability = frequency / len_instances
-        feature_label_probs = [(label_feature_frequency[label][feature] / frequency) for label in label_feature_frequency.keys()]
+        feature_label_probs = [(label_feature_frequency[label][feature] / frequency) for label in label_feature_frequency.keys()
+            if frequency > 0 else 0]
         positive_entropy = self.calculate_entropy(feature_label_probs) * feature_probability
         return positive_entropy
 

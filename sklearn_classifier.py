@@ -328,7 +328,12 @@ class SVM_classifier:
         else:
             self.multi = False
         self.clf = False
-        self.settings = False
+        self.settings = {}
+        self.c = kwargs['C'] if 'C' in kwargs.keys() else False
+        self.kernel = kwargs['kernel'] if 'kernel' in kwargs.keys() else False
+        self.gamma = kwargs['gamma'] if 'gamma' in kwargs.keys() else False
+        self.degree = kwargs['degree'] if 'degree' in kwargs.keys() else False
+        self.approach = kwargs['params'] if 'params' in kwargs.keys() else 'default'
 
     def fit(self, train):
         """
@@ -351,26 +356,40 @@ class SVM_classifier:
             params = ['estimator__C', 'estimator__kernel', 'estimator__gamma', 'estimator__degree']
         else:
             params = ['C', 'kernel', 'gamma', 'degree']
-        # try different parameter settings for an svm outputcode classifier
-        param_grid = {
-            params[0]: [0.001, 0.005, 0.01, 0.5, 1, 5, 10, 50, 100, 500, 1000],
-            params[1]: ['linear', 'rbf', 'poly'], 
-            params[2]: [0.0005, 0.002, 0.008, 0.032, 0.128, 0.512, 1.024, 2.048],
-            params[3]: [1, 2, 3, 4]
-            }
-        model = svm.SVC(probability=True)
-        if self.multi:
-            model = OutputCodeClassifier(model)
-        paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 1, n_iter = 10, n_jobs = 4) 
-        paramsearch.fit(train['instances'], self.le.transform(train['labels']))
-        self.settings = paramsearch.best_params_
+        if self.approach == 'paramsearch':
+            # try different parameter settings for an svm outputcode classifier
+            grid_values = [
+                [0.001, 0.005, 0.01, 0.5, 1, 5, 10, 50, 100, 500, 1000],
+                ['linear', 'rbf', 'poly'], 
+                [0.0005, 0.002, 0.008, 0.032, 0.128, 0.512, 1.024, 2.048],
+                [1, 2, 3, 4]
+            ]
+            param_grid = {}
+            param_grid[params[0]] = self.c if self.c else grid_values[0]
+            param_grid[params[1]] = self.kernel if self.kernel else grid_values[1]
+            param_grid[params[2]] = self.gamma if self.gamma else grid_values[2]
+            param_grid[params[3]] = self.degree if self.degree else grid_values[3]
+            model = svm.SVC(probability=True)
+            if self.multi:
+                model = OutputCodeClassifier(model)
+            paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 3, n_iter = 10, n_jobs = 10, pre_dispatch = 4) 
+            paramsearch.fit(train['instances'], self.le.transform(train['labels']))
+            self.settings = paramsearch.best_params_
+        elif self.approach == 'default':
+            self.settings[params[0]] = self.c if self.c else 1
+            self.settings[params[0]] = self.kernel if self.kernel else 'linear'
+            self.settings[params[0]] = self.gamma if self.gamma else 1 / train['instances'].shape[1]
+            self.settings[params[0]] = self.degree if self.degree else 3
         # train an SVC classifier with the settings that led to the best performance
         self.clf = svm.SVC(
            probability = True, 
            C = self.settings[params[0]],
            kernel = self.settings[params[1]],
            gamma = self.settings[params[2]],
-           degree = self.settings[params[3]]
+           degree = self.settings[params[3]],
+           cache_size = 1000,
+           class_weight = 'auto',
+           verbose = 2
            )      
         if self.multi:
             self.clf = OutputCodeClassifier(self.clf)
