@@ -419,12 +419,9 @@ class TfIdf(Counts):
             key : feature index (int)
             value : feature idf (float)
         """
-        feature_idf_ordered = numpy.array([self.idf[feature] for feature in sorted(self.idf.keys())])
-        print(feature_idf_ordered.size)
-        print(self.train_instances.shape)
-        print(self.test_instances.shape)
-        self.train_instances = sparse.csr_matrix(feature_idf_ordered * self.train_instances.toarray())
-        self.test_instances = sparse.csr_matrix(feature_idf_ordered * self.test_instances.toarray())
+        feature_idf_ordered = sparse.csr_matrix([self.idf[feature] for feature in sorted(self.idf.keys())])
+        self.train_instances = self.train_instances.multiply(feature_idf_ordered)
+        self.test_instances = self.test_instances.multiply(feature_idf_ordered)
         return self.train_instances, self.test_instances, self.idf
 
     def fit_transform(self):
