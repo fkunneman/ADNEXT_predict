@@ -361,7 +361,7 @@ class SVM_classifier:
         model = svm.SVC(probability=True)
         if self.multi:
             model = OutputCodeClassifier(model)
-        paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 1, n_iter = 10, n_jobs = 12) 
+        paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 1, n_iter = 10, n_jobs = 4) 
         paramsearch.fit(train['instances'], self.le.transform(train['labels']))
         self.settings = paramsearch.best_params_
         # train an SVC classifier with the settings that led to the best performance

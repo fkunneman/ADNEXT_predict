@@ -125,20 +125,20 @@ vp = cp['Vector']
 weight = vp['weight'].split()
 select = [int(x) for x in vp['select'].split()]
 
-classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
-clfs = []
-for classifier in classifiers:
-    clp = cp[classifier]
-    keys = [k for k in clp.keys()]
-    clf = {}
-    for key in keys:
-        value = clp[key]
-        if re.search(' ', value):
-            value = value.split()
-        else:
-            value = [value]
-        clf[key] = value
-    clfs.append(clf)
+#classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
+#clfs = []
+#for classifier in classifiers:
+#    clp = cp[classifier]
+#    keys = [k for k in clp.keys()]
+#    clf = {}
+#    for key in keys:
+#        value = clp[key]
+#        if re.search(' ', value):
+#            value = value.split()
+#        else:
+#            value = [value]
+#        clf[key] = value
+#    clfs.append(clf)
 
 classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
 clfs = {}
@@ -172,8 +172,9 @@ for classifier in ensemble_clfs:
     if cp[classifier].getboolean('assessor'):
         assessor = [clf_name, clf]
         approach = cp[classifier]['approach']
-ensemble_clf = {'helpers' : helpers, 'assessor' : assessor, 'approach' : approach}
-clfs['ensemble_clf'] = ensemble_clf
+if len(ensemble_clfs) > 0:
+    ensemble_clf = {'helpers' : helpers, 'assessor' : assessor, 'approach' : approach}
+    clfs['ensemble_clf'] = ensemble_clf
 
 grid = experimenter.Experiment(train_dataset, test_dataset, features, weight, select, clfs, expdir)
 print('featurizing data')

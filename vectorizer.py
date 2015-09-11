@@ -1,3 +1,4 @@
+
 #!/usr/bin/env 
 
 from collections import Counter
@@ -181,7 +182,7 @@ class Counts:
         num_docs = self.instances.shape[0]
         feature_counts = self.count_document_frequency()
         for feature in feature_counts.keys():
-            idf[feature] = math.log((num_docs / feature_counts[feature]), 10)
+            idf[feature] = math.log((num_docs / feature_counts[feature]), 10) if feature_counts[feature] > 0 else 0
         return idf
 
 class Frequency(Counts):
@@ -419,6 +420,9 @@ class TfIdf(Counts):
             value : feature idf (float)
         """
         feature_idf_ordered = numpy.array([self.idf[feature] for feature in sorted(self.idf.keys())])
+        print(feature_idf_ordered.size)
+        print(self.train_instances.shape)
+        print(self.test_instances.shape)
         self.train_instances = sparse.csr_matrix(feature_idf_ordered * self.train_instances.toarray())
         self.test_instances = sparse.csr_matrix(feature_idf_ordered * self.test_instances.toarray())
         return self.train_instances, self.test_instances, self.idf
