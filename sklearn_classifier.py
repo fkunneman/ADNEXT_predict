@@ -353,9 +353,9 @@ class SVM_classifier:
             Trained Support Vector Machines classifier
         """
         # scale data
-        self.min_max_scaler = preprocessing.MinMaxScaler()
-        train_minmax = self.min_max_scaler.fit_transform(train['instances'].toarray())
-        train_minmax = sparse.csr_matrix(train_minmax)
+        # self.min_max_scaler = preprocessing.MinMaxScaler()
+        # train_minmax = self.min_max_scaler.fit_transform(train['instances'].toarray())
+        # train_minmax = sparse.csr_matrix(train_minmax)
         if self.multi:
             params = ['estimator__C', 'estimator__kernel', 'estimator__gamma', 'estimator__degree']
         else:
@@ -377,7 +377,7 @@ class SVM_classifier:
             if self.multi:
                 model = OutputCodeClassifier(model)
             paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 3, n_iter = 10, n_jobs = 10, pre_dispatch = 4) 
-            paramsearch.fit(train_minmax, self.le.transform(train['labels']))
+            paramsearch.fit(train['instances'], self.le.transform(train['labels']))
             self.settings = paramsearch.best_params_
         elif self.approach == 'default':
             self.settings[params[0]] = self.c if self.c else 1
@@ -393,11 +393,11 @@ class SVM_classifier:
            degree = self.settings[params[3]],
            cache_size = 1000,
            class_weight = 'auto',
-           verbose = 3
+           verbose = 2
            )      
         if self.multi:
             self.clf = OutputCodeClassifier(self.clf)
-        self.clf.fit(train_minmax, self.le.transform(train['labels']))
+        self.clf.fit(train['instances'], self.le.transform(train['labels']))
 
     def transform(self, test):
         """
@@ -425,15 +425,12 @@ class SVM_classifier:
         predictions = []
         predictions_prob = []
         for i, instance in enumerate(test['instances']):
-            print(instance.todense())
-            minmax_instance = self.min_max_scaler.transform(instance.todense()[0])
-            print(minmax_instance)
-            prediction = self.clf.predict(minmax_instance)[0]
+            prediction = self.clf.predict(instance)[0]
             predictions.append(prediction)
             if self.multi:
                 predictions_prob.append(0)
             else:
-                predictions_prob.append(self.clf.predict_proba(minmax_instance)[0][prediction])
+                predictions_prob.append(self.clf.predict_proba(instance)[0][prediction])
         output = list(zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob))
         return output
 
