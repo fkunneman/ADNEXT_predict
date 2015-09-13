@@ -664,9 +664,9 @@ class InfoGain(Counts):
         """
         binary_vectorizer = Binary(self.train_instances, self.labels, self.test_instances)
         train_instances_binary, test_instances_binary, feature_frequency = binary_vectorizer.fit_transform()
-        feature_infogain_ordered = numpy.array([self.feature_infogain[feature] for feature in sorted(self.feature_infogain.keys())])        
-        self.train_instances = feature_infogain_ordered * train_instances_binary.toarray()
-        self.test_instances = feature_infogain_ordered * test_instances_binary.toarray()
+        feature_infogain_ordered = numpy.array([self.feature_infogain[feature] for feature in sorted(self.feature_infogain.keys())])
+        self.train_instances = self.train_instances_binary.multiply(feature_infogain_ordered)
+        self.test_instances = self.test_instances_binary.multiply(feature_infogain_ordered)     
         return self.train_instances, self.test_instances, self.feature_infogain
 
     def fit_transform(self):
