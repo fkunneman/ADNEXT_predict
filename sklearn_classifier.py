@@ -381,9 +381,9 @@ class SVM_classifier:
             self.settings = paramsearch.best_params_
         elif self.approach == 'default':
             self.settings[params[0]] = self.c if self.c else 1
-            self.settings[params[0]] = self.kernel if self.kernel else 'linear'
-            self.settings[params[0]] = self.gamma if self.gamma else 1 / train['instances'].shape[1] # number of features
-            self.settings[params[0]] = self.degree if self.degree else 3
+            self.settings[params[1]] = self.kernel if self.kernel else 'linear'
+            self.settings[params[2]] = self.gamma if self.gamma else 1 / train['instances'].shape[1] # number of features
+            self.settings[params[3]] = self.degree if self.degree else 3
         # train an SVC classifier with the settings that led to the best performance
         self.clf = svm.SVC(
            probability = True, 
@@ -425,7 +425,9 @@ class SVM_classifier:
         predictions = []
         predictions_prob = []
         for i, instance in enumerate(test['instances']):
-            minmax_instance = self.min_max_scaler.transform(instance)
+            print(instance.todense())
+            minmax_instance = self.min_max_scaler.transform(instance.todense()[0])
+            print(minmax_instance)
             prediction = self.clf.predict(minmax_instance)[0]
             predictions.append(prediction)
             if self.multi:
@@ -488,15 +490,14 @@ class EnsembleClf_classifier:
         self.approach = kwargs['approach']
 
     def add_classification_features(self, clfs, test):
-        if self.approach = 'classifications_only':
-            instances = sparse.csr_matrix([[]] * instances_all.shape[0])   
-        elif self.approach = 'all_inclusive':
-            instances = test['instances'].copy()
+        instances = test['instances'].copy()
+        if self.approach == 'classifications_only':
+            instances = sparse.csr_matrix([[]] * instances.shape[0])   
         for clf in clfs:
             output = clf.transform(test)
             classifications = self.le.transform([x[1] for x in output])
             classifications_csr = sparse.csr_matrix([[classifications[i]] for i in range(classifications.size)])
-            if self.approach = 'classifications_only':
+            if self.approach == 'classifications_only':
                 if instances.shape[1] == 0:
                     instances = classifications_csr
                 else:
