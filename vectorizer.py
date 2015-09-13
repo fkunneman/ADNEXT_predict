@@ -560,10 +560,12 @@ class InfoGain(Counts):
         positive_entropy : float
         """
         frequency = feature_frequency[feature]
-        feature_probability = frequency / len_instances
-        feature_label_probs = [(label_feature_frequency[label][feature] / frequency) for label in label_feature_frequency.keys()
-            if frequency > 0 else 0]
-        positive_entropy = self.calculate_entropy(feature_label_probs) * feature_probability
+        if frequency > 0:
+            feature_probability = frequency / len_instances
+            feature_label_probs = [(label_feature_frequency[label][feature] / frequency) for label in label_feature_frequency.keys()]
+            positive_entropy = self.calculate_entropy(feature_label_probs) * feature_probability
+        else:
+            positive_entropy = 0
         return positive_entropy
 
     def calculate_negative_feature_entropy(self, feature, len_instances, feature_frequency, label_frequency, label_feature_frequency):
