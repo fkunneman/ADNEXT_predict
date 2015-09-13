@@ -125,21 +125,6 @@ vp = cp['Vector']
 weight = vp['weight'].split()
 select = [int(x) for x in vp['select'].split()]
 
-#classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
-#clfs = []
-#for classifier in classifiers:
-#    clp = cp[classifier]
-#    keys = [k for k in clp.keys()]
-#    clf = {}
-#    for key in keys:
-#        value = clp[key]
-#        if re.search(' ', value):
-#            value = value.split()
-#        else:
-#            value = [value]
-#        clf[key] = value
-#    clfs.append(clf)
-
 classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
 clfs = {}
 for classifier in classifiers:

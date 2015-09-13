@@ -352,6 +352,10 @@ class SVM_classifier:
         self.clf : SVC
             Trained Support Vector Machines classifier
         """
+        # scale data
+        self.min_max_scaler = preprocessing.MinMaxScaler()
+        train_minmax = self.min_max_scaler.fit_transform(train['instances'].toarray())
+        train_minmax = sparse.csr_matrix(train_minmax)
         if self.multi:
             params = ['estimator__C', 'estimator__kernel', 'estimator__gamma', 'estimator__degree']
         else:
@@ -373,12 +377,12 @@ class SVM_classifier:
             if self.multi:
                 model = OutputCodeClassifier(model)
             paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 3, n_iter = 10, n_jobs = 10, pre_dispatch = 4) 
-            paramsearch.fit(train['instances'], self.le.transform(train['labels']))
+            paramsearch.fit(train_minmax, self.le.transform(train['labels']))
             self.settings = paramsearch.best_params_
         elif self.approach == 'default':
             self.settings[params[0]] = self.c if self.c else 1
             self.settings[params[0]] = self.kernel if self.kernel else 'linear'
-            self.settings[params[0]] = self.gamma if self.gamma else 1 / train['instances'].shape[1]
+            self.settings[params[0]] = self.gamma if self.gamma else 1 / train['instances'].shape[1] # number of features
             self.settings[params[0]] = self.degree if self.degree else 3
         # train an SVC classifier with the settings that led to the best performance
         self.clf = svm.SVC(
@@ -389,11 +393,11 @@ class SVM_classifier:
            degree = self.settings[params[3]],
            cache_size = 1000,
            class_weight = 'auto',
-           verbose = 2
+           verbose = 3
            )      
         if self.multi:
             self.clf = OutputCodeClassifier(self.clf)
-        self.clf.fit(train['instances'], self.le.transform(train['labels']))
+        self.clf.fit(train_minmax, self.le.transform(train['labels']))
 
     def transform(self, test):
         """
@@ -420,13 +424,14 @@ class SVM_classifier:
         """
         predictions = []
         predictions_prob = []
-        for i, instance in enumerate(test['instances']):  
-            prediction = self.clf.predict(instance)[0]
+        for i, instance in enumerate(test['instances']):
+            minmax_instance = self.min_max_scaler.transform(instance)
+            prediction = self.clf.predict(minmax_instance)[0]
             predictions.append(prediction)
             if self.multi:
                 predictions_prob.append(0)
             else:
-                predictions_prob.append(self.clf.predict_proba(instance)[0][prediction])
+                predictions_prob.append(self.clf.predict_proba(minmax_instance)[0][prediction])
         output = list(zip(test['labels'], self.le.inverse_transform(predictions), predictions_prob))
         return output
 
@@ -480,21 +485,25 @@ class EnsembleClf_classifier:
         }
         self.helpers = kwargs['helpers']
         self.assessor = kwargs['assessor']
-        # self.approach = kwargs['approach']
+        self.approach = kwargs['approach']
 
     def add_classification_features(self, clfs, test):
-        instances_all = test['instances'].copy()
-        instances_clf = sparse.csr_matrix([[]] * instances_all.shape[0])
+        if self.approach = 'classifications_only':
+            instances = sparse.csr_matrix([[]] * instances_all.shape[0])   
+        elif self.approach = 'all_inclusive':
+            instances = test['instances'].copy()
         for clf in clfs:
             output = clf.transform(test)
             classifications = self.le.transform([x[1] for x in output])
             classifications_csr = sparse.csr_matrix([[classifications[i]] for i in range(classifications.size)])
-            instances_all = sparse.hstack((instances_all, classifications_csr))
-            if instances_clf.shape[1] == 0:
-                instances_clf = classifications_csr
+            if self.approach = 'classifications_only':
+                if instances.shape[1] == 0:
+                    instances = classifications_csr
+                else:
+                    instances = sparse.hstack((instances, classifications_csr))
             else:
-                instances_clf = sparse.hstack((instances_clf, classifications_csr))
-        return (instances_all, instances_clf)
+                instances = sparse.hstack((instances, classifications_csr))
+        return (instances)
 
     def fit(self, train):
         """
@@ -508,8 +517,7 @@ class EnsembleClf_classifier:
         # make folds
         folds = utils.return_folds(len(train['labels']))
         # add classifier features
-        new_instances_all = []
-        new_instances_clf = []
+        new_instances = []
         new_labels = []
         for fold in folds:
             fold_train = {
@@ -523,32 +531,25 @@ class EnsembleClf_classifier:
             clfs = [value(self.le, **self.helpers[key]) for key, value in self.modules.items() if key in self.helpers.keys()]
             for clf in clfs:
                 clf.fit(fold_train)
-            test_instances_inclusive, test_instances_classifications_only = self.add_classification_features(clfs, fold_test)
-            new_instances_all.append(test_instances_inclusive)
-            new_instances_clf.append(test_instances_classifications_only)
+            test_instances = self.add_classification_features(clfs, fold_test)
+            new_instances.append(test_instances)
             new_labels.extend(fold_test['labels'])
-        new_instances_all_folds = sparse.csr_matrix(sparse.vstack(new_instances_all))
-        new_instances_clf_folds = sparse.csr_matrix(sparse.vstack(new_instances_clf))
-        train_classifications_all = {'instances' : new_instances_all_folds, 'labels' : new_labels}
-        train_classifications_clf = {'instances' : new_instances_clf_folds, 'labels' : new_labels}
+        new_instances_folds = sparse.csr_matrix(sparse.vstack(new_instances))
+        train_classifications = {'instances' : new_instances_folds, 'labels' : new_labels}
         # train ensemble classifier
-        self.ensemble_all = self.modules[self.assessor[0]](self.le, **self.assessor[1])        
-        self.ensemble_clf = self.modules[self.assessor[0]](self.le, **self.assessor[1])
-        self.ensemble_all.fit(train_classifications_all)
-        self.ensemble_clf.fit(train_classifications_clf)
+        self.ensemble = self.modules[self.assessor[0]](self.le, **self.assessor[1])        
+        self.ensemble.fit(train_classifications)
 
     def transform(self, test):
         """
 
         """
         # extend test data with classification features
-        test_instances_inclusive, test_instances_classifications_only = self.add_classification_features(self.clfs, test)
-        test_all = {'instances' : sparse.csr_matrix(test_instances_inclusive), 'labels' : test['labels']}
-        test_clf = {'instances' : sparse.csr_matrix(test_instances_classifications_only), 'labels' : test['labels']}
+        test_instances = self.add_classification_features(self.clfs, test)
+        test_all = {'instances' : sparse.csr_matrix(test_instances), 'labels' : test['labels']}
         # make predictions
-        output_all = self.ensemble_all.transform(test_all)
-        output_clf = self.ensemble_clf.transform(test_clf)
-        return (output_all, output_clf)
+        output = self.ensemble.transform(test_all)
+        return (output)
 
     def fit_transform(self, train, test):
         """
@@ -558,8 +559,7 @@ class EnsembleClf_classifier:
         self.fit(train)
         print('Transforming')
         tf = self.transform(test)
-#        print(tf[1][0])
-        output = ((tf[0], self.ensemble_all.clf, self.ensemble_all.settings), (tf[1], self.ensemble_clf.clf, self.ensemble_clf.settings))
+        output = (tf, self.ensemble.clf, self.ensemble.settings)
         return output
 
 class LCS_classifier:
