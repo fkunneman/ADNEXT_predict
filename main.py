@@ -67,6 +67,8 @@ for doc in data:
     dh = datahandler.Datahandler()
     dh.set(doc)
     if dp.getboolean('preprocess'):
+        if 'sample' in dp.keys():
+            dh.sample(dp['sample'])
         if dp['add_label'] != 'no':
             dh.set_label(dp['add_label'])
         if dp.getboolean('filter_punctuation'):

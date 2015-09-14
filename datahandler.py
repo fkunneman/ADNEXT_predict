@@ -113,7 +113,7 @@ class Datahandler:
         self.rows = list(zip(*[self.dataset[field] for field in self.headers]))
         self.decode_tagged()
 
-    def rows_2_dataset(self):
+    def rows_2_dataset(self, decode_tagged = True):
         """
         Row converter
         =====
@@ -123,7 +123,8 @@ class Datahandler:
         for row in self.rows:
             for category, val in zip(self.headers, row):
                 self.dataset[category].append(val)
-        self.decode_tagged()
+        if decode_tagged:
+            self.decode_tagged()
 
     def decode_tagged(self):
         """
@@ -308,3 +309,8 @@ class Datahandler:
                 new_doc.append([token[0].lower(), token[1].lower(), token[2], token[3]])
             new_tagged.append(new_doc)
         self.dataset['tagged'] = new_tagged
+
+    def sample(self, samplesize):
+        self.rows = random.sample(self.rows, samplesize)
+        self.rows_2_dataset(decode_tagged = False)
+
