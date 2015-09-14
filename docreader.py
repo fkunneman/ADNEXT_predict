@@ -148,7 +148,7 @@ class Docreader:
             The correctly formatted lines
 
         """
-        fields = ['label', 'tweet_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged'] 
+        fields = ['label', 'doc_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged'] 
         defaultline = ["-"] * len(fields)
         other_header = []
         for key, value in sorted(columndict.items()):
