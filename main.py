@@ -19,7 +19,7 @@ cp.read(configfile)
 
 ########################### Formatting data ###########################
 fileformats = ['.txt', '.xls', '.csv']
-fields = ['label', 'tweet_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged']
+fields = ['label', 'doc_id', 'author_id', 'date', 'time', 'authorname', 'text', 'tagged']
 data = [doc for doc in cp.sections() if doc[-4:] in fileformats]
 train = []
 test = []
