@@ -132,7 +132,7 @@ class CocoNgrams:
         self.ngrams = ngrams
         self.blackfeats = set(blackfeats)
         
-    def fit(self, tmpdir, lines):
+    def fit(self, tmpdir, lines, mt = 5):
         self.lines = lines
         ngram_file = tmpdir + 'ngrams.txt'
         with open(ngram_file, 'w', encoding = 'utf-8') as txt:
@@ -152,7 +152,7 @@ class CocoNgrams:
         self.classdecoder = colibricore.ClassDecoder(classfile) 
 
         # Train model
-        options = colibricore.PatternModelOptions(mintokens = 5, maxlength = max(self.ngrams), doreverseindex=True)
+        options = colibricore.PatternModelOptions(mintokens = mt, maxlength = max(self.ngrams), doreverseindex=True)
         self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
