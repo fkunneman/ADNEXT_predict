@@ -185,22 +185,24 @@ class Experiment:
             folds = utils.return_folds(len_training)
             #instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             classifier_foldperformance = defaultdict(list)
-            for i, fold in enumerate(folds):
-                f = i + 1
-                print('fold', f)
-                train = instances[fold[0]]
-                trainlabels = [self.train_csv['label'][x] for x in fold[0]]
-                test = instances[fold[1]]
-                testlabels = [self.train_csv['label'][x] for x in fold[1]]
-                testdocuments = [self.train_csv['text'][x] for x in fold[1]]
-                predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
-                for classifier in self.classifiers:
-                    classifier_foldperformance[classifier].append([testdocuments, predictions[classifier], predictions['features'], 
-                        predictions['feature_weights']])
             for classifier in self.classifiers:
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
-                    os.mkdir(classifier_directory)
+                    os.mkdir(classifier_directory)  
+                for i, fold in enumerate(folds):
+                    f = i + 1
+                    print('fold', f)
+                    train = instances[fold[0]]
+                    trainlabels = [self.train_csv['label'][x] for x in fold[0]]
+                    test = instances[fold[1]]
+                    testlabels = [self.train_csv['label'][x] for x in fold[1]]
+                    testdocuments = [self.train_csv['text'][x] for x in fold[1]]
+                    predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
+                    for classifier in self.classifiers:
+                        classifier_foldperformance[classifier].append([testdocuments, predictions[classifier], predictions['features'], 
+                            predictions['feature_weights']])
+            for classifier in self.classifiers:
+
                 self.reporter.add_folds_test(classifier_foldperformance[classifier], classifier_directory)
         self.reporter.report_comparison()
                 

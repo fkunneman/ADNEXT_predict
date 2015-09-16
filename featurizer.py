@@ -156,7 +156,7 @@ class CocoNgrams:
         self.model = colibricore.IndexedPatternModel()
         self.model.train(corpusfile, options)
 
-    def transform(self):
+    def transform(self, write = False):
         rows = []
         cols = []
         data = []
@@ -170,6 +170,11 @@ class CocoNgrams:
             rows.extend(unique)
             cols.extend([i] * len(unique))
             data.extend(counts.values())
+        if write:
+            with open(write, 'w', encoding = 'utf-8') as sparse_out:
+                sparse_out.write(' '.join([str(x) for x in data]) + '\n')
+                sparse_out.write(' '.join([str(x) for x in rows]) + '\n')
+                sparse_out.write(' '.join([str(x) for x in cols]))
         instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))
         if len(self.blackfeats) > 0:
             blackfeats_indices = []
