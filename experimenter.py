@@ -84,7 +84,7 @@ class Experiment:
         self.featurizer = featurizer.Featurizer(text, tags, self.directory, self.features)
         self.featurizer.fit_transform()
 
-    def run_predictions(self, train, trainlabels, test, testlabels, weight, prune, vocabulary):
+    def run_predictions(self, train, trainlabels, test, testlabels, classifiers, weight, prune, vocabulary):
         """
         Classification nterface
         =====
@@ -135,7 +135,7 @@ class Experiment:
             'labels'    : testlabels
         }
         print("Performing classification")
-        skc = sklearn_classifier.SKlearn_classifier(train, test, self.classifiers)
+        skc = sklearn_classifier.SKlearn_classifier(train, test, classifiers)
         predictions = skc.fit_transform()
         predictions['features'] = vocabulary_topfeatures
         predictions['feature_weights'] = top_features_values
@@ -174,7 +174,7 @@ class Experiment:
             trainlabels = self.train_csv['label']
             test = instances[len_training:]
             testlabels = self.test_csv['label']
-            predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
+            predictions = self.run_predictions(train, trainlabels, test, testlabels, self.classifiers, weight, prune, vocabulary)
             for classifier in self.classifiers:
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
@@ -186,6 +186,7 @@ class Experiment:
             #instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             classifier_foldperformance = defaultdict(list)
             for classifier in self.classifiers:
+                print(classifier)
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
                     os.mkdir(classifier_directory)  
@@ -200,8 +201,8 @@ class Experiment:
                     test = instances[fold[1]]
                     testlabels = [self.train_csv['label'][x] for x in fold[1]]
                     testdocuments = [self.train_csv['text'][x] for x in fold[1]]
-                    predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
-                    self.reporter.add_test([testdocuments, predictions], predictions['features'], predictions['feature_weights'], fold_directory, f)
+                    predictions = self.run_predictions(train, trainlabels, test, testlabels, [classifier], weight, prune, vocabulary)
+                    self.reporter.add_test([testdocuments, predictions[classifier]], predictions['features'], predictions['feature_weights'], fold_directory, f)
                 self.reporter.assess_performance_folds(classifier_directory)
                 # to acquire a classifier model trained on all data:
                 classify_all = classifier_directory + 'all/'
