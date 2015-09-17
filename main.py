@@ -46,7 +46,15 @@ for doc in data:
         reader.parse_doc(doc, delimiter, header, date, time)
         new_lines, other_lines = reader.set_lines(fields, columndict)
         csv_doc = doc[:-4] + '_standard.csv'
-        utils.write_csv(new_lines, csv_doc)
+        if new_lines[1][-1] != '-':
+            new_lines_tags = []
+            for line in new_lines:
+                t = line[-1]
+                line[-1] = '\n'.join(['\t'.join(x.split('|')) for x in t.split(' ')])
+                new_lines_tags.append(line)
+                utils.write_csv(new_lines_tags, csv_doc)
+        else:
+            utils.write_csv(new_lines, csv_doc)
         doc = csv_doc
         if other_lines:
             if len(other_lines) > 0:
@@ -110,6 +118,19 @@ else:
     except:
         test_dataset = False
 
+##### Sampling data #####
+if dp.getboolean('sample'):
+    print('sampling data')
+    samples = []
+    for sample in [1, 10, 50]:
+        print(sample)
+        dh_sample = datahandler.Datahandler()
+        dh_sample.set_rows(dh_train.rows)
+        dh_sample.sample(int((len(dh_sample.rows) / 100) * sample))
+        samples.append((str(sample), dh_sample.dataset))
+else:
+    samples = [('100', train_dataset)]
+
 ########################### Experiments ###########################
 featuretypes = [featuretype for featuretype in cp.sections() if featuretype[:8] == 'Features']
 features = {}
@@ -163,9 +184,13 @@ if len(ensemble_clfs) > 0:
     ensemble_clf = {'helpers' : helpers, 'assessor' : assessor, 'approach' : approach}
     clfs['ensemble_clf'] = ensemble_clf
 
-grid = experimenter.Experiment(train_dataset, test_dataset, features, weight, select, clfs, expdir)
-print('featurizing data')
-grid.set_features()
-print('running experiment grid')
-grid.run_grid()
-
+for sample in samples:
+    sampledir = expdir + sample[0] + '_percent/'
+    if not os.path.isdir(directory):
+        os.mkdir(sampledir)
+    print('sample', sample[0])
+    grid = experimenter.Experiment(sample[1], test_dataset, features, weight, select, clfs, expdir)
+    print('featurizing data')
+    grid.set_features()
+    print('running experiment grid')
+    grid.run_grid()

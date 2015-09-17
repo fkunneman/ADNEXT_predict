@@ -16,62 +16,45 @@ class Reporter:
         self.comparison_file = self.directory + 'grid_performance' 
         self.labels = labels
 
-    def add_folds_test(self, classifier_output, directory):
-        folds = [] 
-        for fold_index, output in enumerate(classifier_output):
-            f = fold_index + 1
-            fold_directory = directory + 'fold_' + str(fold_index + 1) + '/'
-            if not os.path.isdir(fold_directory):
-                os.mkdir(fold_directory)
-            fold_evaluation = Eval(output[:2], self.labels, fold_directory)
-            fold_evaluation.report()
-            folds.append(fold_evaluation.performance)
-            with open(fold_directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as vocab:
-                vocab.write('\n'.join(output[2]))
-            with open(fold_directory + 'feature_weights.txt', 'w', encoding = 'utf-8') as weights:
-                weights.write('\n'.join(output[3]))
-        performance_std, performance = self.assess_performance_folds(folds)
-        self.write_performance_folds(performance_std, directory)
-        self.comparison.append((directory, performance))
-
-    def add_test(self, classifier_output, vocabulary, vocabulary_weights, directory):
+    def add_test(self, classifier_output, vocabulary, weights, directory, fold = False):
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as vocab:
             vocab.write('\n'.join(vocabulary))
         with open(directory + 'feature_weights.txt', 'w', encoding = 'utf-8') as weights:
-            weights.write('\n'.join(vocabulary_weights))
-        evaluation = Eval(classifier_output, self.labels, directory)
+            weights.write('\n'.join(weights))
+        evaluation = Eval(classifier_output[:2], self.labels, directory)
         evaluation.report()
-        self.comparison.append((directory, evaluation.performance))
+        if fold:
+            if fold == 1:
+                self.folds = [fold_evaluation.performance]
+            else:
+                self.folds.append(fold_evaluation.performance)
+        else:
+            self.comparison.append((directory, evaluation.performance))
 
-    def assess_performance_folds(self, folds):
+    def assess_performance_folds(self, directory):
         label_performance_std = {}
         label_performance = {}
         for label in self.labels:
-            combined_lists = [[fold[label][i] for fold in folds] for i in range(9)]
-            label_performance_std[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists[:6]] + \
-                [sum(l) for l in combined_lists[6:]]
-            label_performance[label] = [numpy.mean(l) for l in combined_lists[:6]] + \
-                [sum(l) for l in combined_lists[6:]]
+            combined_lists = [[fold[label][i] for fold in self.folds] for i in range(9)]
+            label_performance_std[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists[:6]] + [sum(l) for l in combined_lists[6:]]
+            label_performance[label] = [numpy.mean(l) for l in combined_lists[:6]] + [sum(l) for l in combined_lists[6:]]
         combined_lists_micro = [[fold['micro'][i] for fold in folds] for i in range(9)]
-        label_performance_std['micro'] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists_micro[:6]] + \
-            [sum(l) for l in combined_lists_micro[6:]]
-        label_performance['micro'] = [numpy.mean(l) for l in combined_lists_micro[:6]] + \
-            [sum(l) for l in combined_lists_micro[6:]]
-        return label_performance_std, label_performance
+        label_performance_std['micro'] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists_micro[:6]] + [sum(l) for l in combined_lists_micro[6:]]
+        self.write_performance_std(label_performance_std, directory)
+        label_performance['micro'] = [numpy.mean(l) for l in combined_lists_micro[:6]] + [sum(l) for l in combined_lists_micro[6:]]
+        self.comparison.append((directory, label_performance))
 
-    def write_performance_folds(self, performance, directory):
+    def write_performance_std(self, performance, directory):
         labeldict = {}
-        results = \
+        results = 
         [
         ['Cat', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Tot', 'Clf', 'Cor'],
         [('-' * 5)] + [('-' * 13)] * 6 + [('-' * 7)] * 3
         ]
         for i, label in enumerate(self.labels):
             labeldict[i] = label
-            results.append([str(i)] + [" ".join([str(round(val[0], 2)), '(' + str(round(val[1], 2)) + ')']) \
-                for val in performance[label][:6]] + [str(val) for val in performance[label][6:]])
-        results.append(['Mcr'] + [" ".join([str(round(val[0], 2)), '(' + str(round(val[1], 2)) + ')']) \
-            for val in performance['micro'][:6]] + [str(val) for val in performance['micro'][6:]])
+            results.append([str(i)] + [" ".join([str(round(val[0], 2)), '(' + str(round(val[1], 2)) + ')']) for val in performance[label][:6]] + [str(val) for val in performance[label][6:]])
+        results.append(['Mcr'] + [" ".join([str(round(val[0], 2)), '(' + str(round(val[1], 2)) + ')']) for val in performance['micro'][:6]] + [str(val) for val in performance['micro'][6:]])
         with open(directory + 'performance.txt', 'w', encoding = 'utf-8') as out:
             out.write('legend:\n')
             for index in sorted(labeldict.keys()):
@@ -86,8 +69,7 @@ class Reporter:
             for value in value_column.keys():
                 overview = [['setting', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Tot', 'Clf', 'Cor']]
                 overview.append([('-' * 60)] + [('-' * 5)] * 6 + [('-' * 6)] * 3)
-                label_results = [['_'.join(performance[0].split('/')[-3:-1])] + [round(val, 2) for val in \
-                    performance[1][label]] for performance in self.comparison]
+                label_results = [['_'.join(performance[0].split('/')[-3:-1])] + [round(val, 2) for val in performance[1][label]] for performance in self.comparison]
                 sorted_results = sorted(label_results, key = lambda k: k[value_column[value]], reverse = True)
                 overview.extend(sorted_results)
                 overview_str = utils.format_table(overview, [60] + [5] * 6 + [6] * 3)

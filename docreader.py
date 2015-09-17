@@ -167,7 +167,7 @@ class Docreader:
             if other:
                 other_line = []
             for key, value in sorted(columndict.items()):
-                if value in fields: 
+                if value in fields:
                     try:
                         new_line[fields.index(value)] = line[key]
                     except:
