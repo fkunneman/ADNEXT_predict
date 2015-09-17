@@ -211,7 +211,7 @@ class Experiment:
                 trainlabels = self.train_csv['label']
                 test = instances[-10:]
                 testlabels = self.train_csv['label'][-10:]
-                testdocuments = [self.train_csv['text'][-10:]
+                testdocuments = self.train_csv['text'][-10:]
                 predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
                 self.reporter.add_test([testdocuments, predictions], predictions['features'], predictions['feature_weights'], classify_all)
         self.reporter.report_comparison()

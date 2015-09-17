@@ -19,8 +19,9 @@ class Reporter:
     def add_test(self, classifier_output, vocabulary, weights, directory, fold = False):
         with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as vocab:
             vocab.write('\n'.join(vocabulary))
-        with open(directory + 'feature_weights.txt', 'w', encoding = 'utf-8') as weights:
-            weights.write('\n'.join(weights))
+        with open(directory + 'feature_weights.txt', 'w', encoding = 'utf-8') as ws:
+            ws.write('\n'.join(weights))
+        print(classifier_output[:2])
         evaluation = Eval(classifier_output[:2], self.labels, directory)
         evaluation.report()
         if fold:
@@ -46,7 +47,7 @@ class Reporter:
 
     def write_performance_std(self, performance, directory):
         labeldict = {}
-        results = 
+        results = \
         [
         ['Cat', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Tot', 'Clf', 'Cor'],
         [('-' * 5)] + [('-' * 13)] * 6 + [('-' * 7)] * 3
