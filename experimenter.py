@@ -186,10 +186,10 @@ class Experiment:
             #instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             classifier_foldperformance = defaultdict(list)
             for classifier in self.classifiers:
-                print(classifier)
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
                     os.mkdir(classifier_directory)  
+                clf_dict = {classifier : self.classifiers[classifier]}
                 for i, fold in enumerate(folds):
                     f = i + 1
                     fold_directory = classifier_directory + 'fold_' + str(f) + '/'
@@ -201,7 +201,7 @@ class Experiment:
                     test = instances[fold[1]]
                     testlabels = [self.train_csv['label'][x] for x in fold[1]]
                     testdocuments = [self.train_csv['text'][x] for x in fold[1]]
-                    predictions = self.run_predictions(train, trainlabels, test, testlabels, [classifier], weight, prune, vocabulary)
+                    predictions = self.run_predictions(train, trainlabels, test, testlabels, clf_dict, weight, prune, vocabulary)
                     self.reporter.add_test([testdocuments, predictions[classifier]], predictions['features'], predictions['feature_weights'], fold_directory, f)
                 self.reporter.assess_performance_folds(classifier_directory)
                 # to acquire a classifier model trained on all data:
@@ -213,8 +213,8 @@ class Experiment:
                 test = instances[-10:]
                 testlabels = self.train_csv['label'][-10:]
                 testdocuments = self.train_csv['text'][-10:]
-                predictions = self.run_predictions(train, trainlabels, test, testlabels, weight, prune, vocabulary)
-                self.reporter.add_test([testdocuments, predictions], predictions['features'], predictions['feature_weights'], classify_all)
+                predictions = self.run_predictions(train, trainlabels, test, testlabels, clf_dict, weight, prune, vocabulary)
+                self.reporter.add_test([testdocuments, predictions[classifier]], predictions['features'], predictions['feature_weights'], classify_all)
         self.reporter.report_comparison()
                 
     def run_grid(self):

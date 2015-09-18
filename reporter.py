@@ -21,14 +21,13 @@ class Reporter:
             vocab.write('\n'.join(vocabulary))
         with open(directory + 'feature_weights.txt', 'w', encoding = 'utf-8') as ws:
             ws.write('\n'.join(weights))
-        print(classifier_output[:2])
         evaluation = Eval(classifier_output[:2], self.labels, directory)
         evaluation.report()
         if fold:
             if fold == 1:
-                self.folds = [fold_evaluation.performance]
+                self.folds = [evaluation.performance]
             else:
-                self.folds.append(fold_evaluation.performance)
+                self.folds.append(evaluation.performance)
         else:
             self.comparison.append((directory, evaluation.performance))
 
@@ -39,7 +38,7 @@ class Reporter:
             combined_lists = [[fold[label][i] for fold in self.folds] for i in range(9)]
             label_performance_std[label] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists[:6]] + [sum(l) for l in combined_lists[6:]]
             label_performance[label] = [numpy.mean(l) for l in combined_lists[:6]] + [sum(l) for l in combined_lists[6:]]
-        combined_lists_micro = [[fold['micro'][i] for fold in folds] for i in range(9)]
+        combined_lists_micro = [[fold['micro'][i] for fold in self.folds] for i in range(9)]
         label_performance_std['micro'] = [[numpy.mean(l), numpy.std(l)] for l in combined_lists_micro[:6]] + [sum(l) for l in combined_lists_micro[6:]]
         self.write_performance_std(label_performance_std, directory)
         label_performance['micro'] = [numpy.mean(l) for l in combined_lists_micro[:6]] + [sum(l) for l in combined_lists_micro[6:]]
