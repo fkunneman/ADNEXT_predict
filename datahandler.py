@@ -299,6 +299,7 @@ class Datahandler:
 
         """
         self.dataset['label'] = [label] * len(self.dataset['label'])
+        self.dataset_2_rows()
 
     def to_lower(self):
         new_tagged = []

@@ -128,7 +128,7 @@ def bundle_data(docs, outfile):
     elif len(docs) == 1:
         dh_bundle = docs[0]
     dh_bundle.write_csv(outfile)
-    return dh_bundle.dataset
+    return dh_bundle
 
 def save_sparse_csr(filename, array):
     np.savez(filename, data = array.data, indices = array.indices,

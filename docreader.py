@@ -20,7 +20,7 @@ class Docreader:
             self.lines = self.parse_csv(doc)
 
     def parse_txt(self, doc, delimiter, header):
-        with open(doc, encoding = 'utf-8') as fn:
+        with open(doc, 'r', encoding = 'utf-8') as fn:
             lines = [x.strip().split(delimiter) for x in fn.readlines()]
         if header:
             lines = lines[1:]

@@ -193,8 +193,8 @@ class Experiment:
                 for i, fold in enumerate(folds):
                     f = i + 1
                     fold_directory = classifier_directory + 'fold_' + str(f) + '/'
-                    if not os.path.isdir(classifier_directory):
-                        os.mkdir(classifier_directory)
+                    if not os.path.isdir(fold_directory):
+                        os.mkdir(fold_directory)
                     print('fold', f)
                     train = instances[fold[0]]
                     trainlabels = [self.train_csv['label'][x] for x in fold[0]]

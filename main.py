@@ -40,7 +40,7 @@ for doc in data:
         date = catdict['date'] if 'date' in catdict.keys() else False
         time = catdict['time'] if 'time' in catdict.keys() else False
         sepdict = {'tab' : '\t', 'space' : ' '}
-        delimiter = sepdict[dp['separator']] if 'separator' in catdict.keys() else False
+        delimiter = sepdict[dp['separator']] if 'separator' in dp.keys() else False
         header = dp.getboolean('header')
         reader = docreader.Docreader()
         reader.parse_doc(doc, delimiter, header, date, time)
@@ -52,7 +52,7 @@ for doc in data:
                 t = line[-1]
                 line[-1] = '\n'.join(['\t'.join(x.split('|')) for x in t.split(' ')])
                 new_lines_tags.append(line)
-                utils.write_csv(new_lines_tags, csv_doc)
+            utils.write_csv(new_lines_tags, csv_doc)
         else:
             utils.write_csv(new_lines, csv_doc)
         doc = csv_doc
@@ -75,10 +75,8 @@ for doc in data:
     dh = datahandler.Datahandler()
     dh.set(doc)
     if dp.getboolean('preprocess'):
-        if 'sample' in dp.keys():
-            dh.sample(dp['sample'])
-        if dp['add_label'] != 'no':
-            dh.set_label(dp['add_label'])
+        if dp.getboolean('add_label'):
+            dh.set_label(dp['label'])
         if dp.getboolean('filter_punctuation'):
             dh.filter_punctuation()
         if dp.getboolean('normalize_usernames'):
@@ -101,15 +99,16 @@ for doc in data:
 print('bundling data')
 trainfile = expdir + 'traindata.csv'
 if len(train) > 0:
-    train_dataset = utils.bundle_data(train, trainfile)
+    dh_train = utils.bundle_data(train, trainfile)    
 else:
     dh_train = datahandler.Datahandler()
     dh_train.set(trainfile)
-    train_dataset = dh_train.dataset
+train_dataset = dh_train.dataset
 
 testfile = expdir + 'testdata.csv'
 if len(test) > 0:
-    test_dataset = utils.bundle_data(test, testfile)
+    dh_test = utils.bundle_data(test, testfile)
+    test_dataset = dh_test.dataset
 else:
     try:
         dh_test = datahandler.Datahandler()
@@ -123,7 +122,6 @@ if 'sample' in cp.sections():
     print('sampling data')
     samples = []
     for sample in [1, 10, 50]:
-        print(sample)
         dh_sample = datahandler.Datahandler()
         dh_sample.set_rows(dh_train.rows)
         dh_sample.sample(int((len(dh_sample.rows) / 100) * sample))
@@ -186,10 +184,10 @@ if len(ensemble_clfs) > 0:
 
 for sample in samples:
     sampledir = expdir + sample[0] + '_percent/'
-    if not os.path.isdir(directory):
+    if not os.path.isdir(sampledir):
         os.mkdir(sampledir)
     print('sample', sample[0])
-    grid = experimenter.Experiment(sample[1], test_dataset, features, weight, select, clfs, expdir)
+    grid = experimenter.Experiment(sample[1], test_dataset, features, weight, select, clfs, sampledir)
     print('featurizing data')
     grid.set_features()
     print('running experiment grid')
