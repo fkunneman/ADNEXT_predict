@@ -119,7 +119,7 @@ else:
         test_dataset = False
 
 ##### Sampling data #####
-if dp.getboolean('sample'):
+if 'sample' in cp.sections():
     print('sampling data')
     samples = []
     for sample in [1, 10, 50]:
