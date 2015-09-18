@@ -18,9 +18,10 @@ with open(vocab, 'r', encoding = 'utf-8') as vocabularyfile:
 vocabulary_length = len(self.keys)
 vocabulary = {x:i for i, x in enumerate(self.keys)}
 
-
-
 while True:
     sentence = input('Please enter some input...\n--> ')
-    print(sentence)
+    classification = clf.predict(vector)
+    prob = clf.predict_proba(vector)
+    print(classification)
+
 
