@@ -17,7 +17,8 @@ from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
 from sklearn.multiclass import OutputCodeClassifier
 from sklearn.metrics import f1_score
 from sklearn.externals import joblib
-import cPickle
+#import cPickle
+import pickle
 
 import lineconverter
 import gen_functions
@@ -367,19 +368,20 @@ class Classifier():
             outdir = self.test[0]["out"]
         #output features
         #featureout = codecs.open(outdir + "features.txt","w","utf-8")
-        featureout = codecs.open(outdir + "features.txt","w","utf-8")
+        featureout = open(outdir + "features.txt", "w", encoding = "utf-8")
         for feature in sorted(self.feature_info, key=self.feature_info.get):
             featureout.write(feature + "\t" + str(self.feature_info[feature]) + "\n")
         featureout.close()
         #output trainfile
         #trainout = codecs.open(outdir + "train.txt","w","utf-8")
-        trainout = codecs.open(outdir + "train.txt","w","utf-8")
+        trainout = open(outdir + "train.txt", "w", encoding = "utf-8")
         for instance in self.training:
             trainout.write(instance["label"] + " " + ",".join(instance["ngrams"]) + " " + 
                 ",".join([str(x) for x in instance["sparse"].keys()]) + "\n")
         trainout.close()
         #output testfile
-        testout = codecs.open(outdir + "test.txt","w","utf-8")
+        #testout = codecs.open(outdir + "test.txt","w","utf-8")
+        testout = open(outdir + "test.txt", "w", encoding = "utf-8")
         for i,tset in enumerate(self.test):
             #testout = codecs.open(outdir + "test" + str(i) + ".txt","w","utf-8")
             for instance in tset["instances"]:
@@ -394,7 +396,8 @@ class Classifier():
                 outstring = tset["out"][:-4] + "_predictions.txt"
             else:
                 outstring = tset["out"] + "predictions.txt"
-            outfile = codecs.open(outstring,"w","utf-8")
+#            outfile = codecs.open(outstring,"w","utf-8")
+            outfile = open(outstring, "w", encoding = "utf-8")
             if self.outstring:
                 outfile.write(self.outstring)
             for instance in testresults:
@@ -404,16 +407,20 @@ class Classifier():
     def save_model(self):
         for tset in self.test:
             outfile = tset["out"][:-4] + "_model.joblib.pkl"
+            #with open(outfile, 'wb') as fid:
+            #    cPickle.dump(self.clf, fid)    
             with open(outfile, 'wb') as fid:
-                cPickle.dump(self.clf, fid)    
+                pickle.dump(self.clf, fid)    
             #_ = joblib.dump(, outfile, compress=9)
             #outvocabulary = codecs.open(tset["out"] + "vocabulary.txt","w","utf-8")
             outstring = tset["out"][:-4] + "_vocabulary.txt"
-            outvocabulary = codecs.open(outstring,"w","utf-8")
+            #outvocabulary = codecs.open(outstring,"w","utf-8")
+            outvocabulary = open(outstring, "w", encoding = "utf-8")
             for feature in self.features:
                 outvocabulary.write(feature + "\n")
             outvocabulary.close() 
-            outidf = codecs.open(tset["out"][:-4] + "_idfs.txt","w","utf-8")
+            #outidf = codecs.open(tset["out"][:-4] + "_idfs.txt","w","utf-8")
+            outidf = open(tset["out"][:-4] + "_idfs.txt", "w", encoding = "utf-8")
             for key in self.idf.keys():
                 outidf.write(str(key) + "\t" + str(self.idf[key]) + "\n")
             outidf.close()

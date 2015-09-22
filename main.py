@@ -121,7 +121,8 @@ else:
 if 'sample' in cp.sections():
     print('sampling data')
     samples = []
-    for sample in [1, 10, 50]:
+    samplevalues = [int(x) for x in cp['sample']['values'].split()]
+    for sample in samplevalues:
         dh_sample = datahandler.Datahandler()
         dh_sample.set_rows(dh_train.rows)
         dh_sample.sample(int((len(dh_sample.rows) / 100) * sample))
