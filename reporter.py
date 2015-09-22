@@ -13,7 +13,9 @@ class Reporter:
     def __init__(self, grid_directory, labels):
         self.directory = grid_directory
         self.comparison = []
-        self.comparison_file = self.directory + 'grid_performance' 
+        self.comparison_dir = self.directory + 'grid_performance/'
+        if not os.path.isdir(comparison_dir):
+            os.mkdir(directory) 
         self.labels = labels
 
     def add_test(self, classifier_output, vocabulary, weights, directory, fold = False):
@@ -67,13 +69,13 @@ class Reporter:
         value_column = {'precision' : 1, 'recall' : 2, 'f1' : 3, 'fpr' : 5, 'auc' : 6}
         for label in self.labels + ['micro']:
             for value in value_column.keys():
-                overview = [['setting', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Tot', 'Clf', 'Cor']]
-                overview.append([('-' * 60)] + [('-' * 5)] * 6 + [('-' * 6)] * 3)
+                overview = [['setting', 'Pr', 'Re', 'F1', 'TPR', 'FPR', 'AUC', 'Total', 'Classified', 'Correct']]
+                overview.append([('-' * 45)] + [('-' * 5)] * 6 + [('-' * 11)] * 3)
                 label_results = [['_'.join(performance[0].split('/')[-3:-1])] + [round(val, 2) for val in performance[1][label]] for performance in self.comparison]
                 sorted_results = sorted(label_results, key = lambda k: k[value_column[value]], reverse = True)
                 overview.extend(sorted_results)
-                overview_str = utils.format_table(overview, [60] + [5] * 6 + [6] * 3)
-                with open(self.comparison_file + '_' + label + '_' + value + '.txt', 'w', encoding = 'utf-8') as out:
+                overview_str = utils.format_table(overview, [45] + [5] * 6 + [11] * 3)
+                with open(self.comparison_dir + label + '_' + value + '.txt', 'w', encoding = 'utf-8') as out:
                     out.write('\n'.join(overview_str))
 
     def report(self):

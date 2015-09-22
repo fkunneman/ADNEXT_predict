@@ -333,6 +333,7 @@ class SVM_classifier:
         self.kernel = kwargs['kernel'] if 'kernel' in kwargs.keys() else False
         self.gamma = kwargs['gamma'] if 'gamma' in kwargs.keys() else False
         self.degree = kwargs['degree'] if 'degree' in kwargs.keys() else False
+        self.cweight = kwargs['weight'] if 'weight' in kwargs.keys() else None
         self.approach = kwargs['params'] if 'params' in kwargs.keys() else 'default'
 
     def fit(self, train):
@@ -373,7 +374,7 @@ class SVM_classifier:
             param_grid[params[1]] = self.kernel if self.kernel else grid_values[1]
             param_grid[params[2]] = self.gamma if self.gamma else grid_values[2]
             param_grid[params[3]] = self.degree if self.degree else grid_values[3]
-            model = svm.SVC(probability=True)
+            model = svm.SVC(probability=True, class_weight = cweight)
             if self.multi:
                 model = OutputCodeClassifier(model)
             paramsearch = RandomizedSearchCV(model, param_grid, cv = 5, verbose = 3, n_iter = 10, n_jobs = 10, pre_dispatch = 4) 
@@ -392,7 +393,7 @@ class SVM_classifier:
            gamma = self.settings[params[2]],
            degree = self.settings[params[3]],
            cache_size = 1000,
-           class_weight = 'auto',
+           class_weight = cweight,
            verbose = 2
            )      
         if self.multi:

@@ -214,7 +214,7 @@ class Experiment:
                 testlabels = self.train_csv['label'][-10:]
                 testdocuments = self.train_csv['text'][-10:]
                 predictions = self.run_predictions(train, trainlabels, test, testlabels, clf_dict, weight, prune, vocabulary)
-                self.reporter.add_test([testdocuments, predictions[classifier]], predictions['features'], predictions['feature_weights'], classify_all)
+                self.reporter.add_test([testdocuments, predictions[classifier]], predictions['features'], predictions['feature_weights'], classify_all, fold = 10)
         self.reporter.report_comparison()
                 
     def run_grid(self):

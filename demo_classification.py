@@ -16,6 +16,7 @@ vocabulary = {}
 keys = []
 with open(vocab, 'r', encoding = 'utf-8') as vocabularyfile:
     keys = [x.strip() for x in vocabularyfile.readlines()]
+<<<<<<< HEAD
 vocabulary_length = len(keys)
 vocabulary = {x:i for i, x in enumerate(keys)}
 
@@ -39,5 +40,4 @@ while True:
     classification = clf.predict(v)
     prob = clf.predict_proba(v)
     print(classification, prob)
-
 
