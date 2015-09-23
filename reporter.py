@@ -14,8 +14,8 @@ class Reporter:
         self.directory = grid_directory
         self.comparison = []
         self.comparison_dir = self.directory + 'grid_performance/'
-        if not os.path.isdir(comparison_dir):
-            os.mkdir(directory) 
+        if not os.path.isdir(self.comparison_dir):
+            os.mkdir(self.comparison_dir) 
         self.labels = labels
 
     def add_test(self, classifier_output, vocabulary, weights, directory, fold = False):

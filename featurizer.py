@@ -176,7 +176,6 @@ class CocoNgrams:
                 sparse_out.write(' '.join([str(x) for x in rows]) + '\n')
                 sparse_out.write(' '.join([str(x) for x in cols]) + '\n')
                 sparse_out.write(str(len(self.lines)) + ' ' + str(self.model.__len__()))
-        print(len(self.lines), self.model.__len__(), len(data), len(rows), len(cols))
         instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))
         if len(self.blackfeats) > 0:
             blackfeats_indices = []
