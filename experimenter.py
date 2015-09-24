@@ -208,6 +208,7 @@ class Experiment:
                 classify_all = classifier_directory + 'all/'
                 if not os.path.isdir(classify_all):
                     os.mkdir(classify_all)
+                print('training on all instances')
                 train = instances
                 trainlabels = self.train_csv['label']
                 test = instances[-10:]
