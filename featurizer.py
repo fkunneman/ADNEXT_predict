@@ -107,7 +107,7 @@ class Featurizer:
             List with the feature name per index
         """
         submatrices = [self.feats[name] for name in helpernames]
-        instances = sparse.hstack(submatrices)
+        instances = sparse.hstack(submatrices).tocsr()        
         vocabulary = np.hstack([self.vocabularies[name] for name in helpernames])
         return instances, vocabulary
 
@@ -190,7 +190,7 @@ class CocoNgrams:
                 matches += [i for i, f in enumerate(vocabulary) if regex_middle.match(f)]
                 blackfeats_indices.extend(matches)
             to_keep = list(set(range(len(vocabulary))) - set(blackfeats_indices))
-            instances = instances[:, to_keep]
+            instances = sparse.csr_matrix(instances[:, to_keep])
             vocabulary = list(np.array(vocabulary)[to_keep])
         return instances, vocabulary
 

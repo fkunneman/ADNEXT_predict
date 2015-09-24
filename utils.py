@@ -145,7 +145,7 @@ def balance_data(dh, outfile):
         label = label_count[0]
         count = label_count[1]
         indices = [docindex for docindex in range(len(labelsequence)) if labelsequence[docindex] == label]
-        docs = [dh.rows[docindex] for docindex = indices]
+        docs = [dh.rows[docindex] for docindex in indices]
         handler = datahandler.Datahandler()
         handler.set_rows(docs)
         if count > lowest:

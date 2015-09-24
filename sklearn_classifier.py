@@ -393,7 +393,7 @@ class SVM_classifier:
            gamma = self.settings[params[2]],
            degree = self.settings[params[3]],
            cache_size = 1000,
-           class_weight = cweight,
+           class_weight = self.cweight,
            verbose = 2
            )      
         if self.multi:
