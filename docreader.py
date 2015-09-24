@@ -113,7 +113,8 @@ class Docreader:
 
     def parse_json(self, doc, parse_keys):
         lines = []       
-        with open(doc, encoding = 'utf-8') as fn:
+        #with open(doc, encoding = 'utf-8') as fn:
+        with open(doc) as fn:
             for obj in fn.readlines():
                 line = []
                 pks = copy.deepcopy(parse_keys)

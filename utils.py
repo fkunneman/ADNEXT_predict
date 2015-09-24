@@ -130,6 +130,29 @@ def bundle_data(docs, outfile):
     dh_bundle.write_csv(outfile)
     return dh_bundle
 
+def balance_data(dh, outfile):
+    labelsequence = dh.dataset['label']
+    # extract distribution
+    labels = list(set(labelsequence))
+    distribution = []
+    for label in labels:
+        distribution.append((label, labelsequence.count(label)))
+    sorted_distribution = sorted(distribution, key = lambda k : k[1])
+    lowest = sorted_distribution[0][1]
+    # split dataset based on labels and sample labels:
+    handlers = []
+    for i, label_count in enumerate(distribution):
+        label = label_count[0]
+        count = label_count[1]
+        indices = [docindex for docindex in range(len(labelsequence)) if labelsequence[docindex] == label]
+        docs = [dh.rows[docindex] for docindex = indices]
+        handler = datahandler.Datahandler()
+        handler.set_rows(docs)
+        if count > lowest:
+            handler.sample(lowest)
+        handlers.append(handler)
+    return bundle_data(handlers, outfile)
+
 def save_sparse_csr(filename, array):
     np.savez(filename, data = array.data, indices = array.indices,
              indptr = array.indptr, shape = array.shape)

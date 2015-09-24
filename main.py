@@ -99,10 +99,12 @@ for doc in data:
 print('bundling data')
 trainfile = expdir + 'traindata.csv'
 if len(train) > 0:
-    dh_train = utils.bundle_data(train, trainfile)    
+    dh_train = utils.bundle_data(train, trainfile)      
 else:
     dh_train = datahandler.Datahandler()
     dh_train.set(trainfile)
+if 'balance' in cp.sections():
+    dh_train = utils.balance_data(dh_train, cp['balance']['outfile'])
 train_dataset = dh_train.dataset
 
 testfile = expdir + 'testdata.csv'

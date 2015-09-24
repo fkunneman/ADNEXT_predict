@@ -313,4 +313,3 @@ class Datahandler:
     def sample(self, samplesize):
         self.rows = random.sample(self.rows, samplesize)
         self.rows_2_dataset()
-
