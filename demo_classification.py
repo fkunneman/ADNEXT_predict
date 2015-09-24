@@ -16,12 +16,8 @@ vocabulary = {}
 keys = []
 with open(vocab, 'r', encoding = 'utf-8') as vocabularyfile:
     keys = [x.strip() for x in vocabularyfile.readlines()]
-<<<<<<< HEAD
 vocabulary_length = len(keys)
 vocabulary = {x:i for i, x in enumerate(keys)}
-
-with open(weights, 'r', encoding = 'utf-8') as fw:
-    ws = numpy.array([float(x.strip()) for x in fw.readlines()])    
 
 def vectorize(text):
     vector = []
@@ -31,13 +27,27 @@ def vectorize(text):
         ngrams = tokens + [' '.join(x) for x in zip(tokens, tokens[1:]) ] + [ ' '.join(x) for x in zip(tokens, tokens[1:], tokens[2:])]
     in_vocabulary = [(x, ngrams.count(x)) for x in list(set(ngrams) & set(keys))]
     vector = [0.0] * vocabulary_length
-    wvector = vector * ws
+    for ngram in in_vocabulary:
+        vector[vocabulary[ngram[0]]] = ngram[1]
+    if weights == 'frequency':
+        wvector = vector
+    elif weights == 'binary':
+        wvector = []
+        for x in vector:
+            if x > 0:
+                wvector.append(1) 
+            else:
+                wvector.append(0)
+    else:
+        with open(weights, 'r', encoding = 'utf-8') as fw:
+            ws = numpy.array([float(x.strip()) for x in fw.readlines()])    
+            wvector = vector * ws
     return wvector
 
 while True:
     sentence = input('Please enter some input...\n--> ')
     v = vectorize(sentence)
     classification = clf.predict(v)
-    prob = clf.predict_proba(v)
+    prob = clf.predict_proba(v)[0][1]
     print(classification, prob)
 
