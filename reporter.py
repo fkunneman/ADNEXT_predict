@@ -76,7 +76,7 @@ class Reporter:
                 overview.extend(sorted_results)
                 overview_str = utils.format_table(overview, [45] + [5] * 6 + [11] * 3)
                 with open(self.comparison_dir + label + '_' + value + '.txt', 'w', encoding = 'utf-8') as out:
-                    out.write('\n'.join(overview_str))
+                    out.write('\n'.join(overview_str) + '\n')
 
     def report(self):
         pass
@@ -152,7 +152,7 @@ class Eval:
             info.append([('-' * 20)] * 3)
             info.extend(classifications_str)
             info_str = utils.format_table(info, [20, 20, 20])
-            out.write('\n'.join(info_str))
+            out.write('\n'.join(info_str) + '\n')
         with open(self.directory + 'classifiermodel.joblib.pkl', 'wb') as model_out:
             pickle.dump(self.model, model_out)
         if self.settings:
@@ -161,7 +161,7 @@ class Eval:
                 settings_table.append([parameter, str(self.settings[parameter])])
             settings_str = utils.format_table(settings_table, [15, 10])
             with open(self.directory + 'settings.txt', 'w') as settings_out:                
-                settings_out.write('\n'.join(settings_str))
+                settings_out.write('\n'.join(settings_str) +'\n')
 
     def write_performance(self):
         labeldict = {}
@@ -180,7 +180,7 @@ class Eval:
                 out.write(str(index) + ' = ' + labeldict[index] + '\n')
             out.write('\n')
             results_str = utils.format_table(results, [6] * 10)
-            out.write('\n'.join(results_str))       
+            out.write('\n'.join(results_str) + '\n')       
 
     def write_confusion_matrix(self):
         confusion_matrix = self.ce.confusionmatrix()
@@ -193,7 +193,7 @@ class Eval:
                 enumerate(self.classifications) if instance[1] == label and instance[0] != instance[1]], 
                 key = lambda k : k[3], reverse = True)
             with open(self.directory + label + '_ranked_fps.txt', 'w', encoding = 'utf-8') as out:
-                out.write('\n'.join(['\t'.join([fp[0], str(round(fp[3], 2))]) for fp in ranked_fps]))
+                out.write('\n'.join(['\t'.join([fp[0], str(round(fp[3], 2))]) for fp in ranked_fps]) + '\n')
 
     def write_top_tps(self):
         for label in self.labels:
@@ -201,7 +201,7 @@ class Eval:
                 enumerate(self.classifications) if instance[1] == label and instance[0] == instance[1]], 
                 key = lambda k : k[3], reverse = True)
             with open(self.directory + label + '_ranked_tps.txt', 'w', encoding = 'utf-8') as out:
-                out.write('\n'.join(['\t'.join([tp[0], str(round(tp[3], 2))]) for tp in ranked_tps]))
+                out.write('\n'.join(['\t'.join([tp[0], str(round(tp[3], 2))]) for tp in ranked_tps]) + '\n')
 
     def report(self):
         self.save_classifier_output()
