@@ -171,7 +171,7 @@ class Experiment:
         # If lcs classification is applied, make the necessary preparations
         if self.lcs:
             print('Preparing files LCS')
-            lcs_directory = directory + 'bwinnow/'
+            lcs_directory = self.classifiers['bwinnow']['save']
             if not os.path.isdir(lcs_directory):
                 os.mkdir(lcs_directory)
             filesdir = lcs_directory + 'files/'
@@ -204,19 +204,40 @@ class Experiment:
                     parts.append(filename + ' ' + label)
             with open(lcs_directory + 'parts.txt', 'w', encoding = 'utf-8') as partsfile:
                 partsfile.write('\n'.join(parts))
-        quit()
+            # write standard lcs config file
+            if weight == 'binary' 
+                lts = 'TERMFREQ'
+                ts = 'BOOL'
+            elif weight == 'frequency':
+                lts = 'TERMFREQ'
+                ts = 'FREQ'
+            else: # infogain or tfidf
+                lts = weight.upper()
+                ts = 'BOOL'
+            utils.write_lcs_config(lcs_directory, ts, lts, prune)
         len_training = len(self.train_csv['text'])
         # if test, run experiment
         if self.test_csv:
-            train = instances[:len_training]
-            trainlabels = self.train_csv['label']
-            test = instances[len_training:]
-            testlabels = self.test_csv['label']
             for classifier in self.classifiers:
                 clf_dict = {classifier : self.classifiers[classifier]}
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
                     os.mkdir(classifier_directory)
+                if classifier == 'bwinnow':
+                    train = range(len_training)
+                    test = range(len_training, len(parts))
+                    clf_dict[classifier]['maindir'] = lcs_directory
+                    clf_dict[classifier]['savedir'] = classifier_directory
+                    skc = sklearn_classifier.SKlearn_classifier(train, test, clf_dict)
+                    predictions = skc.fit_transform()
+                    predictions['features'] = []
+                    predictions['feature_weights'] = []
+                else:
+                    train = instances[:len_training]
+                    test = instances[len_training:]
+                    trainlabels = self.train_csv['label']
+                    testlabels = self.test_csv['label']
+                    predictions = self.run_predictions(train, trainlabels, test, testlabels, clf_dict, weight, prune, vocabulary)
                 self.reporter.add_test([self.test_csv['text'], predictions[classifier]], predictions['features'], 
                     predictions['feature_weights'], classifier_directory)
         else: #run tenfold
@@ -234,12 +255,22 @@ class Experiment:
                     if not os.path.isdir(fold_directory):
                         os.mkdir(fold_directory)
                     print('fold', f)
-                    train = instances[fold[0]]
-                    trainlabels = [self.train_csv['label'][x] for x in fold[0]]
-                    test = instances[fold[1]]
-                    testlabels = [self.train_csv['label'][x] for x in fold[1]]
-                    testdocuments = [self.train_csv['text'][x] for x in fold[1]]
-                    predictions = self.run_predictions(train, trainlabels, test, testlabels, clf_dict, weight, prune, vocabulary)
+                    if classifier == 'bwinnow':
+                        train = fold[0]
+                        test = fold[1]
+                        clf_dict[classifier]['maindir'] = lcs_directory
+                        clf_dict[classifier]['savedir'] = fold_directory
+                        skc = sklearn_classifier.SKlearn_classifier(train, test, clf_dict)
+                        predictions = skc.fit_transform()
+                        predictions['features'] = []
+                        predictions['feature_weights'] = []
+                    else:
+                        train = instances[fold[0]]
+                        trainlabels = [self.train_csv['label'][x] for x in fold[0]]
+                        test = instances[fold[1]]
+                        testlabels = [self.train_csv['label'][x] for x in fold[1]]
+                        testdocuments = [self.train_csv['text'][x] for x in fold[1]]
+                        predictions = self.run_predictions(train, trainlabels, test, testlabels, clf_dict, weight, prune, vocabulary)
                     self.reporter.add_test([testdocuments, predictions[classifier]], predictions['features'], predictions['feature_weights'], fold_directory, f)
                 self.reporter.assess_performance_folds(classifier_directory)
                 # to acquire a classifier model trained on all data:
@@ -247,12 +278,22 @@ class Experiment:
                 if not os.path.isdir(classify_all):
                     os.mkdir(classify_all)
                 print('training on all instances')
-                train = instances
-                trainlabels = self.train_csv['label']
-                test = instances[-10:]
-                testlabels = self.train_csv['label'][-10:]
-                testdocuments = self.train_csv['text'][-10:]
-                predictions = self.run_predictions(train, trainlabels, test, testlabels, clf_dict, weight, prune, vocabulary)
+                if classifier == 'bwinnow':
+                    train = range(len(instances))
+                    test = range(len(instances) - 10, len(instances))
+                    clf_dict[classifier]['maindir'] = lcs_directory
+                    clf_dict[classifier]['savedir'] = classify_all
+                    skc = sklearn_classifier.SKlearn_classifier(train, test, clf_dict)
+                    predictions = skc.fit_transform()
+                    predictions['features'] = []
+                    predictions['feature_weights'] = []
+                else:
+                    train = instances
+                    trainlabels = self.train_csv['label']
+                    test = instances[-10:]
+                    testlabels = self.train_csv['label'][-10:]
+                    testdocuments = self.train_csv['text'][-10:]
+                    predictions = self.run_predictions(train, trainlabels, test, testlabels, clf_dict, weight, prune, vocabulary)
                 self.reporter.add_test([testdocuments, predictions[classifier]], predictions['features'], predictions['feature_weights'], classify_all, fold = 10)
         self.reporter.report_comparison()
                 

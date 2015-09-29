@@ -153,8 +153,9 @@ class Eval:
             info.extend(classifications_str)
             info_str = utils.format_table(info, [20, 20, 20])
             out.write('\n'.join(info_str) + '\n')
-        with open(self.directory + 'classifiermodel.joblib.pkl', 'wb') as model_out:
-            pickle.dump(self.model, model_out)
+        if self.model:
+            with open(self.directory + 'classifiermodel.joblib.pkl', 'wb') as model_out:
+                pickle.dump(self.model, model_out)
         if self.settings:
             settings_table = []
             for parameter in self.settings.keys():

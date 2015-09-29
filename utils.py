@@ -4,6 +4,7 @@ import xlrd
 import json
 import csv
 import re
+import os
 import datetime
 import functools
 from collections import Counter
@@ -161,3 +162,70 @@ def load_sparse_csr(filename):
     loader = np.load(filename)
     return csr_matrix((loader['data'], loader['indices'], loader['indptr']),
                          shape = loader['shape'])
+
+def write_lcs_config(self, savedir, ts, lts, prune):
+    expdir = os.getcwd()
+    files = savedir + '/./files/'
+    data = expdir + './data'
+    index = expdir + './index'
+    config = '\n'.join\
+        ([
+        'docprof.normalise=NONE',
+        'general.analyser=nl.cs.ru.phasar.lcs3.analyzers.FreqAnalyzer',
+        'general.autothreshold=true',
+        'general.data=' + data,
+        'general.files=' + files,
+        'general.index=' + index,
+        'general.numcpus=16',
+        'general.termstrength=' + ts, # hier een parameter
+        'gts.mindf=1',
+        'gts.mintf=6',
+        'lts.algorithm=' + lts, # parameter
+        'lts.maxterms=' + prune,
+        'profile.memory=false',
+        'research.fullconfusion=false',
+        'research.writemit=true',
+        'research.writemitalliters=false',
+        'general.algorithm=WINNOW',
+        'general.docext=',
+        'general.fbeta=1.0',
+        'general.fullranking=true',
+        'general.maxranks=1',
+        'general.minranks=1',
+        'general.preprocessor=',
+        'general.rankalliters=false',
+        'general.saveclassprofiles=true',
+        'general.threshold=1.0',
+        'general.writetestrank=true',
+        'gts.maxdf=1000000',
+        'gts.maxtf=1000000',
+        'lts.aggregated=true',
+        'naivebayes.smoothing=1.0',
+        'positivenaivebayes.classprobability=0.2',
+        'regwinnow.complexity=0.1',
+        'regwinnow.initialweight=0.1',
+        'regwinnow.iterations=10',
+        'regwinnow.learningrate=0.01',
+        'regwinnow.ownthreshold=true',
+        'research.conservememory=true',
+        'research.mitsortorder=MASS',
+        'rocchio.beta=1.0',
+        'rocchio.gamma=1.0',
+        'svmlight.params=',
+        'winnow.alpha=1.05',
+        'winnow.beta=0.95',
+        'winnow.beta.twominusalpha=false',
+        'winnow.decreasing.alpha=false',
+        'winnow.decreasing.alpha.strategy=LOGARITMIC',
+        'winnow.maxiters=3',
+        'winnow.negativeweights=true',
+        'winnow.seed=-1',
+        'winnow.termselect=false',
+        'winnow.termselect.epsilon=1.0E-4',
+        'winnow.termselect.iterations=1,2,',
+        'winnow.thetamin=0.5',
+        'winnow.thetaplus=2.5'
+        ])
+    with open(savedir + 'lcs3.conf', 'w', encoding = 'utf-8') as config_out:
+        config_out.write(config)
+
