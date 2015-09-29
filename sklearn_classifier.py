@@ -47,10 +47,11 @@ class SKlearn_classifier:
         le = preprocessing.LabelEncoder()
         le.fit(train['labels'] + test['labels'])
         modules = {
-            'nb':               NB_classifier,
-            'svm':              SVM_classifier,
-            'tree':             Tree_classifier,
-            'ensemble_clf':     EnsembleClf_classifier
+            'nb' :              NB_classifier,
+            'svm' :             SVM_classifier,
+            'tree' :            Tree_classifier,
+            'bwinnow' :         LCS_classifier,
+            'ensemble_clf' :    EnsembleClf_classifier
         }
         self.helpers = [modules[key](le, **clfs[key]) for key in clfs.keys()]
 
@@ -599,18 +600,13 @@ class LCS_classifier:
 
     """
 
-    def __init__(self, train, test, directory, vocabulary):
+    def __init__(self, le, **kwargs):
         """
         """
-        self.train = train
-        self.test = test
-        self.expdir = directory
-        self.vocabulary = vocabulary
-        self.convert_features()
-        self.targets = {}
-        self.classifications = []
-
-
+        self.name = 'bwinnow'
+        self.vocabulary = kwargs['vocab']
+        self.clf = False
+        self.settings = {}
 
     def experiment(self):
         if self.test:
@@ -619,6 +615,7 @@ class LCS_classifier:
             test_tuples = [instance.split() for instance in testparts]
             self.targets = dict((filename, target) for filename, target in test_tuples)
             self.classify(trainparts, testparts, self.expdir)
+
         else: 
             print("preparing files")
             parts = self.prepare(self.train)

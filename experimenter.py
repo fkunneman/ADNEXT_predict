@@ -62,6 +62,10 @@ class Experiment:
         self.prune = prune
         self.featurizer = False
         self.classifiers = classifiers
+        if 'bwinnow' in self.classifiers:
+            self.lcs = True
+        else:
+            self.lcs = False
         self.directory = directory
         self.reporter = reporter.Reporter(directory, list(set(train['label'])))
     
@@ -164,9 +168,38 @@ class Experiment:
         """
         # Select features
         instances, vocabulary = self.featurizer.return_instances(featuretypes)
-        # Save vocabulary
-        #with open(directory + 'vocabulary.txt', 'w', encoding = 'utf-8') as v_out:
-        #    v_out.write('\n'.join(vocabulary))
+        # If lcs classification is applied, make the necessary preparations
+        if self.lcs:
+            print('Preparing files LCS')
+            filesdir = self.classifiers['bwinnow']['files']
+            lcs_directory = directory + 'bwinnow' + '/'
+            if not os.path.isdir(lcs_directory):
+                os.mkdir(lcs_directory)
+            parts = []
+            # make chunks of 25000 from the data
+            print(dir(instances))
+            if len(instances) > 25000:
+                chunks = [list(t) for t in zip(*[iter(instances)]*int(round(len(instances) / 25000), 0))]
+            else:
+                chunks = [instances]
+            print(chunks)
+            quit()
+            for i, chunk in enumerate(chunks):
+                # make subdirectory
+                subpart = "sd" + str(i) + "/"
+                subdir = filesdir + subpart
+                if not os.path.isdir(subdir):
+                    os.mkdir(subdir)
+                for j, instance in enumerate(chunk):
+                    zeros = 5 - len(str(j))
+                    filename = subpart + ('0' * zeros) + str(j) + ".txt"
+                    label = instance[0]
+                    features = instance[1]
+                    with open(self.filesdir + filename, 'w', encoding = 'utf-8') as outfile: 
+                        outfile.write("\n".join(features))
+                    parts.append(filename + " " + label)
+            return parts
+
         len_training = len(self.train_csv['text'])
         # if test, run experiment
         if self.test_csv:
@@ -174,8 +207,8 @@ class Experiment:
             trainlabels = self.train_csv['label']
             test = instances[len_training:]
             testlabels = self.test_csv['label']
-            predictions = self.run_predictions(train, trainlabels, test, testlabels, self.classifiers, weight, prune, vocabulary)
             for classifier in self.classifiers:
+                clf_dict = {classifier : self.classifiers[classifier]}
                 classifier_directory = directory + classifier + '/'
                 if not os.path.isdir(classifier_directory):
                     os.mkdir(classifier_directory)
