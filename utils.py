@@ -163,7 +163,7 @@ def load_sparse_csr(filename):
     return csr_matrix((loader['data'], loader['indices'], loader['indptr']),
                          shape = loader['shape'])
 
-def write_lcs_config(self, savedir, ts, lts, prune):
+def write_lcs_config(savedir, ts, lts, prune):
     expdir = os.getcwd()
     files = savedir + '/./files/'
     data = expdir + './data'

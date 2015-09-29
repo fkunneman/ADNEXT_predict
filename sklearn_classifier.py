@@ -46,7 +46,10 @@ class SKlearn_classifier:
         self.train = train
         self.test = test
         le = preprocessing.LabelEncoder()
-        le.fit(train['labels'] + test['labels'])
+        try:
+            le.fit(train['labels'] + test['labels'])
+        except:
+            print('No labelencoding')
         modules = {
             'nb' :              NB_classifier,
             'svm' :             SVM_classifier,
@@ -609,8 +612,8 @@ class LCS_classifier:
         self.settings = False
         self.maindir = kwargs['main']
         self.savedir = kwargs['save']
-        self.expdir = os.getcwd()
-        self.targets = []
+        self.expdir = os.getcwd() + '/'
+        self.targets = {}
 
     def fit(self, train, test):
         with open(self.maindir + 'parts.txt') as partsfile:

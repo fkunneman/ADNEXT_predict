@@ -171,7 +171,7 @@ class Experiment:
         # If lcs classification is applied, make the necessary preparations
         if self.lcs:
             print('Preparing files LCS')
-            lcs_directory = self.classifiers['bwinnow']['save']
+            lcs_directory = directory + 'bwinnow/'
             if not os.path.isdir(lcs_directory):
                 os.mkdir(lcs_directory)
             filesdir = lcs_directory + 'files/'
@@ -205,7 +205,7 @@ class Experiment:
             with open(lcs_directory + 'parts.txt', 'w', encoding = 'utf-8') as partsfile:
                 partsfile.write('\n'.join(parts))
             # write standard lcs config file
-            if weight == 'binary' 
+            if weight == 'binary': 
                 lts = 'TERMFREQ'
                 ts = 'BOOL'
             elif weight == 'frequency':
@@ -214,7 +214,7 @@ class Experiment:
             else: # infogain or tfidf
                 lts = weight.upper()
                 ts = 'BOOL'
-            utils.write_lcs_config(lcs_directory, ts, lts, prune)
+            utils.write_lcs_config(lcs_directory, ts, lts, str(prune))
         len_training = len(self.train_csv['text'])
         # if test, run experiment
         if self.test_csv:
@@ -226,8 +226,8 @@ class Experiment:
                 if classifier == 'bwinnow':
                     train = range(len_training)
                     test = range(len_training, len(parts))
-                    clf_dict[classifier]['maindir'] = lcs_directory
-                    clf_dict[classifier]['savedir'] = classifier_directory
+                    clf_dict[classifier]['main'] = lcs_directory
+                    clf_dict[classifier]['save'] = classifier_directory
                     skc = sklearn_classifier.SKlearn_classifier(train, test, clf_dict)
                     predictions = skc.fit_transform()
                     predictions['features'] = []
@@ -258,8 +258,8 @@ class Experiment:
                     if classifier == 'bwinnow':
                         train = fold[0]
                         test = fold[1]
-                        clf_dict[classifier]['maindir'] = lcs_directory
-                        clf_dict[classifier]['savedir'] = fold_directory
+                        clf_dict[classifier]['main'] = lcs_directory
+                        clf_dict[classifier]['save'] = fold_directory
                         skc = sklearn_classifier.SKlearn_classifier(train, test, clf_dict)
                         predictions = skc.fit_transform()
                         predictions['features'] = []
@@ -281,8 +281,8 @@ class Experiment:
                 if classifier == 'bwinnow':
                     train = range(len(instances))
                     test = range(len(instances) - 10, len(instances))
-                    clf_dict[classifier]['maindir'] = lcs_directory
-                    clf_dict[classifier]['savedir'] = classify_all
+                    clf_dict[classifier]['main'] = lcs_directory
+                    clf_dict[classifier]['save'] = classify_all
                     skc = sklearn_classifier.SKlearn_classifier(train, test, clf_dict)
                     predictions = skc.fit_transform()
                     predictions['features'] = []
