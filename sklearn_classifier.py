@@ -627,6 +627,7 @@ class LCS_classifier:
             self.targets[file_label[0]] = file_label[1]
         with open(self.expdir + 'test', 'w', encoding = 'utf-8') as testfile:
             testfile.write('\n'.join(testinstances))
+        os.system('cp ' + self.maindir + 'lcs3.conf .')
 
     def transform(self):
         """
@@ -647,6 +648,7 @@ class LCS_classifier:
         os.system("lcs --verbose")
         predictions = self.extract_performance()
         os.system("mv * " + self.savedir)
+        return predictions
 
     def extract_performance(self):
         performance = []
@@ -657,7 +659,7 @@ class LCS_classifier:
                 classification, score = tokens[1].split()[0].split(":")
                 classification = classification.replace("?","")
                 target = self.targets[filename]
-                performance.append([target, classification, score])
+                performance.append([target, classification, float(score)])
         return performance
 
     def fit_transform(self, train, test):

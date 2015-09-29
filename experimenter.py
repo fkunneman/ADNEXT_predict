@@ -197,6 +197,7 @@ class Experiment:
                 for j, index in enumerate(chunk):
                     zeros = 5 - len(str(j))
                     filename = subpart + ('0' * zeros) + str(j) + '.txt'
+                    print(index, len(labels))
                     label = labels[index]
                     features = [vocabulary[x] for x in instances[index].indices]
                     with open(filesdir + filename, 'w', encoding = 'utf-8') as outfile: 
@@ -255,6 +256,7 @@ class Experiment:
                     if not os.path.isdir(fold_directory):
                         os.mkdir(fold_directory)
                     print('fold', f)
+                    testdocuments = [self.train_csv['text'][x] for x in fold[1]]
                     if classifier == 'bwinnow':
                         train = fold[0]
                         test = fold[1]
@@ -269,7 +271,6 @@ class Experiment:
                         trainlabels = [self.train_csv['label'][x] for x in fold[0]]
                         test = instances[fold[1]]
                         testlabels = [self.train_csv['label'][x] for x in fold[1]]
-                        testdocuments = [self.train_csv['text'][x] for x in fold[1]]
                         predictions = self.run_predictions(train, trainlabels, test, testlabels, clf_dict, weight, prune, vocabulary)
                     self.reporter.add_test([testdocuments, predictions[classifier]], predictions['features'], predictions['feature_weights'], fold_directory, f)
                 self.reporter.assess_performance_folds(classifier_directory)
@@ -279,8 +280,8 @@ class Experiment:
                     os.mkdir(classify_all)
                 print('training on all instances')
                 if classifier == 'bwinnow':
-                    train = range(len(instances))
-                    test = range(len(instances) - 10, len(instances))
+                    train = range(len_training)
+                    test = range(len_training - 10, len_training)
                     clf_dict[classifier]['main'] = lcs_directory
                     clf_dict[classifier]['save'] = classify_all
                     skc = sklearn_classifier.SKlearn_classifier(train, test, clf_dict)
