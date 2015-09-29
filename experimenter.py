@@ -177,7 +177,6 @@ class Experiment:
             filesdir = lcs_directory + 'files/'
             if not os.path.isdir(filesdir):
                 os.mkdir(filesdir)
-            partsfile = lcs_directory + 'parts.txt'
             parts = []
             # make chunks of 25000 from the data
             labels = self.train_csv['label']
@@ -200,11 +199,12 @@ class Experiment:
                     filename = subpart + ('0' * zeros) + str(j) + '.txt'
                     label = labels[index]
                     features = [vocabulary[x] for x in instances[index].indices]
-                    with open(self.filesdir + filename, 'w', encoding = 'utf-8') as outfile: 
+                    with open(filesdir + filename, 'w', encoding = 'utf-8') as outfile: 
                         outfile.write('\n'.join(features))
                     parts.append(filename + ' ' + label)
-            partsfile.write('\n'.join(parts))
-
+            with open(lcs_directory + 'parts.txt', 'w', encoding = 'utf-8') as partsfile:
+                partsfile.write('\n'.join(parts))
+        quit()
         len_training = len(self.train_csv['text'])
         # if test, run experiment
         if self.test_csv:
