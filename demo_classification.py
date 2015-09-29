@@ -32,22 +32,21 @@ def vectorize(text):
     if weights == 'frequency':
         wvector = vector
     elif weights == 'binary':
-        wvector = []
-        for x in vector:
-            if x > 0:
-                wvector.append(1) 
-            else:
-                wvector.append(0)
+        wvector = [1 if x > 0 else 0 for x in vector]
     else:
         with open(weights, 'r', encoding = 'utf-8') as fw:
             ws = numpy.array([float(x.strip()) for x in fw.readlines()])    
-            wvector = vector * ws
+            wvector = numpy.array(vector) * ws
     return wvector
 
 while True:
-    sentence = input('Please enter some input...\n--> ')
+    sentence = input('Voer een zin in en krijg een sarcasmescore...\n--> ')
     v = vectorize(sentence)
-    classification = clf.predict(v)
-    prob = clf.predict_proba(v)[0][1]
-    print(classification, prob)
+    prob = round(clf.predict_proba(v)[0][0], 3)
+    if prob > 0.8:
+        cl = 'Sarcastisch'
+    else:
+        cl = 'Niet sarcastisch'
+    outstr = '\nOordeel: ' + cl + '\nSarcasmescore: ' + str(prob) + '\n'
+    print(outstr)
 

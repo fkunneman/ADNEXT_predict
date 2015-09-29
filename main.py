@@ -104,6 +104,7 @@ else:
     dh_train = datahandler.Datahandler()
     dh_train.set(trainfile)
 if 'balance' in cp.sections():
+    print('balancing data')
     dh_train = utils.balance_data(dh_train, cp['balance']['outfile'])
 train_dataset = dh_train.dataset
 

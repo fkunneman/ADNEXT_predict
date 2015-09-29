@@ -171,17 +171,24 @@ class Experiment:
         # If lcs classification is applied, make the necessary preparations
         if self.lcs:
             print('Preparing files LCS')
-            filesdir = self.classifiers['bwinnow']['files']
-            lcs_directory = directory + 'bwinnow' + '/'
+            lcs_directory = directory + 'bwinnow/'
             if not os.path.isdir(lcs_directory):
                 os.mkdir(lcs_directory)
+            filesdir = lcs_directory + 'files/'
+            if not os.path.isdir(filesdir):
+                os.mkdir(filesdir)
+            partsfile = lcs_directory + 'parts.txt'
             parts = []
             # make chunks of 25000 from the data
-            print(dir(instances))
-            if len(instances) > 25000:
-                chunks = [list(t) for t in zip(*[iter(instances)]*int(round(len(instances) / 25000), 0))]
+            labels = self.train_csv['label']
+            if self.test_csv:
+                labels.extend(self.test_csv['label'])
+            if instances.shape[0] > 25000:
+                chunks = []
+                for i in range(0, instances.shape[0], 25000):
+                    chunks.append(range(i, i+25000)) 
             else:
-                chunks = [instances]
+                chunks = [range(len(labels))]
             print(chunks)
             quit()
             for i, chunk in enumerate(chunks):
