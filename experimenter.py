@@ -191,21 +191,19 @@ class Experiment:
                 chunks = [range(len(labels))]
             for i, chunk in enumerate(chunks):
                 # make subdirectory
-                subpart = "sd" + str(i) + "/"
+                subpart = 'sd' + str(i) + '/'
                 subdir = filesdir + subpart
                 if not os.path.isdir(subdir):
                     os.mkdir(subdir)
                 for j, index in enumerate(chunk):
                     zeros = 5 - len(str(j))
-                    filename = subpart + ('0' * zeros) + str(j) + ".txt"
+                    filename = subpart + ('0' * zeros) + str(j) + '.txt'
                     label = labels[index]
-                    features = instances[index]
-                    print(dir(features))
-                    quit()
+                    features = [vocabulary[x] for x in instances[index].indices]
                     with open(self.filesdir + filename, 'w', encoding = 'utf-8') as outfile: 
-                        outfile.write("\n".join(features))
-                    parts.append(filename + " " + label)
-            return parts
+                        outfile.write('\n'.join(features))
+                    parts.append(filename + ' ' + label)
+            partsfile.write('\n'.join(parts))
 
         len_training = len(self.train_csv['text'])
         # if test, run experiment
