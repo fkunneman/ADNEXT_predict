@@ -189,19 +189,19 @@ class Experiment:
                     chunks.append(range(i, i+25000)) 
             else:
                 chunks = [range(len(labels))]
-            print(chunks)
-            quit()
             for i, chunk in enumerate(chunks):
                 # make subdirectory
                 subpart = "sd" + str(i) + "/"
                 subdir = filesdir + subpart
                 if not os.path.isdir(subdir):
                     os.mkdir(subdir)
-                for j, instance in enumerate(chunk):
+                for j, index in enumerate(chunk):
                     zeros = 5 - len(str(j))
                     filename = subpart + ('0' * zeros) + str(j) + ".txt"
-                    label = instance[0]
-                    features = instance[1]
+                    label = labels[index]
+                    features = instances[index]
+                    print(dir(features))
+                    quit()
                     with open(self.filesdir + filename, 'w', encoding = 'utf-8') as outfile: 
                         outfile.write("\n".join(features))
                     parts.append(filename + " " + label)
