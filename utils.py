@@ -164,8 +164,8 @@ def load_sparse_csr(filename):
                          shape = loader['shape'])
 
 def write_lcs_config(savedir, ts, lts, prune):
-    expdir = os.getcwd()
-    files = savedir + '/./files/'
+    expdir = os.getcwd() + '/'
+    files = savedir + './files/'
     data = expdir + './data'
     index = expdir + './index'
     config = '\n'.join\

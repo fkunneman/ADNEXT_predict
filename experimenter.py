@@ -185,7 +185,10 @@ class Experiment:
             if instances.shape[0] > 25000:
                 chunks = []
                 for i in range(0, instances.shape[0], 25000):
-                    chunks.append(range(i, i+25000)) 
+                    if not i+25000 > len(labels):
+                        chunks.append(range(i, i+25000)) 
+                    else:
+                        chunks.append(range(i, len(labels)))
             else:
                 chunks = [range(len(labels))]
             for i, chunk in enumerate(chunks):
