@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-import codecs
+#import codecs
 import json
 import re
 
@@ -13,14 +13,14 @@ parser.add_argument('-i', action = 'store', required = True, help = "the input f
 parser.add_argument('-o', action = 'store', required = True, help = "the output file")  
 args = parser.parse_args() 
 
-infile = codecs.open(args.i,"r","utf-8")
+infile = open(args.i,"r",encoding = "utf-8")
 try:
-    outfilein = codecs.open(args.o,"r","utf-8")
+    outfilein = open(args.o,"r",encoding = "utf-8")
     new = False
     outfilein.close()
 except:
     new = True
-outfile = codecs.open(args.o,"a","utf-8")
+outfile = open(args.o,"a",encoding = "utf-8")
 
 if new:
     outfile.write("#user_id\t#tweet_id\t#date\t#time\t#reply_to_tweet_id\t#replied_tweet_url\t#retweet_to_tweet_id\t#retweeted_tweet_url\t#user_name\t#user_follower_count\t#user_location\t#tweet_location\t#hashtags\t#tweet\n")
@@ -63,7 +63,7 @@ for line in infile.readlines():
         fields.append("null")
     fields.append(",".join(["#" + x["text"] for x in decoded["entities"]["hashtags"]]))
     fields.append(decoded["text"].replace("\n"," "))
-    fields_write = "\t".join([unicode(x).replace("\n"," ") for x in fields]) + "\n"
+    fields_write = "\t".join([str(x).replace("\n"," ") for x in fields]) + "\n"
     outfile.write(fields_write)
 
 infile.close()
