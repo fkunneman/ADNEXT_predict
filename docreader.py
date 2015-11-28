@@ -10,7 +10,7 @@ class Docreader:
     def __init__(self):
         self.lines = []
 
-    def parse_doc(self, doc, delimiter, header, date, time):
+    def parse_doc(self, doc, delimiter = False, header = False, date = False, time = False):
         form = doc[-4:]
         if form == '.txt':
             self.lines = self.parse_txt(doc, delimiter, header)

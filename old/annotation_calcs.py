@@ -20,7 +20,7 @@ def calculate_precision(lines,lax = False,plot = False):
         #if len(line) == 1:
         #    if line[0] == 1:
         if not lax and len(line) != annotators:
-            print "num annotators not consistent, exiting program"
+            print("num annotators not consistent, exiting program")
             exit()
         num_positive = 0
         for annotation in line:
@@ -44,8 +44,11 @@ def calculate_precision(lines,lax = False,plot = False):
         precision_score = precision_strengths[ps] / len(lines)
         precisions.append((ps,precision_score))
 
+    p = []
+
     if plot:
-        for strength in sorted(majority_judgements.keys()):
+        legend_entries = sorted(majority_judgements.keys())
+        for strength in legend_entries:
             rank = []
             precision = []
             seen = 0
@@ -56,18 +59,20 @@ def calculate_precision(lines,lax = False,plot = False):
                     correct += 1 
                 rank.append(seen)
                 precision.append(correct/seen)
+                if strength == 3:
+                    p.append(precision[-1])
             plt.plot(rank,precision)
         
-        legend_entries = sorted(majority_judgements.keys())
         for i,entry in enumerate(legend_entries):
             percentage = str(int(entry/annotators * 100))
             legend_entries[i] = percentage + "% positive"
-        plt.legend(legend_entries)
+        plt.ylim((0,1))
+        plt.legend(legend_entries, loc = "lower right")
         plt.ylabel("precision at rank")
         plt.xlabel("rank")
         plt.savefig(plot)
 
-    return precisions
+    return p
 
 def calculate_cohens_kappa(lines):    
     annotator_couples = defaultdict(lambda : defaultdict(lambda : defaultdict(int)))
@@ -85,7 +90,7 @@ def calculate_cohens_kappa(lines):
                     else:
                         annotator_couples[i][j+1]["match"] += 1
                     j += 1
-    print "lines-fields",len(lines),fields
+    print("lines-fields",len(lines),fields)
 
     cohens_kappas = []
     print(annotator_couples.keys())
@@ -137,7 +142,7 @@ def calculate_weighted_kappa(lines):
         else:
             missing_both += 1
 
-    print mean_score
+    print(mean_score)
     nlines = len(lines)-missing_both
     #weights
     scores = list(set(all_annotations))
@@ -159,8 +164,8 @@ def calculate_weighted_kappa(lines):
         for an2 in pairs_count[an1].keys():
             pkl = pairs_count[an1][an2] / nlines
             observed_total += (pkl/px) * weights[an1][an2]
-            print pairs_count[an1][an2],"table observed",an1,an2,(pkl/px),"weight",(pkl/px) * weights[an1][an2]
-            print "total",observed_total
+            print(pairs_count[an1][an2],"table observed",an1,an2,(pkl/px),"weight",(pkl/px) * weights[an1][an2])
+            print("total",observed_total)
     print("observed",observed_total)
 
     #expected
@@ -172,13 +177,13 @@ def calculate_weighted_kappa(lines):
                 coder_score_pkp[coder][score] = (coder_annotations[coder][score]/nlines) / pxp
     for c in itertools.permutations(scores,2):
         expected_total += (coder_score_pkp[0][c[0]] * coder_score_pkp[1][c[1]]) * weights[c[0]][c[1]]
-        print "table expected",c[0],c[1],(coder_score_pkp[0][c[0]] * coder_score_pkp[1][c[1]]),"weight",(coder_score_pkp[0][c[0]] * coder_score_pkp[1][c[1]]) * weights[c[0]][c[1]]
+        print("table expected",c[0],c[1],(coder_score_pkp[0][c[0]] * coder_score_pkp[1][c[1]]),"weight",(coder_score_pkp[0][c[0]] * coder_score_pkp[1][c[1]]) * weights[c[0]][c[1]])
     for score in scores:
         expected_total += (coder_score_pkp[0][score] * coder_score_pkp[1][score]) * weights[score][score]
-        print "table expected",score,score,(coder_score_pkp[0][score] * coder_score_pkp[1][score]),"weight",(coder_score_pkp[0][score] * coder_score_pkp[1][score]) * weights[score][score]
+        print("table expected",score,score,(coder_score_pkp[0][score] * coder_score_pkp[1][score]),"weight",(coder_score_pkp[0][score] * coder_score_pkp[1][score]) * weights[score][score])
     print("expected",expected_total)
     weighted_k = (observed_total - expected_total) / (1 - expected_total)
-    print pairs_count
+    print(pairs_count)
     print("weighted cohens k",weighted_k)
     avg = numpy.mean(mean_score)
     print("avg.",numpy.mean(mean_score))
@@ -204,9 +209,9 @@ def calculate_confusion_matrix(lines):
     for annotator_1 in annotator_couples.keys():
         for annotator_2 in annotator_couples[annotator_1].keys():
             for combm in annotator_couples[annotator_1][annotator_2]["match"].keys():
-                print annotator_1,annotator_2,"match",combm,annotator_couples[annotator_1][annotator_2]["match"][combm]
+                print(annotator_1,annotator_2,"match",combm,annotator_couples[annotator_1][annotator_2]["match"][combm])
             for combo in annotator_couples[annotator_1][annotator_2]["odd"].keys():
-                print annotator_1,annotator_2,"odd",combo,annotator_couples[annotator_1][annotator_2]["odd"][combo]
+                print(annotator_1,annotator_2,"odd",combo,annotator_couples[annotator_1][annotator_2]["odd"][combo])
             agreement = sum([annotator_couples[annotator_1][annotator_2]["match"][x] for x in annotator_couples[annotator_1][annotator_2]["match"].keys()]) / len(lines)
             random = 0
             for answer in annotator_scores[annotator_1].keys():

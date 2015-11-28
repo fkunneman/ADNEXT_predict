@@ -44,13 +44,13 @@ if plottype[:4] == "line":
     plt.ylim((yrange_lowest,yrange_highest))
     if legend:
         legend = plotfiles[half:]
-        plt.legend(legend,loc = "lower right")
-    plt.tick_params(
-        axis='x',          # changes apply to the x-axis
-        which='both',      # both major and minor ticks are affected
-        bottom='off',      # ticks along the bottom edge are off
-        top='off',         # ticks along the top edge are off
-        labelbottom='off') # labels along the bottom edge are off
+        plt.legend(legend,loc = "upper right")
+    # plt.tick_params(
+    #     axis='x',          # changes apply to the x-axis
+    #     which='both',      # both major and minor ticks are affected
+    #     bottom='off',      # ticks along the bottom edge are off
+    #     top='off',         # ticks along the top edge are off
+    #     labelbottom='off') # labels along the bottom edge are off
     #plt.ylim(top=1)
 
 elif plottype == "hist":
@@ -63,7 +63,7 @@ elif plottype == "hist":
         y.append(ytoken)
     d = (max(y) - min(y)) / 6
     b = arange(min(y),max(y) + d,d)
-    print b
+    print(b)
     plt.hist(y,bins=b)
     #plt.ylim(0,20)
 
