@@ -229,3 +229,9 @@ def write_lcs_config(savedir, ts, lts, prune):
     with open(savedir + 'lcs3.conf', 'w', encoding = 'utf-8') as config_out:
         config_out.write(config)
 
+def tokenized_2_tagged(tokenized_texts):
+    tagged = []
+    for text in tokenized_texts:
+        tagged_line = [[token, '-', '-', '-'] for token in text]
+        tagged.append(tagged_line)
+    return tagged
