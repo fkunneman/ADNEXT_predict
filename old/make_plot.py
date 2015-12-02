@@ -75,8 +75,8 @@ elif plottype == "bar":
         tokens = line.strip().split("\t")
         x.append(tokens[0])
         y.append(float(tokens[1]))
-    x_pos = np.arange(len(x))
-    plt.bar(x_pos,y,align="center")
+    x_pos = np.arange(0, 2*len(x), 2)
+    plt.bar(x_pos,y,width = 0.80)
     plt.xticks(x_pos, x)
 
 plt.ylabel(ylabel)
