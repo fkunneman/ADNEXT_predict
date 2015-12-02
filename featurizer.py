@@ -182,11 +182,11 @@ class CocoNgrams:
             for bf in self.blackfeats:
                 regex = re.compile(bf)
                 matches = [i for i, f in enumerate(vocabulary) if regex.match(f)]
-                regex_left = re.compile(' ' + bf + r'$')
+                regex_left = re.compile(r'.+' + ' ' + bf + r'$')
                 matches += [i for i, f in enumerate(vocabulary) if regex_left.match(f)]
-                regex_right = re.compile(r'^' + bf + ' ')
+                regex_right = re.compile(r'^' + bf + ' ' + r' .+')
                 matches += [i for i, f in enumerate(vocabulary) if regex_right.match(f)]
-                regex_middle = re.compile(' ' + bf + ' ')
+                regex_middle = re.compile(r'.+' + ' ' + bf + ' ' + r'.+')
                 matches += [i for i, f in enumerate(vocabulary) if regex_middle.match(f)]
                 blackfeats_indices.extend(matches)
             to_keep = list(set(range(len(vocabulary))) - set(blackfeats_indices))
