@@ -132,7 +132,7 @@ class CocoNgrams:
         self.ngrams = ngrams
         self.blackfeats = set(blackfeats)
         
-    def fit(self, tmpdir, lines, mt = 5):
+    def fit(self, tmpdir, lines, mt = 1):
         self.lines = lines
         ngram_file = tmpdir + 'ngrams.txt'
         with open(ngram_file, 'w', encoding = 'utf-8') as txt:

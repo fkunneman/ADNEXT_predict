@@ -1,5 +1,6 @@
 
 import sys
+import os
 
 import docreader
 import utils
@@ -23,9 +24,12 @@ dr.parse_doc(infile)
 documents = [line[textindex] for line in dr.lines]
 
 documents_tagged = utils.tokenized_2_tagged(documents)
+print(documents_tagged[0])
 
 featuredict = {'token_ngrams': {'n_list': [1, 2, 3]}}
 ft = featurizer.Featurizer(documents, documents_tagged, partsdirectory, featuredict)
+ft.fit_transform()
+print(ft.feats['token_ngrams'])
 instances, vocabulary = ft.return_instances(['token_ngrams'])
 
 parts = []
@@ -33,7 +37,7 @@ parts = []
 if instances.shape[0] > 25000:
     chunks = []
     for i in range(0, instances.shape[0], 25000):
-        if not i+25000 > instance.shape[0]:
+        if not i+25000 > instances.shape[0]:
             chunks.append(range(i, i+25000)) 
         else:
             chunks.append(range(i, instances.shape[0]))
@@ -42,7 +46,7 @@ else:
 for i, chunk in enumerate(chunks):
     # make subdirectory
     subpart = fileprefix + str(i) + '/'
-    subdir = filesdir + subpart
+    subdir = filesdirectory + subpart
     if not os.path.isdir(subdir):
         os.mkdir(subdir)
     for j, index in enumerate(chunk):
@@ -50,7 +54,7 @@ for i, chunk in enumerate(chunks):
         filename = subpart + ('0' * zeros) + str(j) + '.txt'
         print(index, instances.shape[0])
         features = [vocabulary[x] for x in instances[index].indices]
-        with open(filesdir + filename, 'w', encoding = 'utf-8') as outfile: 
+        with open(filesdirectory + filename, 'w', encoding = 'utf-8') as outfile: 
             outfile.write('\n'.join(features))
         parts.append(filename + ' ' + label)
 with open(partsdirectory + label + '.txt', 'w', encoding = 'utf-8') as partsfile:

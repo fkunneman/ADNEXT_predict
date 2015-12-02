@@ -232,6 +232,6 @@ def write_lcs_config(savedir, ts, lts, prune):
 def tokenized_2_tagged(tokenized_texts):
     tagged = []
     for text in tokenized_texts:
-        tagged_line = [[token, '-', '-', '-'] for token in text]
+        tagged_line = [[token, '-', '-', '-'] for token in text.split()]
         tagged.append(tagged_line)
     return tagged
