@@ -1,6 +1,7 @@
 
 import sys
 import os
+import re
 
 import docreader
 import utils
@@ -17,6 +18,7 @@ fileprefix = sys.argv[3]
 label = sys.argv[4]
 filesdirectory = sys.argv[5]
 partsdirectory = sys.argv[6]
+blackfeats = sys.argv[7:]
 
 print('Reading in documents')
 dr = docreader.Docreader()
@@ -24,12 +26,25 @@ dr.parse_doc(infile)
 documents = [line[textindex] for line in dr.lines]
 
 documents_tagged = utils.tokenized_2_tagged(documents)
-print(documents_tagged[0])
+find_username = re.compile("^@\w+")
+find_url = re.compile(r"^(http://|www|[^\.]+)\.([^\.]+\.)*[^\.]{2,}")
+new_doduments_tagged = []
+for doc in documents_tagged:
+    new_doc = []
+    for token in doc:
+        if find_username.match(token[0]):
+            token[0] = '_USER_'
+        elif find_url.match(token[0]):
+            token[0] = '_URL_'
+        else:
+            token[0] = token[0].lower()
+        new_doc.append(token)
+    new_documents_tagged.append(new_doc)
 
-featuredict = {'token_ngrams': {'n_list': [1, 2, 3]}}
+print('Extracting features')
+featuredict = {'token_ngrams' : {'n_list': [1, 2, 3], 'blackfeats' : ['_USER_', '_URL_'] + blackfeats}}
 ft = featurizer.Featurizer(documents, documents_tagged, partsdirectory, featuredict)
 ft.fit_transform()
-print(ft.feats['token_ngrams'])
 instances, vocabulary = ft.return_instances(['token_ngrams'])
 
 parts = []
