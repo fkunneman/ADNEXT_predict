@@ -23,12 +23,13 @@ blackfeats = sys.argv[7:]
 print('Reading in documents')
 dr = docreader.Docreader()
 dr.parse_doc(infile)
+documents = []
 documents = [line[textindex] for line in dr.lines]
 
 documents_tagged = utils.tokenized_2_tagged(documents)
 find_username = re.compile("^@\w+")
 find_url = re.compile(r"^(http://|www|[^\.]+)\.([^\.]+\.)*[^\.]{2,}")
-new_doduments_tagged = []
+new_documents_tagged = []
 for doc in documents_tagged:
     new_doc = []
     for token in doc:
@@ -43,7 +44,7 @@ for doc in documents_tagged:
 
 print('Extracting features')
 featuredict = {'token_ngrams' : {'n_list': [1, 2, 3], 'blackfeats' : ['_USER_', '_URL_'] + blackfeats}}
-ft = featurizer.Featurizer(documents, documents_tagged, partsdirectory, featuredict)
+ft = featurizer.Featurizer(documents, new_documents_tagged, partsdirectory, featuredict)
 ft.fit_transform()
 instances, vocabulary = ft.return_instances(['token_ngrams'])
 
@@ -58,6 +59,7 @@ if instances.shape[0] > 25000:
             chunks.append(range(i, instances.shape[0]))
 else:
     chunks = [range(instances.shape[0])]
+checks = range(0, instances.shape[0], 1000)
 for i, chunk in enumerate(chunks):
     # make subdirectory
     subpart = fileprefix + str(i) + '/'
@@ -67,7 +69,8 @@ for i, chunk in enumerate(chunks):
     for j, index in enumerate(chunk):
         zeros = 5 - len(str(j))
         filename = subpart + ('0' * zeros) + str(j) + '.txt'
-        print(index, instances.shape[0])
+        if index in checks:
+            print(index, instances.shape[0])
         features = [vocabulary[x] for x in instances[index].indices]
         with open(filesdirectory + filename, 'w', encoding = 'utf-8') as outfile: 
             outfile.write('\n'.join(features))

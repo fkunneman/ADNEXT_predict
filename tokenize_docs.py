@@ -14,7 +14,7 @@ dr.parse_doc(infile)
 
 tokenizer = ucto.Tokenizer('/vol/customopt/lamachine/etc/ucto/tokconfig-nl-twitter')
 
-outfile = outdir + infile.split('/')[-1]
+outfile = outdir + infile.split('/')[-1][:-4] + '.csv'
 l = len(dr.lines)
 shows = range(10000, l, 10000) #to write intermediate output
 checks = range(0, l, 1000)
