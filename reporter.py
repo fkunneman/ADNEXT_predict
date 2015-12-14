@@ -180,7 +180,8 @@ class Eval:
             for index in sorted(labeldict.keys()):
                 out.write(str(index) + ' = ' + labeldict[index] + '\n')
             out.write('\n')
-            results_str = utils.format_table(results, [6] * 10)
+
+            results_str = utils.format_table(results, [6] * 7 + [len(str(len(self.documents))) + 2] * 3)
             out.write('\n'.join(results_str) + '\n')       
 
     def write_confusion_matrix(self):
