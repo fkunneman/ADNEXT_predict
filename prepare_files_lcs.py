@@ -20,6 +20,7 @@ filesdirectory = sys.argv[5]
 partsdirectory = sys.argv[6]
 blackfeats = sys.argv[7:]
 
+print('blackfeats', blackfeats)
 print('Reading in documents')
 dr = docreader.Docreader()
 dr.parse_doc(infile)
@@ -71,7 +72,7 @@ for i, chunk in enumerate(chunks):
         filename = subpart + ('0' * zeros) + str(j) + '.txt'
         if index in checks:
             print(index, instances.shape[0])
-        features = [vocabulary[x] for x in instances[index].indices]
+        features = [vocabulary[x].replace(' ','_') for x in instances[index].indices]
         with open(filesdirectory + filename, 'w', encoding = 'utf-8') as outfile: 
             outfile.write('\n'.join(features))
         parts.append(filename + ' ' + label)
