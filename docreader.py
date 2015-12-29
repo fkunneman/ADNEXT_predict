@@ -96,7 +96,7 @@ class Docreader:
                 for line in csv_reader:
                     lines.append(line)
         except:
-            csvfile = open(doc, 'r')
+            csvfile = open(doc, 'r', encoding = 'utf-8')
             csv_reader = csv.reader(line.replace('\0','') for line in csvfile.readlines())       
             for line in csv_reader:
                 lines.append(line)
