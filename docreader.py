@@ -89,13 +89,14 @@ class Docreader:
             Each list corresponds to the cell values of a row
         """
         csv.field_size_limit(sys.maxsize)
-        lines = []
         try:
+            lines = []
             with open(doc, 'r', encoding = 'utf-8') as csvfile:
                 csv_reader = csv.reader(csvfile)
                 for line in csv_reader:
                     lines.append(line)
         except:
+            lines = []
             csvfile = open(doc, 'r', encoding = 'utf-8')
             csv_reader = csv.reader(line.replace('\0','') for line in csvfile.readlines())       
             for line in csv_reader:
