@@ -20,11 +20,14 @@ filesdirectory = sys.argv[5]
 partsdirectory = sys.argv[6]
 blackfeats = sys.argv[7:]
 
-print('blackfeats', blackfeats)
+#print('blackfeats', blackfeats)
+#print('textindex', textindex)
 print('Reading in documents')
 dr = docreader.Docreader()
-dr.parse_doc(infile)
+#dr.parse_doc(infile)
+dr.lines = dr.parse_csv(infile)
 documents = []
+#print('\t'.join(dr.lines[1]).encode('utf-8'))
 documents = [line[textindex] for line in dr.lines]
 
 documents_tagged = utils.tokenized_2_tagged(documents)
