@@ -54,7 +54,7 @@ class Experiment:
     grid.run_grid()
     """
 
-    def __init__(self, train, test, features, weights, prune, classifiers, directory):
+    def __init__(self, train, test, features, weights, prune, classifiers, directory, usersplit):
         self.train_csv = train
         self.test_csv = test # can be False
         self.features = features
@@ -67,6 +67,7 @@ class Experiment:
         else:
             self.lcs = False
         self.directory = directory
+        self.usersplit = usersplit
         self.reporter = reporter.Reporter(directory, list(set(train['label'])))
     
     def set_features(self):
@@ -245,7 +246,7 @@ class Experiment:
                 self.reporter.add_test([self.test_csv['text'], predictions[classifier]], predictions['features'], 
                     predictions['feature_weights'], classifier_directory)
         else: #run tenfold
-            folds = utils.return_folds(len_training)
+            folds = utils.return_folds(len_training, split_user)
             #instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             classifier_foldperformance = defaultdict(list)
             for classifier in self.classifiers:
@@ -322,4 +323,4 @@ class Experiment:
             print("Directory", directory)
             if not os.path.isdir(directory):
                 os.mkdir(directory)
-            self.run_experiment(combination[0], combination[1], combination[2], directory)
+            self.run_experiment(combination[0], combination[1], combination[2], directory, self.usersplit)

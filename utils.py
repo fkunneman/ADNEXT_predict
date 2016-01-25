@@ -8,6 +8,7 @@ import os
 import datetime
 import functools
 from collections import Counter
+from collections import defaultdict
 import numpy as np
 
 import datahandler
@@ -69,15 +70,35 @@ def read_json(filename):
     return rows
 
 
-def return_folds(num_instances, n = 10):
+def return_folds(instances, split_user = False, n = 10):
     folds = []
-    for i in range(n):
-        j = i
-        fold = []
-        while j < num_instances:
-            fold.append(j)
-            j += n
-        folds.append(fold)
+    if split_user:
+        userindex = 0
+        user_instances = defaultdict(list)
+        for i, instance in enumerate(instances):
+            user = instance[2]
+            if user == '-':
+                user_instances[str(userindex)].append(i)
+                userindex += 1
+            else:
+                user_instances[user].append(i)
+            for i in range(n):
+                j = i
+                fold = []
+                users = user_instances.keys()
+                while j < len(users):
+                    fold.extend(user_instances[users[j]])
+                    j += n
+                folds.append(fold)
+    else:
+        num_instances = len(instances)
+        for i in range(n):
+            j = i
+            fold = []
+            while j < num_instances:
+                fold.append(j)
+                j += n
+            folds.append(fold)
     runs = []
     foldindices = range(n)
     for run in foldindices:

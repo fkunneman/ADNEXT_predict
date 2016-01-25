@@ -150,6 +150,10 @@ vp = cp['Vector']
 weight = vp['weight'].split()
 select = [int(x) for x in vp['select'].split()]
 
+sp = cp['Special']
+usersplit = sp.getboolean('usersplit')
+print('usersplit is', usersplit)
+
 classifiers = [clf for clf in cp.sections() if clf[:3] == 'Clf']
 clfs = {}
 for classifier in classifiers:
@@ -191,7 +195,7 @@ for sample in samples:
     if not os.path.isdir(sampledir):
         os.mkdir(sampledir)
     print('sample', sample[0])
-    grid = experimenter.Experiment(sample[1], test_dataset, features, weight, select, clfs, sampledir)
+    grid = experimenter.Experiment(sample[1], test_dataset, features, weight, select, clfs, sampledir, usersplit)
     print('featurizing data')
     grid.set_features()
     print('running experiment grid')
