@@ -75,8 +75,7 @@ def return_folds(instances, split_user = False, n = 10):
     if split_user:
         userindex = 0
         user_instances = defaultdict(list)
-        for i, instance in enumerate(instances):
-            user = instance[2]
+        for i, user in enumerate(instances):
             if user == '-':
                 user_instances[str(userindex)].append(i)
                 userindex += 1

@@ -246,7 +246,7 @@ class Experiment:
                 self.reporter.add_test([self.test_csv['text'], predictions[classifier]], predictions['features'], 
                     predictions['feature_weights'], classifier_directory)
         else: #run tenfold
-            folds = utils.return_folds(len_training, split_user)
+            folds = utils.return_folds(self.train_csv['author_id'], split_user)
             #instances_full = list(zip(instances, self.train_csv['label'], self.train_csv['text']))
             classifier_foldperformance = defaultdict(list)
             for classifier in self.classifiers:
