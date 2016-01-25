@@ -146,7 +146,7 @@ class Experiment:
         predictions['feature_weights'] = top_features_values
         return predictions
 
-    def run_experiment(self, featuretypes, weight, prune, directory):
+    def run_experiment(self, featuretypes, weight, prune, directory, split_user):
         """
         Experiment interface
         =====
