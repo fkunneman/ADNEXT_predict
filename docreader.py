@@ -19,8 +19,8 @@ class Docreader:
             self.lines = self.parse_txt(doc, delimiter, header)
         elif form == '.xls': 
             self.lines = self.parse_xls(doc, header, date, time)
-        elif form == '.xlsx':
-            self.lines = self.parse_xlsx(doc, header, sheet)
+        elif form == 'xlsx':
+            self.lines = self.parse_xlsx(doc, sheet)
         else:
             self.lines = self.parse_csv(doc)
 
@@ -78,7 +78,7 @@ class Docreader:
         return rows
         
     def parse_xlsx(self, doc, sh):
-        workbook = load_workbook(filename = filename)
+        workbook = load_workbook(filename = doc)
         sheet = workbook[sh]
         dimensions = sheet.dimensions
         d1, d2 = dimensions.split(':')
@@ -88,11 +88,13 @@ class Docreader:
         firstrow = int(''.join([x for x in d1 if re.search(r'[0-9]', x)]))
         lastrow = int(''.join([x for x in d2 if re.search(r'[0-9]', x)]))
         cols = cols[:cols.index(lastcol) + 1]
+        lines = []
         for i in range(firstrow, lastrow):
             line = []
             for c in cols:
-                line.append(sheet[c + str(i)])
-            self.lines.append(line)
+                line.append(sheet[c + str(i)].value)
+            lines.append(line)
+        return lines
 
     def parse_csv(self, doc):
         """
