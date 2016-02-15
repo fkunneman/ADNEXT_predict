@@ -73,6 +73,7 @@ def read_json(filename):
 def return_folds(instances, split_user = False, n = 10):
     folds = []
     if split_user:
+        print('usersplit')
         userindex = 0
         user_instances = defaultdict(list)
         for i, user in enumerate(instances):
@@ -81,14 +82,14 @@ def return_folds(instances, split_user = False, n = 10):
                 userindex += 1
             else:
                 user_instances[user].append(i)
-            for i in range(n):
-                j = i
-                fold = []
-                users = user_instances.keys()
-                while j < len(users):
-                    fold.extend(user_instances[users[j]])
-                    j += n
-                folds.append(fold)
+        for i in range(n):
+            j = i
+            fold = []
+            users = list(user_instances.keys())
+            while j < len(users):
+                fold.extend(user_instances[users[j]])
+                j += n
+            folds.append(fold)
     else:
         num_instances = len(instances)
         for i in range(n):

@@ -49,7 +49,7 @@ class Docreader:
         lines : list of lists
             Each list corresponds to the cell values of a row
         """
-        workbook = xlrd.open_workbook(filename)
+        workbook = xlrd.open_workbook(doc)
         wbsheet = workbook.sheets()[0]
         rows = []
         begin = 0
