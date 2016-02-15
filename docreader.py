@@ -1,21 +1,26 @@
 
 import sys
 import xlrd
+from openpyxl import load_workbook
 import csv
 import json
 import copy
+import re
+import string
 
 class Docreader:
 
     def __init__(self):
         self.lines = []
 
-    def parse_doc(self, doc, delimiter = False, header = False, date = False, time = False):
+    def parse_doc(self, doc, delimiter = False, header = False, sheet = False, date = False, time = False):
         form = doc[-4:]
         if form == '.txt':
             self.lines = self.parse_txt(doc, delimiter, header)
-        elif form == '.xls':
+        elif form == '.xls': 
             self.lines = self.parse_xls(doc, header, date, time)
+        elif form == '.xlsx':
+            self.lines = self.parse_xlsx(doc, header, sheet)
         else:
             self.lines = self.parse_csv(doc)
 
@@ -72,6 +77,23 @@ class Docreader:
             rows.append(values)
         return rows
         
+    def parse_xlsx(self, doc, sh):
+        workbook = load_workbook(filename = filename)
+        sheet = workbook[sh]
+        dimensions = sheet.dimensions
+        d1, d2 = dimensions.split(':')
+        cols = list(string.ascii_uppercase)
+        firstcol = ''.join([x for x in d1 if re.search(r'[A-Z]', x)])
+        lastcol = ''.join([x for x in d2 if re.search(r'[A-Z]', x)])
+        firstrow = int(''.join([x for x in d1 if re.search(r'[0-9]', x)]))
+        lastrow = int(''.join([x for x in d2 if re.search(r'[0-9]', x)]))
+        cols = cols[:cols.index(lastcol) + 1]
+        for i in range(firstrow, lastrow):
+            line = []
+            for c in cols:
+                line.append(sheet[c + str(i)])
+            self.lines.append(line)
+
     def parse_csv(self, doc):
         """
         Csv reader
