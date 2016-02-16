@@ -79,7 +79,10 @@ class Docreader:
         
     def parse_xlsx(self, doc, sh):
         workbook = load_workbook(filename = doc)
-        sheet = workbook[sh]
+        if sh:
+            sheet = workbook[sh]
+        else:
+            sheet = workbook[workbook._sheets[0]]
         dimensions = sheet.dimensions
         d1, d2 = dimensions.split(':')
         cols = list(string.ascii_uppercase)
