@@ -82,7 +82,7 @@ class Docreader:
         if sh:
             sheet = workbook[sh]
         else:
-            sheet = workbook[workbook._sheets[0]]
+            sheet = workbook['sheet1']
         dimensions = sheet.dimensions
         d1, d2 = dimensions.split(':')
         cols = list(string.ascii_uppercase)
