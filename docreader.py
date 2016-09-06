@@ -1,6 +1,6 @@
 
 import sys
-import xlrd
+#import xlrd
 from openpyxl import load_workbook
 import csv
 import json
@@ -21,8 +21,16 @@ class Docreader:
             self.lines = self.parse_xls(doc, header, date, time)
         elif form == 'xlsx':
             self.lines = self.parse_xlsx(doc, sheet)
-        else:
+        elif form == 'json': # default twitter parse keys
+            parse_keys = [['id'], ['user', 'id'], ['user', 'screen_name'], ['user', 'followers_count'], 
+            ['user', 'location'], ['created_at'], ['in_reply_to_screen_name'], ['retweeted_status', 'user', 
+            'screen_name'], ['text']]
+            self.lines = self.parse_json(doc, parse_keys)
+        elif form == '.csv':
             self.lines = self.parse_csv(doc)
+        else:
+            print('File extension not known, exiting program')
+            exit()
 
     def parse_txt(self, doc, delimiter, header):
         if not delimiter:
@@ -99,7 +107,7 @@ class Docreader:
             lines.append(line)
         return lines
 
-    def parse_csv(self, doc):
+    def parse_csv(self, doc, delim=','):
         """
         Csv reader
         =====
@@ -119,7 +127,7 @@ class Docreader:
         try:
             lines = []
             with open(doc, 'r', encoding = 'utf-8') as csvfile:
-                csv_reader = csv.reader(csvfile)
+                csv_reader = csv.reader(csvfile, delimiter = delim)
                 for line in csv_reader:
                     lines.append(line)
         except:
