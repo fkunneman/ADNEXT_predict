@@ -1,13 +1,9 @@
 
-import sys
-import os
-import glob
 from pynlpl.formats import folia
-import luiginlp
-from luiginlp.engine import Task, StandardWorkflowComponent, InputFormat, InputComponent, registercomponent, InputSlot, Parameter
+from luiginlp.engine import Task, StandardWorkflowComponent, InputFormat, InputComponent, registercomponent, Parameter, InputSlot
 from luiginlp.modules.ucto import Ucto
 
-import featurizer
+import simple_featurizer
 
 class FeaturizeTask(Task):
     """Featurizes a single file"""
@@ -22,7 +18,7 @@ class FeaturizeTask(Task):
         """Run the featurizer"""
         doc = folia.Document(file=self.in_folia().path, encoding = 'utf-8')
 
-        ft = featurizer.Featurizer()
+        ft = simple_featurizer.Featurizer()
         features = ft.extract_words(doc)
         with open(self.out_featuretxt().path,'w',encoding = 'utf-8') as f_out:
             f_out.write(' '.join(features))
