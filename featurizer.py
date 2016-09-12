@@ -21,13 +21,10 @@ class Featurizer:
 
     Parameters
     -----
-    raw : list
-        The raw data comes in an array where each entry represents a text
-        instance in the data file.
-    tagged : list
-        The tagged data comes in a list of lists, where each row represents a 
-        text instance and the columns represent word - lemma - pos - 
-        sentence number respectively
+    instances : list
+        The instances come in an array where each entry represents a text instance 
+            for token n-grams, lemma n-grams or pos-ngrams, make sure units are split by whitespace
+            for character ngrams, input the original text  
     features : dict
         Subset any of the entries in the following dictionary:
 
@@ -41,10 +38,8 @@ class Featurizer:
 
     Attributes
     -----
-    self.tagged : list
-        The tagged parameter
-    self.raw : list
-        The raw parameter
+    self.instances : list
+        The instances parameter
     self.modules : dict
         Template dict with all the helper classes
     self.helpers : list
@@ -54,19 +49,15 @@ class Featurizer:
     self.vocabularies : dict
         Container of the name of each feature index for the different feature types
     """
-    def __init__(self, raws, tagged, directory, features):
-        self.tagged = tagged
-        self.raw = raws
-        self.directory = directory
+    def __init__(self, instances, features):
+        self.instances = instances
         self.modules = {
-            'simple_stats':         SimpleStats,
             'token_ngrams':         TokenNgrams,
-            'lemma_ngrams':         LemmaNgrams,
-            'pos_ngrams':           PosNgrams,
             'char_ngrams':          CharNgrams,
+            'simple_stats':         SimpleStats
         }
         self.helpers = [v(**features[k]) for k, v in self.modules.items() if k in features.keys()]
-        self.feats = {}
+        self.features = {}
         self.vocabularies = {}
 
     def fit_transform(self):
@@ -83,9 +74,9 @@ class Featurizer:
             The name of each feature index for every feature type is written to this dict
         """
         for helper in self.helpers:
-            feats, vocabulary = helper.fit_transform(self.raw, self.tagged, self.directory)
-            self.feats[helper.name] = feats
-            self.vocabularies[helper.name] = vocabulary
+            helperfeatures, helpervocabulary = helper.fit_transform(self.raw, self.tagged, self.directory)
+            self.features[helper.name] = helperfeatures
+            self.vocabularies[helper.name] = helpervocabulary
 
     def return_instances(self, helpernames):
         """
@@ -106,7 +97,7 @@ class Featurizer:
         Vocabulary : list
             List with the feature name per index
         """
-        submatrices = [self.feats[name] for name in helpernames]
+        submatrices = [self.features[name] for name in helpernames]
         instances = sparse.hstack(submatrices).tocsr()        
         vocabulary = np.hstack([self.vocabularies[name] for name in helpernames])
         return instances, vocabulary
@@ -132,21 +123,21 @@ class CocoNgrams:
         self.ngrams = ngrams
         self.blackfeats = set(blackfeats)
         
-    def fit(self, tmpdir, lines, mt = 1):
-        self.lines = lines
-        ngram_file = tmpdir + 'ngrams.txt'
-        with open(ngram_file, 'w', encoding = 'utf-8') as txt:
-            for line in lines:
-                txt.write(line)
-        classfile = tmpdir + 'ngrams.colibri.cls'
+    def fit(self, tmpdir, documents, mt = 1):
+        self.documents = documents
+        coco_file = tmpdir + 'instances.txt'
+        with open(coco_file, 'w', encoding = 'utf-8') as txt:
+            for doc in documents:
+                txt.write(doc)
+        classfile = tmpdir + 'instances.colibri.cls'
         # Build class encoder
         classencoder = colibricore.ClassEncoder()
-        classencoder.build(ngram_file)
+        classencoder.build(coco_file)
         classencoder.save(classfile)
 
         # Encode corpus data
-        corpusfile = tmpdir + 'ngrams.colibri.dat'
-        classencoder.encodefile(ngram_file, corpusfile)
+        corpusfile = tmpdir + 'instances.colibri.dat'
+        classencoder.encodefile(coco_file, corpusfile)
 
         # Load class decoder
         self.classdecoder = colibricore.ClassDecoder(classfile) 
@@ -175,8 +166,8 @@ class CocoNgrams:
                 sparse_out.write(' '.join([str(x) for x in data]) + '\n')
                 sparse_out.write(' '.join([str(x) for x in rows]) + '\n')
                 sparse_out.write(' '.join([str(x) for x in cols]) + '\n')
-                sparse_out.write(str(len(self.lines)) + ' ' + str(self.model.__len__()))
-        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.lines), self.model.__len__()))
+                sparse_out.write(str(len(self.documents)) + ' ' + str(self.model.__len__()))
+        instances = sparse.csr_matrix((data, (rows, cols)), shape = (len(self.documents), self.model.__len__()))
         if len(self.blackfeats) > 0:
             blackfeats_indices = []
             for bf in self.blackfeats:
@@ -216,7 +207,7 @@ class TokenNgrams(CocoNgrams):
         The n_list parameter
     self.blackfeats : list
         The blackfeats parameter
-    self.feats : list
+    self.features : list
         List of feature names, to keep track of the values of feature indices
     """
     def __init__(self, **kwargs):
@@ -227,30 +218,19 @@ class TokenNgrams(CocoNgrams):
         else:
             self.blackfeats = []
         CocoNgrams.__init__(self, self.n_list, self.blackfeats)
-        self.feats = []        
+        self.features = []        
         
-    def fit(self, tagged_data, directory):
+    def fit(self, documents):
         """
         Model fitter
         =====
         Function to make an overview of all the existing features
 
-        Parameters
-        -----
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
-
-        Attributes
-        -----
-        feats : dict
-            dictionary of features and their count
         """        
-        tmpdir = directory + 'tmp/'
+        tmpdir = os.cwd() + 'tmp/'
         if not os.path.isdir(tmpdir):
             os.mkdir(tmpdir)
-        tokenized = [' '.join([t[0] for t in instance]) + '\n' for instance in tagged_data]
-        CocoNgrams.fit(self, tmpdir, tokenized)
+        CocoNgrams.fit(self, tmpdir, documents)
 
     def transform(self):
         """
@@ -258,21 +238,11 @@ class TokenNgrams(CocoNgrams):
         =====
         Function to featurize instances based on the fitted features 
 
-        Parameters
-        -----
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
-
-        Attributes
-        -----
-        instances : list
-            The documents represented as feature vectors
         """
-        instances, feats = CocoNgrams.transform(self)
-        return(instances, feats)
+        instances, features = CocoNgrams.transform(self)
+        return(instances, features)
 
-    def fit_transform(self, raw_data, tagged_data, directory):
+    def fit_transform(self, documents):
         """
         Fit transform
         =====
@@ -280,245 +250,16 @@ class TokenNgrams(CocoNgrams):
 
         Parameters
         -----
-        raw_data : list
-            Each entry represents a text instance in the data file
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
 
         Returns
         -----
         self.transform(tagged_data) : list
             The featurized instances
-        self.feats : list
+        self.features : list
             The vocabulary
         """  
-        self.fit(tagged_data, directory)
+        self.fit(documents)
         return self.transform()
-
-class LemmaNgrams:
-    """
-    Lemma ngram extractor
-    =====
-    Class to extract Lemma ngrams from all documents
-
-    Parameters
-    -----
-    kwargs : dict
-        n_list : list
-            The values of N (1 - ...)
-        blackfeats : list
-            Features to exclude
-
-    Attributes
-    -----
-    self.name : str
-        The name of the module
-    self.n_list : list
-        The n_list parameter
-    self.blackfeats : list
-        The blackfeats parameter
-    self.feats : list
-        List of feature names, to keep track of the values of feature indices
-    """
-    def __init__(self, **kwargs):
-        self.name = 'lemma_ngrams'
-        self.n_list = kwargs['n_list']
-        if 'blackfeats' in kwargs.keys():
-            self.blackfeats = kwargs['blackfeats']
-        else:
-            self.blackfeats = []
-        self.feats = []
-
-    def fit(self, tagged_data):
-        """
-        Model fitter
-        =====
-        Function to make an overview of all the existing features
-
-        Parameters
-        -----
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
-
-        Attributes
-        -----
-        feats : dict
-            dictionary of features and their count
-        """
-        feats = {}
-        for inst in tagged_data:
-            for n in self.n_list:
-                tokens = [t[1] for t in inst]
-                feats.update(utils.freq_dict(["_".join(item) for item in \
-                    utils.find_ngrams(tokens, n)]))
-        self.feats = [i for i, j in sorted(feats.items(), reverse = True, 
-            key = operator.itemgetter(1)) if not bool(set(i.split("_")) & 
-            set(self.blackfeats))]
-
-    def transform(self, tagged_data):
-        """
-        Model transformer
-        =====
-        Function to featurize instances based on the fitted features 
-
-        Parameters
-        -----
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
-
-        Attributes
-        -----
-        instances : list
-            The documents represented as feature vectors
-        """       
-        instances = []
-        for inst in tagged_data:
-            tok_dict = {}
-            for n in self.n_list:
-                tokens = [t[1] for t in inst]
-                tok_dict.update(utils.freq_dict(["_".join(item) for item in \
-                    utils.find_ngrams(tokens, n)]))
-            instances.append([tok_dict.get(f, 0) for f in self.feats])
-        return np.array(instances)
-
-    def fit_transform(self, raw_data, tagged_data, directory):
-        """
-        Fit transform
-        =====
-        Function to perform the fit and transform sequence
-
-        Parameters
-        -----
-        raw_data : list
-            Each entry represents a text instance in the data file
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
-
-        Returns
-        -----
-        self.transform(tagged_data) : list
-            The featurized instances
-        self.feats : list
-            The vocabulary
-        """  
-        self.fit(tagged_data)
-        return self.transform(tagged_data), self.feats
-
-class PosNgrams:
-    """
-    Part-of-Speech tag ngram extractor
-    =====
-    Class to extract PoS ngrams from all documents
-
-    Parameters
-    -----
-    kwargs : dict
-        n_list : list
-            The values of N (1 - ...)
-        blackfeats : list
-            Features to exclude
-
-    Attributes
-    -----
-    self.name : str
-        The name of the module
-    self.n_list : list
-        The n_list parameter
-    self.blackfeats : list
-        The blackfeats parameter
-    self.feats : list
-        List of feature names, to keep track of the values of feature indices
-    """
-    def __init__(self, **kwargs):
-        self.name = 'pos_ngrams'
-        self.n_list = [int(x) for x in kwargs['n_list']]
-        if 'blackfeats' in kwargs.keys():
-            self.blackfeats = kwargs['blackfeats']
-        else:
-            self.blackfeats = []
-        self.feats = []
-
-    def fit(self, tagged_data):
-        """
-        Model fitter
-        =====
-        Function to make an overview of all the existing features
-
-        Parameters
-        -----
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
-
-        Attributes
-        -----
-        feats : dict
-            dictionary of features and their count
-        """
-        feats = {}
-        for inst in tagged_data:
-            for n in self.n_list:
-                tokens = [t[2] for t in inst]
-                feats.update(utils.freq_dict(["_".join(item) for item in \
-                    utils.find_ngrams(tokens, n)]))
-        self.feats = [i for i, j in sorted(feats.items(), reverse = True, 
-            key = operator.itemgetter(1)) if not bool(set(i.split("_")) & 
-            set(self.blackfeats))]
-
-    def transform(self, tagged_data):
-        """
-        Model transformer
-        =====
-        Function to featurize instances based on the fitted features 
-
-        Parameters
-        -----
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
-
-        Attributes
-        -----
-        instances : list
-            The documents represented as feature vectors
-        """       
-        instances = []
-        for inst in tagged_data:
-            tok_dict = {}
-            for n in self.n_list:
-                tokens = [t[2] for t in inst]
-                tok_dict.update(utils.freq_dict(["_".join(item) for item in \
-                    utils.find_ngrams(tokens, n)]))
-            instances.append([tok_dict.get(f, 0) for f in self.feats])
-        return np.array(instances)
-
-    def fit_transform(self, raw_data, tagged_data, directory):
-        """
-        Fit transform
-        =====
-        Function to perform the fit and transform sequence
-
-        Parameters
-        -----
-        raw_data : list
-            Each entry represents a text instance in the data file
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
-
-        Returns
-        -----
-        self.transform(tagged_data) : list
-            The featurized instances
-        self.feats : list
-            The vocabulary
-        """  
-        self.fit(tagged_data)
-        return self.transform(tagged_data), self.feats
 
 class CharNgrams:
     """
@@ -542,7 +283,7 @@ class CharNgrams:
         The n_list parameter
     self.blackfeats : list
         The blackfeats parameter
-    self.feats : list
+    self.features : list
         List of feature names, to keep track of the values of feature indices
     """
     def __init__(self, **kwargs):
@@ -552,9 +293,9 @@ class CharNgrams:
             self.blackfeats = kwargs['blackfeats']
         else:
             self.blackfeats = []
-        self.feats = []
+        self.features = []
 
-    def fit(self, raw_data):
+    def fit(self, documents):
         """
         Model fitter
         =====
@@ -562,24 +303,22 @@ class CharNgrams:
 
         Parameters
         -----
-        raw_data : list
+        documents : list
             Each entry represents a text instance in the data file
 
         Attributes
         -----
-        feats : dict
+        features : dict
             dictionary of features and their count
         """       
-        feats = {}
-        for inst in raw_data:
-            inst = list(inst)
+        features = {}
+        for document in documents:
+            document = list(document)
             for n in self.n_list:
-                feats.update(utils.freq_dict(["".join(item) for item in utils.find_ngrams(inst, n)]))
-        self.feats = [i for i,j in sorted(feats.items(), reverse=True, 
-            key=operator.itemgetter(1)) if not bool(set(i.split("_")) & 
-            set(self.blackfeats))]
+                features.update(utils.freq_dict([''.join(item) for item in utils.find_ngrams(document, n)]))
+        self.features = [i for i,j in sorted(features.items(), reverse=True, key=operator.itemgetter(1)) if not bool(set(i.split("_")) & set(self.blackfeats))]
 
-    def transform(self, raw_data):
+    def transform(self, documents):
         """
         Model transformer
         =====
@@ -587,7 +326,7 @@ class CharNgrams:
 
         Parameters
         -----
-        raw_data : list
+        documents : list
             Each entry represents a text instance in the data file
 
         Attributes
@@ -596,15 +335,15 @@ class CharNgrams:
             The documents represented as feature vectors
         """       
         instances = []
-        for inst in raw_data:
-            inst = list(inst)
+        for document in documents:
+            document = list(document)
             char_dict = {}
             for n in self.n_list:
-                char_dict.update(utils.freq_dict(["".join(item) for item in utils.find_ngrams(inst, n)]))
-            instances.append([char_dict.get(f,0) for f in self.feats])
+                char_dict.update(utils.freq_dict([''.join(item) for item in utils.find_ngrams(document, n)]))
+            instances.append([char_dict.get(f,0) for f in self.features])
         return np.array(instances)
 
-    def fit_transform(self, raw_data, tagged_data, directory):
+    def fit_transform(self, documents):
         """
         Fit transform
         =====
@@ -612,18 +351,31 @@ class CharNgrams:
 
         Parameters
         -----
-        raw_data : list
+        documents : list
             Each entry represents a text instance in the data file
-        tagged_data : list
-            List of lists, where each row represents a text instance and the columns 
-            represent word - lemma - pos - sentence number respectively
 
         Returns
         -----
         self.transform(tagged_data) : list
             The featurized instances
-        self.feats : list
+        self.features : list
             The vocabulary
         """  
-        self.fit(raw_data)
-        return self.transform(raw_data), self.feats
+        self.fit(documents)
+        return self.transform(documents), self.features
+
+#TODO
+class SimpleStats:
+
+    def __init__(self):
+        pass
+
+    def fit(self):
+        pass
+
+    def transform(self):
+        pass
+
+    def fit_transform(self):
+        self.fit()
+        self.transform()
