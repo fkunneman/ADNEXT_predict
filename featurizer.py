@@ -49,8 +49,8 @@ class Featurizer:
     self.vocabularies : dict
         Container of the name of each feature index for the different feature types
     """
-    def __init__(self, instances, features):
-        self.instances = instances
+    def __init__(self, documents, features):
+        self.documents = documents
         self.modules = {
             'token_ngrams':         TokenNgrams,
             'char_ngrams':          CharNgrams,
@@ -74,7 +74,7 @@ class Featurizer:
             The name of each feature index for every feature type is written to this dict
         """
         for helper in self.helpers:
-            helperfeatures, helpervocabulary = helper.fit_transform(self.raw, self.tagged, self.directory)
+            helperfeatures, helpervocabulary = helper.fit_transform(self.documents)
             self.features[helper.name] = helperfeatures
             self.vocabularies[helper.name] = helpervocabulary
 
