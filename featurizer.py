@@ -11,7 +11,6 @@ from collections import Counter
 import colibricore
 
 import utils
-import gen_functions
 
 class Featurizer:
     """
