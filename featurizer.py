@@ -227,7 +227,7 @@ class TokenNgrams(CocoNgrams):
         Function to make an overview of all the existing features
 
         """        
-        tmpdir = os.cwd() + 'tmp/'
+        tmpdir = os.getcwd() + 'tmp/'
         if not os.path.isdir(tmpdir):
             os.mkdir(tmpdir)
         CocoNgrams.fit(self, tmpdir, documents)
