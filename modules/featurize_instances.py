@@ -12,10 +12,11 @@ class Featurize_tokens(Task):
     blackfeats = Parameter()
 
     def out_features(self):
-        return self.outputfrominput(inputformat='tokenized', stripextension='.tok.txt', addextension='.features')
+        return self.outputfrominput(inputformat='tokenized', stripextension='.tok.txt', addextension='.features.npz')
 
     def run(self):
         
+        print('start run')
         # generate dictionary of features
         features = {'token_ngrams':{'n_list':self.token_ngrams.split(), 'blackfeats':self.blackfeats}}
         
@@ -29,8 +30,8 @@ class Featurize_tokens(Task):
 
         numpy.savez(self.out_features().path, data=instances.data, indices=instances.indices, indptr=instances.indptr, shape=instances.shape)
         vocabulary = list(vocabulary)
-        print(' '.join(vocabulary[:10]).encode('utf-8'))
-        with open('vocabulary.txt','w',encoding='utf-8') as vocab_out:
+        out_features_dir = '/'.join(self.out_features().path.split('/')[:-1]) + '/'
+        with open(out_features_dir + 'vocabulary.txt','w',encoding='utf-8') as vocab_out:
             vocab_out.write('\n'.join(vocabulary))
         
 @registercomponent
