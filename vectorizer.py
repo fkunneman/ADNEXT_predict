@@ -113,13 +113,13 @@ class Counts:
             idf[feature] = math.log((num_docs / feature_counts[feature]), 10) if feature_counts[feature] > 0 else 0
         return idf
 
-def return_document_frequency(instances):
+def return_document_frequency(instances, labels):
 
     cnt = Counts(instances)
     document_frequency = cnt.count_document_frequency()
     return document_frequency
 
-def return_idf(instances):
+def return_idf(instances, labels):
 
     cnt = Counts(instances)
     idf = cnt.count_idf()
@@ -182,15 +182,18 @@ def return_tfidf_vectors(instances, idfs):
     tfidf_vectors = instances.multiply(feature_idf_ordered)
     return tfidf_vectors
 
-def return_infogain_vectors(instances, infogain)
+def return_infogain_vectors(instances, infogain):
 
     infogain_ordered = sparse.csr_matrix([infogain[feature] for feature in sorted(infogain.keys())])
     instances_binary = return_binary_vectors(instances)
     infogain_vectors = instances_binary.multiply(infogain_ordered)
     return infogain_vectors
 
-def prune_features(instances, feature_weights, prune):
+def prune_features(feature_weights, prune):
     
     top_features = sorted(feature_weights, key = feature_weights.get, reverse = True)[:prune]
-    compressed_instances = instances[:, top_features]
-    return instances, top_features
+    return top_features
+
+def compress_vectors(instances, top_features):
+    compressed_vectors = instances[:, top_features]
+    return compressed_vectors
