@@ -30,7 +30,7 @@ class Featurize_tokens(Task):
             documents = file_in.readlines()
 
         ft = featurizer.Featurizer(documents, features)
-        ft.ft.fit_transform()
+        ft.fit_transform()
         instances, vocabulary = ft.return_instances(['token_ngrams'], )
 
         numpy.savez(self.out_features().path, data=instances.data, indices=instances.indices, indptr=instances.indptr, shape=instances.shape)
