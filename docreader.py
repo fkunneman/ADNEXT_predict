@@ -1,6 +1,6 @@
 
 import sys
-#import xlrd
+import xlrd
 from openpyxl import load_workbook
 import csv
 import json
@@ -85,7 +85,7 @@ class Docreader:
             rows.append(values)
         return rows
         
-    def parse_xlsx(self, doc, sh):
+    def parse_xlsx(self, doc, sh=False):
         workbook = load_workbook(filename = doc)
         if sh:
             sheet = workbook[sh]

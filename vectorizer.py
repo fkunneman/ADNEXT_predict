@@ -5,6 +5,7 @@ from collections import Counter
 from scipy import sparse
 import numpy
 import math
+import random
 
 class Counts:
     """
@@ -114,6 +115,23 @@ class Counts:
             idf[feature] = math.log((num_docs / feature_counts[feature]), 10) if feature_counts[feature] > 0 else 0
         return idf
 
+def balance_data(instances, labels):
+    # identify lowest frequency]
+    unique_labels = list(set(labels))
+    label_count_sorted = sorted([(label,labels.count(label)) for label in unique_labels], key = lambda k : k[1])
+    least_frequent_indices = [i for i,label in enumerate(labels) if label == label_count_sorted[0][0]]
+    least_frequent_count = label_count_sorted[0][1]   
+    balanced_instances = instances[least_frequent_indices,:]
+    balanced_labels = [label_count_sorted[0][0]] * least_frequent_count 
+    # impose lowest frequency on other labels
+    for cursorlabel in [lc[0] for lc in label_count_sorted[1:]]:
+        label_indices = [i for i,label in enumerate(labels) if label == cursorlabel]
+        samples = random.sample(label_indices, least_frequent_count)
+        sampled_instances = instances[samples,:]
+        balanced_instances = sparse.vstack((balanced_instances,sampled_instances), format='csr')
+        balanced_labels.extend([cursorlabel] * least_frequent_count)       
+    return balanced_instances, balanced_labels
+         
 def return_document_frequency(instances, labels):
 
     cnt = Counts(instances, labels)

@@ -11,7 +11,7 @@ class Featurize_tokens(Task):
 
     token_ngrams = Parameter()
     blackfeats = Parameter()
-    standard_vocabulary = Parameter(default = False)
+    lowercase = BoolParameter()
 
     def out_features(self):
         return self.outputfrominput(inputformat='tokenized', stripextension='.tok.txt', addextension='.features.npz')
@@ -21,13 +21,15 @@ class Featurize_tokens(Task):
 
     def run(self):
         
-        print('start run')
         # generate dictionary of features
-        features = {'token_ngrams':{'n_list':self.token_ngrams.split(), 'blackfeats':self.blackfeats}}
+        features = {'token_ngrams':{'n_list':self.token_ngrams.split(), 'blackfeats':self.blackfeats.split()}}
         
         # read in file and put in right format
         with open(self.in_tokenized().path, 'r', encoding = 'utf-8') as file_in:
             documents = file_in.readlines()
+            
+        if self.lowercase:
+            documents = [doc.lower() for doc in documents]
 
         ft = featurizer.Featurizer(documents, features)
         ft.fit_transform()
@@ -41,21 +43,15 @@ class Featurize_tokens(Task):
         
 @registercomponent
 class Featurize(StandardWorkflowComponent):
-
     token_ngrams = Parameter(default='1 2 3')
     blackfeats = Parameter(default=False)
-    
+    lowercase = BoolParameter(default=True)    
+
     tokconfig = Parameter(default=False)
     strip_punctuation = BoolParameter(default=True)
 
     def accepts(self):
         return InputFormat(self, format_id='tokenized', extension='tok.txt'), InputComponent(self, Tokenize, config=self.tokconfig, strip_punctuation=self.strip_punctuation)
                     
-
-#    def setup(self, workflow, input_feeds):
-#        featurizertask = workflow.new_task('Featurize_tokens', Featurize_tokens, autopass=True)
-#        featurizertask.in_tokenized = input_feeds['toktxt']
-#        return Featurize_tokens
-
     def autosetup(self):
         return Featurize_tokens
