@@ -102,7 +102,7 @@ class Docreader:
         lastrow = int(''.join([x for x in d2 if re.search(r'[0-9]', x)]))
         cols = cols[:cols.index(lastcol) + 1]
         lines = []
-        for i in range(firstrow, lastrow):
+        for i in range(firstrow, lastrow+1):
             line = []
             for c in cols:
                 line.append(sheet[c + str(i)].value)
