@@ -7,6 +7,7 @@ import json
 import copy
 import re
 import string
+from itertools import product
 
 class Docreader:
 
@@ -94,6 +95,7 @@ class Docreader:
         dimensions = sheet.dimensions
         d1, d2 = dimensions.split(':')
         cols = list(string.ascii_uppercase)
+        cols += [''.join(x) for x in product(cols,cols)] # to include further columns, named as combinations of characters
         firstcol = ''.join([x for x in d1 if re.search(r'[A-Z]', x)])
         lastcol = ''.join([x for x in d2 if re.search(r'[A-Z]', x)])
         firstrow = int(''.join([x for x in d1 if re.search(r'[0-9]', x)]))
