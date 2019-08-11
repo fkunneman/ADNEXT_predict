@@ -9,14 +9,16 @@ lw = int(sys.argv[2])
 outplot = sys.argv[3]
 xlabel = sys.argv[4]
 ylabel = sys.argv[5]
-yrange_lowest = int(sys.argv[6])
-yrange_highest = int(sys.argv[7])
-sort = sys.argv[8]
-legend = int(sys.argv[9])
-plotfiles = sys.argv[10:]
+yrange_lowest = float(sys.argv[6])
+yrange_highest = float(sys.argv[7])
+xrange_lowest = float(sys.argv[8])
+xrange_highest = float(sys.argv[9])
+sort = sys.argv[10]
+legend = int(sys.argv[11])
+plotfiles = sys.argv[12:]
 
 if plottype[:4] == "line":
-    linestyles = ["-","--","-.",":"]
+    linestyles = ["+",">","-.",":"]
     d = 1
     if legend:
         d = 2
@@ -27,7 +29,7 @@ if plottype[:4] == "line":
         y = []
         for entry in pf_open.readlines():
             # generate coordinates
-            tokens = entry.strip().split("\t")
+            tokens = entry.strip().split(" ")
             x.append(float(tokens[0]))
             if tokens[1] == "NaN":
                 ytoken = NaN
@@ -36,12 +38,13 @@ if plottype[:4] == "line":
             y.append(ytoken)
         if plottype[4:] == "range":
             x = range(len(x))
-        plt.plot(x,y,linestyle=linestyles[i],linewidth=lw)
+        plt.scatter(x,y,marker=linestyles[i])
         if sort == "nosort":
             plt.gca().invert_xaxis()
 #pos = np.arange(len(x))
         #    plt.xticks(xpos,x)
     plt.ylim((yrange_lowest,yrange_highest))
+    plt.xlim((xrange_lowest,xrange_highest))
     if legend:
         legend = plotfiles[half:]
         plt.legend(legend,loc = "upper right")
